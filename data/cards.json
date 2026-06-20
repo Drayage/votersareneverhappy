@@ -1,0 +1,62 @@
+[
+  { "id": "basic_tax", "name": "기본 세수", "type": "treasure", "tags": ["admin"], "cost": 0, "tier": "start", "text": "+1 예산", "onPlay": [{ "kind": "gainBudget", "amount": 1 }] },
+  { "id": "old_pledge", "name": "낡은 공약", "type": "score", "tags": ["populism"], "cost": 0, "tier": "start", "text": "사용: +2점", "onPlay": [{ "kind": "gainScore", "amount": 2 }] },
+
+  { "id": "tax_collect", "name": "세금 징수", "type": "treasure", "tags": ["commerce"], "cost": 2, "tier": "B", "text": "+2 예산", "onPlay": [{ "kind": "gainBudget", "amount": 2 }] },
+  { "id": "small_park", "name": "소규모 공원", "type": "score", "tags": ["environment", "residential"], "cost": 2, "tier": "B", "text": "사용: +5점", "onPlay": [{ "kind": "gainScore", "amount": 5 }] },
+  { "id": "civil_service", "name": "민원 처리", "type": "action", "tags": ["admin"], "cost": 2, "tier": "B", "text": "+1액션, +1드로우", "onPlay": [{ "kind": "gainAction", "amount": 1 }, { "kind": "gainDraw", "amount": 1 }] },
+  { "id": "banner", "name": "현수막", "type": "score", "tags": ["pr"], "cost": 1, "tier": "B", "text": "사용: +3점", "onPlay": [{ "kind": "gainScore", "amount": 3 }] },
+
+  { "id": "treasury", "name": "국고", "type": "treasure", "tags": ["commerce", "admin"], "cost": 4, "tier": "B", "text": "+3예산, +1구매", "onPlay": [{ "kind": "gainBudget", "amount": 3 }, { "kind": "gainBuy", "amount": 1 }] },
+  { "id": "municipal_bond", "name": "지방채", "type": "treasure", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "+4예산", "onPlay": [{ "kind": "gainBudget", "amount": 4 }] },
+  { "id": "investment", "name": "투자 유치", "type": "treasure", "tags": ["commerce", "industry"], "cost": 5, "tier": "A", "text": "+3예산, +1구매", "onPlay": [{ "kind": "gainBudget", "amount": 3 }, { "kind": "gainBuy", "amount": 1 }] },
+  { "id": "commercial_boom", "name": "상권 활성화", "type": "action", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "이번 턴 카드 구매 시마다 +2점", "trigger": [{ "kind": "onBuyScore", "score": 2 }] },
+  { "id": "central_market", "name": "중앙시장", "type": "score", "tags": ["commerce"], "cost": 4, "tier": "A", "text": "정산: 상업 카드당 +2점", "settlement": [{ "kind": "settlementPerTag", "tag": "commerce", "points": 2 }] },
+  { "id": "big_corp", "name": "대기업 유치", "type": "score", "tags": ["industry", "commerce"], "cost": 6, "tier": "S", "text": "정산: 상업 카드당 +3점", "settlement": [{ "kind": "settlementPerTag", "tag": "commerce", "points": 3 }] },
+
+  { "id": "factory", "name": "공장 가동", "type": "score", "tags": ["industry"], "cost": 3, "tier": "B", "text": "사용: +9점. 환경 벌점 +1", "onPlay": [{ "kind": "gainScore", "amount": 9 }, { "kind": "pollution", "amount": 1 }] },
+  { "id": "ind_complex", "name": "산업단지", "type": "score", "tags": ["industry", "commerce"], "cost": 5, "tier": "A", "text": "사용: +14점. 환경 벌점 +2", "onPlay": [{ "kind": "gainScore", "amount": 14 }, { "kind": "pollution", "amount": 2 }] },
+  { "id": "power_plant", "name": "발전소", "type": "score", "tags": ["industry"], "cost": 4, "tier": "A", "text": "산업 카드 사용 시 +3점. 환경 벌점 +1", "onPlay": [{ "kind": "pollution", "amount": 1 }], "trigger": [{ "kind": "onPlayTag", "tag": "industry", "score": 3 }] },
+  { "id": "heavy_cluster", "name": "중공업 클러스터", "type": "score", "tags": ["industry", "transport"], "cost": 7, "tier": "S", "text": "정산: 산업 카드당 +5점", "settlement": [{ "kind": "settlementPerTag", "tag": "industry", "points": 5 }] },
+  { "id": "dereg_special", "name": "규제 특례", "type": "action", "tags": ["industry", "corruption"], "cost": 4, "tier": "S", "text": "이번 턴 산업 점수 ×1.5. 부패 +1", "onPlay": [{ "kind": "multiplyTagScore", "tag": "industry", "mult": 1.5 }, { "kind": "corruption", "amount": 1 }] },
+
+  { "id": "lab", "name": "연구소", "type": "score", "tags": ["science"], "cost": 3, "tier": "B", "text": "정산: 과학 카드당 +2점", "settlement": [{ "kind": "settlementPerTag", "tag": "science", "points": 2 }] },
+  { "id": "research_complex", "name": "연구단지", "type": "action", "tags": ["science", "education"], "cost": 4, "tier": "A", "text": "과학 카드 사용 시 +2점. +1드로우", "onPlay": [{ "kind": "gainDraw", "amount": 1 }], "trigger": [{ "kind": "onPlayTag", "tag": "science", "score": 2 }] },
+  { "id": "smart_city", "name": "스마트시티 사업", "type": "score", "tags": ["science", "admin"], "cost": 6, "tier": "S", "text": "정산: 과학 카드 수 × 4점", "settlement": [{ "kind": "settlementTagCountMult", "tag": "science", "mult": 4 }] },
+  { "id": "rnd_grant", "name": "R&D 보조금", "type": "action", "tags": ["science", "commerce"], "cost": 4, "tier": "S", "text": "이번 턴 과학 카드 점수 +50%", "onPlay": [{ "kind": "multiplyTagScore", "tag": "science", "mult": 1.5 }] },
+  { "id": "natl_research", "name": "국가연구망", "type": "score", "tags": ["science", "transport"], "cost": 7, "tier": "S", "text": "정산: (과학+교육 카드 수)² ÷ 10 점 (상한 400)", "settlement": [{ "kind": "settlementFormula", "formula": "squareTags", "tags": ["science", "education"], "divide": 10, "cap": 400 }] },
+
+  { "id": "tourist_info", "name": "관광안내소", "type": "action", "tags": ["tourism"], "cost": 2, "tier": "B", "text": "관광 카드 사용 시 +1점", "trigger": [{ "kind": "onPlayTag", "tag": "tourism", "score": 1 }] },
+  { "id": "intl_airport", "name": "국제공항", "type": "score", "tags": ["tourism", "transport"], "cost": 5, "tier": "A", "text": "관광 카드 사용 시 +2점. +1드로우", "onPlay": [{ "kind": "gainDraw", "amount": 1 }], "trigger": [{ "kind": "onPlayTag", "tag": "tourism", "score": 2 }] },
+  { "id": "landmark", "name": "랜드마크", "type": "score", "tags": ["tourism", "culture"], "cost": 5, "tier": "A", "text": "정산: 관광 카드당 +3점", "settlement": [{ "kind": "settlementPerTag", "tag": "tourism", "points": 3 }] },
+  { "id": "cruise_terminal", "name": "크루즈 터미널", "type": "score", "tags": ["tourism", "commerce"], "cost": 6, "tier": "S", "text": "관광/문화 카드 사용 시 +3점", "trigger": [{ "kind": "onPlayTag", "tag": "tourism", "score": 3 }, { "kind": "onPlayTag", "tag": "culture", "score": 3 }] },
+  { "id": "world_expo", "name": "세계 박람회", "type": "score", "tags": ["tourism", "pr"], "cost": 7, "tier": "S", "text": "사용: +12점", "onPlay": [{ "kind": "gainScore", "amount": 12 }] },
+
+  { "id": "festival", "name": "도시 축제", "type": "score", "tags": ["culture"], "cost": 2, "tier": "B", "text": "사용: +5점", "onPlay": [{ "kind": "gainScore", "amount": 5 }] },
+  { "id": "museum", "name": "국립박물관", "type": "score", "tags": ["culture", "tourism"], "cost": 4, "tier": "B", "text": "정산: 문화 카드당 +3점", "settlement": [{ "kind": "settlementPerTag", "tag": "culture", "points": 3 }] },
+  { "id": "concert_hall", "name": "공연장", "type": "action", "tags": ["culture"], "cost": 3, "tier": "A", "text": "문화 카드 사용 시 +2점", "trigger": [{ "kind": "onPlayTag", "tag": "culture", "score": 2 }] },
+  { "id": "culture_street", "name": "문화의 거리", "type": "score", "tags": ["culture", "commerce"], "cost": 5, "tier": "A", "text": "정산: 문화 카드당 +2점, 관광 카드당 +2점", "settlement": [{ "kind": "settlementPerTag", "tag": "culture", "points": 2 }, { "kind": "settlementPerTag", "tag": "tourism", "points": 2 }] },
+  { "id": "biennale", "name": "비엔날레", "type": "score", "tags": ["culture", "education"], "cost": 6, "tier": "S", "text": "정산: 문화 정산 점수 +50%", "settlement": [{ "kind": "settlementMultTag", "tag": "culture", "mult": 1.5 }] },
+
+  { "id": "bus_line", "name": "버스 노선", "type": "action", "tags": ["transport"], "cost": 2, "tier": "B", "text": "+2드로우", "onPlay": [{ "kind": "gainDraw", "amount": 2 }] },
+  { "id": "subway", "name": "지하철망", "type": "action", "tags": ["transport"], "cost": 4, "tier": "A", "text": "+2드로우, +1액션", "onPlay": [{ "kind": "gainDraw", "amount": 2 }, { "kind": "gainAction", "amount": 1 }] },
+  { "id": "logistics_hub", "name": "물류 허브", "type": "action", "tags": ["transport", "industry"], "cost": 5, "tier": "S", "text": "+1액션. 산업/상업 카드 사용 시 +1점", "onPlay": [{ "kind": "gainAction", "amount": 1 }], "trigger": [{ "kind": "onPlayTag", "tag": "industry", "score": 1 }, { "kind": "onPlayTag", "tag": "commerce", "score": 1 }] },
+  { "id": "city_hall", "name": "시청 효율화", "type": "action", "tags": ["admin"], "cost": 2, "tier": "B", "text": "+1드로우", "onPlay": [{ "kind": "gainDraw", "amount": 1 }] },
+  { "id": "dereg_relax", "name": "규제 완화", "type": "action", "tags": ["admin"], "cost": 3, "tier": "A", "text": "+2액션", "onPlay": [{ "kind": "gainAction", "amount": 2 }] },
+  { "id": "egov", "name": "전자정부", "type": "action", "tags": ["admin", "science"], "cost": 5, "tier": "S", "text": "+1액션, +2드로우", "onPlay": [{ "kind": "gainAction", "amount": 1 }, { "kind": "gainDraw", "amount": 2 }] },
+
+  { "id": "public_housing", "name": "공공주택", "type": "score", "tags": ["residential", "welfare"], "cost": 3, "tier": "B", "text": "정산: 주거 카드당 +2점", "settlement": [{ "kind": "settlementPerTag", "tag": "residential", "points": 2 }] },
+  { "id": "new_town", "name": "신도시 개발", "type": "score", "tags": ["residential", "commerce"], "cost": 5, "tier": "A", "text": "정산: 덱의 카드 1장당 +1점", "settlement": [{ "kind": "settlementPerDeck", "points": 1 }] },
+  { "id": "free_meal", "name": "무료급식 확대", "type": "score", "tags": ["welfare", "politics"], "cost": 3, "tier": "A", "text": "사용 시 환경·부패 게이지 -1", "onPlay": [{ "kind": "pollution", "amount": -1 }, { "kind": "corruption", "amount": -1 }] },
+  { "id": "welfare_net", "name": "복지 안전망", "type": "action", "tags": ["welfare"], "cost": 4, "tier": "A", "text": "포퓰리즘 디버프 -10", "onPlay": [{ "kind": "populismDebuff", "amount": -10 }] },
+  { "id": "green_space", "name": "녹지 조성", "type": "score", "tags": ["environment", "residential"], "cost": 3, "tier": "B", "text": "사용: +4점. 환경 게이지 -1", "onPlay": [{ "kind": "gainScore", "amount": 4 }, { "kind": "pollution", "amount": -1 }] },
+  { "id": "carbon_neutral", "name": "탄소중립 도시", "type": "score", "tags": ["environment", "science"], "cost": 7, "tier": "S", "text": "사용 시 환경 게이지 -3. 정산: 환경 카드당 +4점", "onPlay": [{ "kind": "pollution", "amount": -3 }], "settlement": [{ "kind": "settlementPerTag", "tag": "environment", "points": 4 }] },
+
+  { "id": "library", "name": "도서관", "type": "score", "tags": ["education"], "cost": 2, "tier": "B", "text": "정산: 교육 카드당 +2점", "settlement": [{ "kind": "settlementPerTag", "tag": "education", "points": 2 }] },
+  { "id": "edu_office", "name": "교육청", "type": "action", "tags": ["education", "admin"], "cost": 4, "tier": "S", "text": "정산: 과학·문화 정산 점수 +25%", "settlement": [{ "kind": "settlementMultTag", "tag": "science", "mult": 1.25 }, { "kind": "settlementMultTag", "tag": "culture", "mult": 1.25 }] },
+  { "id": "big_pr", "name": "대대적 홍보", "type": "score", "tags": ["pr"], "cost": 3, "tier": "A", "text": "사용: +6점", "onPlay": [{ "kind": "gainScore", "amount": 6 }] },
+  { "id": "election_pledge", "name": "선거 공약", "type": "score", "tags": ["politics"], "cost": 4, "tier": "A", "text": "정산: +12점", "settlement": [{ "kind": "gainScore", "amount": 12 }] },
+  { "id": "slush_fund", "name": "비자금 조성", "type": "treasure", "tags": ["corruption"], "cost": 3, "tier": "A", "text": "+5예산. 부패 +2", "onPlay": [{ "kind": "gainBudget", "amount": 5 }, { "kind": "corruption", "amount": 2 }] },
+  { "id": "vote_buying", "name": "매표 행위", "type": "score", "tags": ["populism", "corruption"], "cost": 4, "tier": "S", "text": "사용: +18점. 다음 주기 점수 -10%, 부패 +1", "onPlay": [{ "kind": "gainScore", "amount": 18 }, { "kind": "populismDebuff", "amount": 10 }, { "kind": "corruption", "amount": 1 }] },
+  { "id": "big_pledge", "name": "대규모 공약", "type": "score", "tags": ["populism", "pr"], "cost": 5, "tier": "S", "text": "사용: +25점. 다음 주기 점수 -15%", "onPlay": [{ "kind": "gainScore", "amount": 25 }, { "kind": "populismDebuff", "amount": 15 }] }
+]

@@ -41,7 +41,33 @@
 | [docs/04_유물설계.md](docs/04_유물설계.md) | 유물 설계 철학 + 60개 프레임워크 + 대표 샘플 |
 | [docs/05_밸런스.md](docs/05_밸런스.md) | 평가 곡선 / 초보·고급 풀 / 무한콤보 / 추천 수치 |
 
-## 다음 단계 (구현 시)
+## 플레이 가능한 프로토타입 (웹)
 
-카드/유물 표는 추후 `data/cards.json`, `data/relics.json` 으로 직접 옮길 수 있도록
-`이름·타입·태그·비용·효과·역할` 스키마를 유지한다. 본 문서의 표가 곧 데이터 명세다.
+기획을 기반으로 한 **전체 루프 슬라이스**(5평가×5턴 + 시장 진화 + 상점 + 유물)가 구현돼 있다.
+TypeScript + Vite + React, 콘텐츠는 엔진과 분리된 JSON.
+
+```bash
+npm install
+npm run dev        # 브라우저에서 플레이
+npm run test       # 엔진/정산/캡/시뮬레이션 검증 (vitest)
+npm run build      # 타입체크 + 프로덕션 번들
+```
+
+### 구조
+
+| 경로 | 역할 |
+|------|------|
+| `data/cards.json` · `relics.json` · `policies.json` | **콘텐츠(DB)** — 엔진과 완전 분리 |
+| `src/engine/` | 순수 TS 엔진(상태머신·정산·시장·효과 레지스트리·안전장치) |
+| `src/content/` | zod 스키마 검증 + 로더 |
+| `src/store/` · `src/ui/` | zustand 스토어 + React UI |
+| `tests/` | 정산/캡/시뮬/확장성 테스트 |
+
+### 카드·유물 추가가 쉬운 이유 (데이터 주도)
+
+효과는 `{ kind, ...params }` 객체 배열이고, 엔진의 **effect kind 레지스트리**가 종류별 처리를 담당한다.
+**기존 kind만 쓰는 새 카드/유물은 `data/*.json`에 한 항목 추가하는 것만으로 코드 수정 없이 동작**한다
+(검증: `tests/extensibility.test.ts`). 새 메커니즘이 필요할 때만 `src/engine/types.ts`의 `Effect` 유니온과
+`src/content/schema.ts`, 그리고 해당 핸들러 한 곳에 `kind`를 추가하면 된다.
+
+표 스키마(`이름·타입·태그·비용·효과·역할`)는 곧 데이터 명세이므로, 기획 문서의 표를 그대로 JSON으로 옮길 수 있다.

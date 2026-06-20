@@ -1,0 +1,32 @@
+[
+  { "id": "tourism_cert", "name": "관광청 인증", "rarity": "common", "role": "태그강화", "price": 80, "text": "관광 카드 사용 시 +1점", "trigger": [{ "kind": "onPlayTag", "tag": "tourism", "score": 1 }] },
+  { "id": "industry_medal", "name": "산업 훈장", "rarity": "common", "role": "태그강화", "price": 80, "text": "산업 카드 점수 +25%", "passive": [{ "kind": "multiplyTagScore", "tag": "industry", "mult": 1.25 }] },
+  { "id": "science_award", "name": "과학 진흥상", "rarity": "common", "role": "태그강화", "price": 80, "text": "과학 카드 점수 +25%", "passive": [{ "kind": "multiplyTagScore", "tag": "science", "mult": 1.25 }] },
+  { "id": "culture_patron", "name": "문예 후원", "rarity": "common", "role": "태그강화", "price": 80, "text": "문화 카드 사용 시 +1점", "trigger": [{ "kind": "onPlayTag", "tag": "culture", "score": 1 }] },
+  { "id": "nobel", "name": "노벨상 유치", "rarity": "rare", "role": "태그강화", "price": 180, "text": "과학 정산 점수 ×2", "settlement": [{ "kind": "settlementMultTag", "tag": "science", "mult": 2 }] },
+  { "id": "unesco", "name": "유네스코 등재", "rarity": "rare", "role": "태그강화", "price": 180, "text": "문화 정산 점수 ×2", "settlement": [{ "kind": "settlementMultTag", "tag": "culture", "mult": 2 }] },
+  { "id": "transport_plan", "name": "교통 마스터플랜", "rarity": "rare", "role": "드로우", "price": 180, "text": "매 턴 +1드로우", "passive": [{ "kind": "passivePerTurn", "resource": "draw", "amount": 1 }] },
+  { "id": "commerce_guild", "name": "상공회의소", "rarity": "rare", "role": "엔진", "price": 180, "text": "매 턴 +2예산", "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 2 }] },
+  { "id": "megacity", "name": "메가시티 선언", "rarity": "legendary", "role": "점수배수", "price": 350, "text": "최종 도시 발전 점수 ×1.5", "passive": [{ "kind": "globalScoreMult", "mult": 1.5 }] },
+  { "id": "green_capital", "name": "녹색수도", "rarity": "legendary", "role": "태그강화", "price": 350, "text": "정산: 환경 카드당 +3점", "settlement": [{ "kind": "settlementPerTag", "tag": "environment", "points": 3 }] },
+
+  { "id": "city_report", "name": "시정 백서", "rarity": "common", "role": "점수배수", "price": 80, "text": "최종 점수 +15%", "passive": [{ "kind": "globalScoreMult", "mult": 1.15 }] },
+  { "id": "vote_surge", "name": "표심 폭발", "rarity": "rare", "role": "점수배수", "price": 180, "text": "포퓰리즘 카드 점수 +50%", "passive": [{ "kind": "multiplyTagScore", "tag": "populism", "mult": 1.5 }] },
+  { "id": "great_city", "name": "위대한 도시", "rarity": "legendary", "role": "점수배수", "price": 350, "text": "전체 점수 +20%", "passive": [{ "kind": "globalScoreMult", "mult": 1.2 }] },
+
+  { "id": "admin_simplify", "name": "행정 간소화", "rarity": "common", "role": "비용감소", "price": 80, "text": "액션 카드 구매 비용 -1", "passive": [{ "kind": "costReduction", "cardType": "action", "amount": 1 }] },
+  { "id": "sandbox", "name": "규제 샌드박스", "rarity": "rare", "role": "비용감소", "price": 180, "text": "모든 카드 비용 -1", "passive": [{ "kind": "costReduction", "cardType": "all", "amount": 1 }] },
+  { "id": "shadow_budget", "name": "그림자 예산", "rarity": "legendary", "role": "비용감소", "price": 350, "text": "매 턴 +3예산. 부패 +1", "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 3 }, { "kind": "corruption", "amount": 1 }] },
+
+  { "id": "citizen_part", "name": "시민 참여", "rarity": "common", "role": "드로우", "price": 80, "text": "매 턴 +1드로우", "passive": [{ "kind": "passivePerTurn", "resource": "draw", "amount": 1 }] },
+  { "id": "smart_admin", "name": "스마트 행정망", "rarity": "rare", "role": "엔진", "price": 180, "text": "매 턴 +1액션", "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }] },
+  { "id": "bigdata", "name": "빅데이터 센터", "rarity": "legendary", "role": "드로우", "price": 350, "text": "매 턴 +2드로우, +1액션", "passive": [{ "kind": "passivePerTurn", "resource": "draw", "amount": 2 }, { "kind": "passivePerTurn", "resource": "action", "amount": 1 }] },
+
+  { "id": "double_entry", "name": "복식부기", "rarity": "common", "role": "엔진", "price": 80, "text": "매 턴 +1구매", "passive": [{ "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] },
+  { "id": "supp_budget", "name": "추경 편성", "rarity": "rare", "role": "엔진", "price": 180, "text": "매 턴 +3예산", "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 3 }] },
+  { "id": "mayor_tf", "name": "시장 직속 TF", "rarity": "legendary", "role": "엔진", "price": 350, "text": "매 턴 +1액션, +1구매", "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }, { "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] },
+
+  { "id": "metro_merge", "name": "광역 통합", "rarity": "rare", "role": "규칙변형", "price": 180, "text": "시장 슬롯 +1 (최대 11칸)", "passive": [{ "kind": "extraMarketSlot", "amount": 1 }] },
+  { "id": "immunity", "name": "책임 면제", "rarity": "rare", "role": "규칙변형", "price": 180, "text": "점수 카드의 손패 패널티 제거", "passive": [{ "kind": "removeScorePenalty" }] },
+  { "id": "perm_power", "name": "영구 집권", "rarity": "legendary", "role": "규칙변형", "price": 350, "text": "매 턴 포퓰리즘 디버프 -8", "passive": [{ "kind": "populismDebuff", "amount": -8 }] }
+]

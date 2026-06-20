@@ -3,7 +3,7 @@ import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
 import type { CardDef, Content, GameState } from "../engine/types";
 import { effectiveCost } from "../engine/effects";
-import { EVAL_TARGETS } from "../engine/caps";
+import { EVAL_TARGETS, CAPS } from "../engine/caps";
 import { ownedCards } from "../engine/settlement";
 
 function def(content: Content, id: string): CardDef {
@@ -15,7 +15,7 @@ function ResourceBar({ state }: { state: GameState }) {
   return (
     <div className="bar">
       <div className="stat"><span className="k">평가</span><span className="v">{state.evalIndex + 1} / 5</span></div>
-      <div className="stat"><span className="k">턴</span><span className="v">{state.turn} / 5</span></div>
+      <div className="stat"><span className="k">턴</span><span className="v">{state.turn} / {CAPS.turnsPerCycle}</span></div>
       <div className="stat"><span className="k">예산</span><span className="v accent">{state.budget}</span></div>
       <div className="stat"><span className="k">발전 점수</span><span className="v good">{state.cycleScore}</span></div>
       <div className="stat"><span className="k">목표</span><span className="v">{target}</span></div>

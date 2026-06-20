@@ -251,14 +251,14 @@ export function endTurn(prev: GameState, content: Content): GameState {
   s.budget = 0;
   s.actions = 0;
   s.buys = 0;
-  if (s.turn < 5) {
+  if (s.turn < CAPS.turnsPerCycle) {
     const gen = generateCandidates(s, content);
     s.candidates = gen.candidates;
     s.rngState = gen.rngState;
     s.phase = "candidate";
     return s;
   }
-  // 5턴째 → 평가 정산
+  // 마지막 턴 → 평가 정산
   s.lastSettlement = computeSettlement(s, content);
   s.phase = "evaluation";
   return s;

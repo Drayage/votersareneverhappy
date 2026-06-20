@@ -247,7 +247,10 @@ export function endTurn(prev: GameState, content: Content): GameState {
   s.discard.push(...s.hand, ...s.inPlay);
   s.hand = [];
   s.inPlay = [];
-
+  // 예산은 턴 종료 시 소멸(이월 없음). 다음 턴 시작 시 기초 세수로 재충전된다.
+  s.budget = 0;
+  s.actions = 0;
+  s.buys = 0;
   if (s.turn < 5) {
     const gen = generateCandidates(s, content);
     s.candidates = gen.candidates;

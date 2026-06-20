@@ -161,6 +161,7 @@ function CandidateModal() {
             <CardView
               key={id}
               card={def(content, id)}
+              cost={effectiveCost(state, content, def(content, id))}
               highlight={pendingAdd === id}
               onClick={() => (full ? setPendingAdd(id) : commit(id))}
               badge={pendingAdd === id ? "추가 예정" : undefined}
@@ -176,6 +177,7 @@ function CandidateModal() {
                 <CardView
                   key={m.defId}
                   card={def(content, m.defId)}
+                  cost={effectiveCost(state, content, def(content, m.defId))}
                   onClick={() => commit(pendingAdd, m.defId)}
                   badge="제거"
                 />

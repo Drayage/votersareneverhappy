@@ -42,7 +42,7 @@ export function CardView({
         ))}
       </div>
       <div className="card-text">{card.text}</div>
-      {badge && <div className="card-badge">{badge}</div>}
+      {badge && <div className="card-foot">{badge}</div>}
     </button>
   );
 }

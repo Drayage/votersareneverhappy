@@ -4,23 +4,33 @@ import { CardView } from "./CardView";
 import type { CardDef, Content, GameState } from "../engine/types";
 import { effectiveCost } from "../engine/effects";
 import { EVAL_TARGETS, CAPS } from "../engine/caps";
-import { ownedCards } from "../engine/settlement";
+import { ownedCards, computeSettlement } from "../engine/settlement";
 
 function def(content: Content, id: string): CardDef {
   return content.cards.get(id)!;
 }
 
-function ResourceBar({ state }: { state: GameState }) {
+function ResourceBar({ state, content }: { state: GameState; content: Content }) {
   const target = EVAL_TARGETS[state.evalIndex];
+  // 지금 평가가 도래하면 정산으로 얻을 예상 추가 점수(과학 배수·벌점 반영)
+  const proj = computeSettlement(state, content);
+  const settleDelta = proj.settlementScore + proj.pollutionPenalty;
+  const projectedTotal = state.cycleScore + settleDelta;
   return (
     <div className="bar">
       <div className="stat"><span className="k">평가</span><span className="v">{state.evalIndex + 1} / 5</span></div>
       <div className="stat"><span className="k">턴</span><span className="v">{state.turn} / {CAPS.turnsPerCycle}</span></div>
       <div className="stat"><span className="k">예산</span><span className="v accent">{state.budget}</span></div>
       <div className="stat"><span className="k">발전 점수</span><span className="v good">{state.cycleScore}</span></div>
-      <div className="stat"><span className="k">목표</span><span className="v">{target}</span></div>
+      <div className="stat">
+        <span className="k">정산 예상</span>
+        <span className="v good">{settleDelta >= 0 ? "+" : ""}{settleDelta}{proj.settlementMult !== 1 ? ` (×${proj.settlementMult.toFixed(2)})` : ""}</span>
+      </div>
+      <div className="stat"><span className="k">예상 합계</span><span className="v">{projectedTotal} / {target}</span></div>
       <div className="stat"><span className="k">액션</span><span className="v">{state.actions}</span></div>
       <div className="stat"><span className="k">구매</span><span className="v">{state.buys}</span></div>
+      <div className="stat"><span className="k">뽑을 덱</span><span className="v">{state.deck.length}</span></div>
+      <div className="stat"><span className="k">버림</span><span className="v">{state.discard.length}</span></div>
       <div className="spacer" />
       <div className="stat"><span className="k">자금(상점)</span><span className="v accent">{state.fund}</span></div>
     </div>
@@ -330,7 +340,7 @@ export default function App() {
       <h1>유권자가 너무해 <span className="muted" style={{ fontSize: 13 }}>프로토타입</span></h1>
       <div className="sub">덱이 아니라 시장을 진화시키는 도시 경영 덱빌딩 로그라이크</div>
 
-      <ResourceBar state={state} />
+      <ResourceBar state={state} content={content} />
       <GaugeBar state={state} />
       <RelicBar state={state} content={content} />
 

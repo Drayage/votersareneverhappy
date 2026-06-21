@@ -21,7 +21,7 @@ function ResourceBar({ state, content }: { state: GameState; content: Content })
       <div className="stat"><span className="k">예산</span><span className="v accent">{state.budget}</span></div>
       <div className="stat"><span className="k">발전 점수</span><span className="v good">{state.cycleScore}</span></div>
       <div className="stat">
-        <span className="k">정산 예상(환경벌점 포함)</span>
+        <span className="k">정산 예상</span>
         <span className="v good">{settleDelta >= 0 ? "+" : ""}{settleDelta}{proj.settlementMult !== 1 ? ` (×${proj.settlementMult.toFixed(2)})` : ""}</span>
       </div>
       {proj.corruptionPct > 0 && (

@@ -8,8 +8,8 @@
   { "id": "banner", "name": "현수막", "type": "score", "tags": ["pr"], "cost": 1, "tier": "B", "text": "사용: +3점", "onPlay": [{ "kind": "gainScore", "amount": 3 }] },
 
   { "id": "treasury", "name": "국고", "type": "treasure", "tags": ["commerce", "admin"], "cost": 4, "tier": "B", "text": "+3예산, +1구매", "onPlay": [{ "kind": "gainBudget", "amount": 3 }, { "kind": "gainBuy", "amount": 1 }] },
-  { "id": "municipal_bond", "name": "지방채", "type": "treasure", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "+4예산", "onPlay": [{ "kind": "gainBudget", "amount": 4 }] },
-  { "id": "investment", "name": "투자 유치", "type": "treasure", "tags": ["commerce", "industry"], "cost": 5, "tier": "A", "text": "+3예산, +1구매", "onPlay": [{ "kind": "gainBudget", "amount": 3 }, { "kind": "gainBuy", "amount": 1 }] },
+  { "id": "municipal_bond", "name": "지방채", "type": "treasure", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "+3예산", "onPlay": [{ "kind": "gainBudget", "amount": 3 }] },
+  { "id": "investment", "name": "투자 유치", "type": "treasure", "tags": ["commerce", "industry"], "cost": 5, "tier": "A", "text": "+4예산, +1구매", "onPlay": [{ "kind": "gainBudget", "amount": 4 }, { "kind": "gainBuy", "amount": 1 }] },
   { "id": "commercial_boom", "name": "상권 활성화", "type": "action", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "이번 턴 카드 구매 시마다 +2점", "trigger": [{ "kind": "onBuyScore", "score": 2 }] },
   { "id": "central_market", "name": "중앙시장", "type": "score", "tags": ["commerce"], "cost": 4, "tier": "A", "text": "정산: 상업 카드당 +2점", "settlement": [{ "kind": "settlementPerTag", "tag": "commerce", "points": 2 }] },
   { "id": "big_corp", "name": "대기업 유치", "type": "score", "tags": ["industry", "commerce"], "cost": 6, "tier": "S", "text": "정산: 상업 카드당 +3점", "settlement": [{ "kind": "settlementPerTag", "tag": "commerce", "points": 3 }] },

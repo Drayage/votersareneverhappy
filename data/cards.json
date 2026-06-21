@@ -47,7 +47,7 @@
 
   { "id": "public_housing", "name": "공공주택", "type": "score", "tags": ["residential", "welfare"], "cost": 3, "tier": "B", "text": "정산: 주거 카드당 +2점", "settlement": [{ "kind": "settlementPerTag", "tag": "residential", "points": 2 }] },
   { "id": "new_town", "name": "신도시 개발", "type": "score", "tags": ["residential", "commerce"], "cost": 5, "tier": "A", "text": "정산: 덱의 카드 1장당 +1점", "settlement": [{ "kind": "settlementPerDeck", "points": 1 }] },
-  { "id": "free_meal", "name": "무료급식 확대", "type": "score", "tags": ["welfare", "politics"], "cost": 3, "tier": "A", "text": "사용 시 환경·부패 게이지 -1. 포퓰리즘 디버프 -8", "onPlay": [{ "kind": "pollution", "amount": -1 }, { "kind": "corruption", "amount": -1 }, { "kind": "populismDebuff", "amount": -8 }] },
+  { "id": "free_meal", "name": "무료급식 확대", "type": "score", "tags": ["welfare", "politics"], "cost": 3, "tier": "A", "text": "사용 시 환경·부패 게이지 -1. 다음 평가 목표 증가 -8%p", "onPlay": [{ "kind": "pollution", "amount": -1 }, { "kind": "corruption", "amount": -1 }, { "kind": "populismDebuff", "amount": -8 }] },
   { "id": "welfare_net", "name": "복지 안전망", "type": "score", "tags": ["welfare"], "cost": 4, "tier": "A", "text": "정산: 이번 평가 점수 최소 35점 보장(하한)", "settlement": [{ "kind": "settlementFloor", "points": 35 }] },
   { "id": "disaster_fund", "name": "재난대비기금", "type": "score", "tags": ["welfare"], "cost": 4, "tier": "S", "text": "정산: 환경 벌점 1당 +3점, 부패 1당 +3점 (벌점을 점수로)", "settlement": [{ "kind": "penaltyToScore", "perPollution": 3, "perCorruption": 3 }] },
   { "id": "green_space", "name": "녹지 조성", "type": "score", "tags": ["environment", "residential"], "cost": 3, "tier": "B", "text": "사용: +4점. 환경 게이지 -1", "onPlay": [{ "kind": "gainScore", "amount": 4 }, { "kind": "pollution", "amount": -1 }] },
@@ -59,6 +59,6 @@
   { "id": "big_pr", "name": "대대적 홍보", "type": "score", "tags": ["pr"], "cost": 3, "tier": "A", "text": "사용: +6점", "onPlay": [{ "kind": "gainScore", "amount": 6 }] },
   { "id": "election_pledge", "name": "선거 공약", "type": "score", "tags": ["politics"], "cost": 4, "tier": "A", "text": "정산: +12점", "settlement": [{ "kind": "gainScore", "amount": 12 }] },
   { "id": "slush_fund", "name": "비자금 조성", "type": "treasure", "tags": ["corruption"], "cost": 3, "tier": "A", "text": "+5예산. 부패 +2", "onPlay": [{ "kind": "gainBudget", "amount": 5 }, { "kind": "corruption", "amount": 2 }] },
-  { "id": "vote_buying", "name": "매표 행위", "type": "score", "tags": ["populism", "corruption"], "cost": 4, "tier": "S", "text": "사용: +18점. 다음 주기 점수 -10%, 부패 +1", "onPlay": [{ "kind": "gainScore", "amount": 18 }, { "kind": "populismDebuff", "amount": 10 }, { "kind": "corruption", "amount": 1 }] },
-  { "id": "big_pledge", "name": "대규모 공약", "type": "score", "tags": ["populism", "pr"], "cost": 5, "tier": "S", "text": "사용: +25점. 다음 주기 점수 -15%", "onPlay": [{ "kind": "gainScore", "amount": 25 }, { "kind": "populismDebuff", "amount": 15 }] }
+  { "id": "vote_buying", "name": "매표 행위", "type": "score", "tags": ["populism", "corruption"], "cost": 4, "tier": "S", "text": "사용: +18점. 다음 평가 목표 +10%, 부패 +1", "onPlay": [{ "kind": "gainScore", "amount": 18 }, { "kind": "populismDebuff", "amount": 10 }, { "kind": "corruption", "amount": 1 }] },
+  { "id": "big_pledge", "name": "대규모 공약", "type": "score", "tags": ["populism", "pr"], "cost": 5, "tier": "S", "text": "사용: +25점. 다음 평가 목표 +15%", "onPlay": [{ "kind": "gainScore", "amount": 25 }, { "kind": "populismDebuff", "amount": 15 }] }
 ]

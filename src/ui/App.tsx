@@ -3,7 +3,7 @@ import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
 import type { CardDef, Content, GameState } from "../engine/types";
 import { effectiveCost } from "../engine/effects";
-import { EVAL_TARGETS, CAPS } from "../engine/caps";
+import { CAPS } from "../engine/caps";
 import { ownedCards, computeSettlement } from "../engine/settlement";
 
 function def(content: Content, id: string): CardDef {
@@ -11,11 +11,9 @@ function def(content: Content, id: string): CardDef {
 }
 
 function ResourceBar({ state, content }: { state: GameState; content: Content }) {
-  const target = EVAL_TARGETS[state.evalIndex];
-  // 지금 평가가 도래하면 정산으로 얻을 예상 추가 점수(과학 배수·벌점 반영)
+  // 지금 평가가 도래하면 정산으로 얻을 예상 추가 점수(과학 배수·환경 벌점 반영)
   const proj = computeSettlement(state, content);
   const settleDelta = proj.settlementScore + proj.pollutionPenalty;
-  const projectedTotal = state.cycleScore + settleDelta;
   return (
     <div className="bar">
       <div className="stat"><span className="k">평가</span><span className="v">{state.evalIndex + 1} / 5</span></div>
@@ -23,10 +21,16 @@ function ResourceBar({ state, content }: { state: GameState; content: Content })
       <div className="stat"><span className="k">예산</span><span className="v accent">{state.budget}</span></div>
       <div className="stat"><span className="k">발전 점수</span><span className="v good">{state.cycleScore}</span></div>
       <div className="stat">
-        <span className="k">정산 예상</span>
+        <span className="k">정산 예상(환경벌점 포함)</span>
         <span className="v good">{settleDelta >= 0 ? "+" : ""}{settleDelta}{proj.settlementMult !== 1 ? ` (×${proj.settlementMult.toFixed(2)})` : ""}</span>
       </div>
-      <div className="stat"><span className="k">예상 합계</span><span className="v">{projectedTotal} / {target}</span></div>
+      {proj.corruptionPct > 0 && (
+        <div className="stat"><span className="k">부패 감산</span><span className="v" style={{ color: "var(--bad)" }}>-{proj.corruptionPct}%</span></div>
+      )}
+      <div className="stat">
+        <span className="k">예상 최종 / 목표{proj.targetBonusPct > 0 ? `(포퓰+${proj.targetBonusPct}%)` : ""}</span>
+        <span className={`v ${proj.finalScore >= proj.target ? "good" : ""}`}>{proj.finalScore} / {proj.target}</span>
+      </div>
       <div className="stat"><span className="k">액션</span><span className="v">{state.actions}</span></div>
       <div className="stat"><span className="k">구매</span><span className="v">{state.buys}</span></div>
       <div className="stat"><span className="k">뽑을 덱</span><span className="v">{state.deck.length}</span></div>
@@ -41,10 +45,10 @@ function GaugeBar({ state }: { state: GameState }) {
   const g = state.gauges;
   return (
     <div className="gauges">
-      {g.pollution > 0 && <span className="gauge bad">환경 벌점 {g.pollution} (정산 -{g.pollution * 2})</span>}
-      {g.corruption > 0 && <span className="gauge bad">부패 {g.corruption} (-{Math.floor(g.corruption / 5) * 10}%)</span>}
-      {g.populismDebuff > 0 && <span className="gauge bad">다음 주기 -{g.populismDebuff}%</span>}
-      {state.activePenaltyPct > 0 && <span className="gauge bad">이번 주기 -{state.activePenaltyPct}%</span>}
+      {g.pollution > 0 && <span className="gauge bad">환경 벌점 {g.pollution} (정산 -{g.pollution * 2}점)</span>}
+      {g.corruption > 0 && <span className="gauge bad">부패 {g.corruption} (평가 -{Math.floor(g.corruption / 5) * 10}%)</span>}
+      {g.populismDebuff > 0 && <span className="gauge bad">다음 평가 목표 +{g.populismDebuff}%</span>}
+      {state.activeTargetBonusPct > 0 && <span className="gauge bad">이번 평가 목표 +{state.activeTargetBonusPct}%</span>}
     </div>
   );
 }
@@ -214,10 +218,11 @@ function EvaluationModal() {
             <tr><td>정산 점수{r.settlementMult !== 1 ? " (배수 적용)" : ""}</td><td>{r.settlementScore}</td></tr>
             {r.pollutionPenalty !== 0 && <tr><td>환경 벌점</td><td className="fail">{r.pollutionPenalty}</td></tr>}
             {r.globalMult !== 1 && <tr><td>점수 배수(유물)</td><td>×{r.globalMult.toFixed(2)}</td></tr>}
-            {r.penaltyPct > 0 && <tr><td>포퓰리즘 디버프</td><td className="fail">-{r.penaltyPct}%</td></tr>}
             {r.corruptionPct > 0 && <tr><td>부패 페널티</td><td className="fail">-{r.corruptionPct}%</td></tr>}
             <tr><td><b>최종 점수</b></td><td className="big">{r.finalScore}</td></tr>
-            <tr><td>목표</td><td>{r.target}</td></tr>
+            <tr><td>기본 목표</td><td>{r.baseTarget}</td></tr>
+            {r.targetBonusPct > 0 && <tr><td>포퓰리즘 목표 증가</td><td className="fail">+{r.targetBonusPct}%</td></tr>}
+            <tr><td><b>통과 목표</b></td><td><b>{r.target}</b></td></tr>
           </tbody>
         </table>
         <div className="center">

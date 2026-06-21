@@ -111,28 +111,31 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     .slice(0, CAPS.maxScoreMultipliers);
   const globalMult = mults.reduce((a, b) => a * b, 1);
 
-  const penaltyPct = Math.max(0, state.activePenaltyPct);
+  const targetBonusPct = Math.max(0, state.activeTargetBonusPct);
   const corruptionPct = Math.floor(Math.max(0, state.gauges.corruption) / 5) * 10;
 
+  // 부패만 점수를 직접 깎는다(곱연산). 포퓰리즘은 점수가 아니라 목표를 올린다.
   let finalScore = subtotal * globalMult;
-  finalScore *= 1 - penaltyPct / 100;
   finalScore *= 1 - corruptionPct / 100;
   finalScore = Math.max(0, Math.round(finalScore));
   // 복지: 하한 보장
   finalScore = Math.max(finalScore, floor);
 
-  const target = EVAL_TARGETS[state.evalIndex];
+  // 포퓰리즘: 이번 평가의 목표 점수를 증가시킨다(점수 감산 대신).
+  const baseTarget = EVAL_TARGETS[state.evalIndex];
+  const target = Math.round(baseTarget * (1 + targetBonusPct / 100));
   const passed = finalScore >= target;
 
   return {
     evalIndex: state.evalIndex,
     target,
+    baseTarget,
     baseCycleScore,
     settlementScore,
     settlementMult,
     pollutionPenalty,
     globalMult,
-    penaltyPct,
+    targetBonusPct,
     corruptionPct,
     finalScore,
     passed,

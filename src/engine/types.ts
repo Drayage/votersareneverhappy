@@ -186,9 +186,8 @@ export interface GameState {
   // 이번 턴 태그별 점수 배수 (relic passive + multiplyTagScore). 매 턴 리셋.
   turnMult: Record<string, number>;
 
-  // 포퓰리즘 디버프: 이번 주기에 적용 중인 감점률(%) / 다음 주기로 넘길 누적분(%)
-  activePenaltyPct: number;
-  pendingPenaltyPct: number;
+  // 포퓰리즘: 이번 평가의 "목표 점수 증가율(%)" (지난 주기 누적분이 이월되어 발효)
+  activeTargetBonusPct: number;
 
   // 상점 제시 목록 (evalIndex 사이)
   shopRelics: string[];
@@ -212,8 +211,9 @@ export interface SettlementResult {
   settlementMult: number; // 과학 정산 배수
   pollutionPenalty: number; // 음수
   globalMult: number; // 곱연산 유물 결과 배수
-  penaltyPct: number; // 포퓰리즘
-  corruptionPct: number; // 부패
+  targetBonusPct: number; // 포퓰리즘: 목표 점수 증가율(%)
+  corruptionPct: number; // 부패: 점수 감산율(%)
+  baseTarget: number; // 포퓰리즘 적용 전 기본 목표
   finalScore: number;
   passed: boolean;
   fundGained: number;

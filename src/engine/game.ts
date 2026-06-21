@@ -56,8 +56,7 @@ export function newGame(content: Content, seed = 1): GameState {
     eduLevel: 0,
     triggerCount: 0,
     turnMult: {},
-    activePenaltyPct: 0,
-    pendingPenaltyPct: 0,
+    activeTargetBonusPct: 0,
     shopRelics: [],
     shopPolicies: [],
     rerollCost: REROLL_BASE,
@@ -82,8 +81,8 @@ function startCycle(prev: GameState, content: Content): GameState {
   s.turn = 1;
   // 교육: 이번 주기 시작 시 보유 교육 카드 수만큼 학습 레벨 누적(복리)
   s.eduLevel += educationCount(s, content);
-  // 지난 주기에 누적된 포퓰리즘 디버프가 이번 주기에 발효
-  s.activePenaltyPct = s.gauges.populismDebuff;
+  // 지난 주기에 누적된 포퓰리즘 부담이 이번 평가의 "목표 증가"로 발효
+  s.activeTargetBonusPct = s.gauges.populismDebuff;
   s.gauges.populismDebuff = 0;
   s.marketSlots = CAPS.marketSlots + extraMarketSlots(s, content);
   return startTurn(s, content);

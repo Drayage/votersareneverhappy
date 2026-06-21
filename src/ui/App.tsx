@@ -99,7 +99,7 @@ function PlayPhase() {
                     card={d}
                     onClick={() => play(ci.uid)}
                     disabled={dead || state.actions < pc}
-                    badge={dead ? "빈 카드" : pc > 0 ? `액션 ${pc}` : "사용"}
+                    badge={dead ? "빈 카드" : pc > 0 && state.actions < pc ? "액션 부족" : undefined}
                   />
                 );
               })}

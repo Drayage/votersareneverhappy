@@ -200,7 +200,8 @@ function EvaluationModal() {
         <table className="eval">
           <tbody>
             <tr><td>즉발·지속 누적</td><td>{r.baseCycleScore}</td></tr>
-            <tr><td>정산 점수</td><td>{r.settlementScore}</td></tr>
+            {r.settlementMult !== 1 && <tr><td>정산 배수(과학)</td><td>×{r.settlementMult.toFixed(2)}</td></tr>}
+            <tr><td>정산 점수{r.settlementMult !== 1 ? " (배수 적용)" : ""}</td><td>{r.settlementScore}</td></tr>
             {r.pollutionPenalty !== 0 && <tr><td>환경 벌점</td><td className="fail">{r.pollutionPenalty}</td></tr>}
             {r.globalMult !== 1 && <tr><td>점수 배수(유물)</td><td>×{r.globalMult.toFixed(2)}</td></tr>}
             {r.penaltyPct > 0 && <tr><td>포퓰리즘 디버프</td><td className="fail">-{r.penaltyPct}%</td></tr>}

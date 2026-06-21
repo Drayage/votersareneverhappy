@@ -26,6 +26,8 @@ export const CAPS = {
   baseBuys: 2,
   /** 평가 1주기당 턴 수 (기존 5에서 늘려 예산 램프를 보완) */
   turnsPerCycle: 8,
+  /** 정산 곱연산(과학) 총 배수 하드 캡 */
+  settlementMultCap: 10,
 } as const;
 
 /** 평가 차수별 목표 점수 */

@@ -30,6 +30,8 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   for (const t of ALL_TAGS) bucket[t] = 0;
   let general = 0;
   const tagMult: Record<string, number> = {};
+  let settleMultFactor = 1; // 과학: 정산 전체 배수
+  let floor = 0; // 복지: 하한 보장
 
   // settlement 효과원 = 보유 카드 각 인스턴스 + relic settlement
   const sources = [
@@ -61,21 +63,40 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
         case "settlementMultTag":
           tagMult[e.tag] = (tagMult[e.tag] ?? 1) * e.mult;
           break;
+        case "settlementGlobalMultPerTag":
+          // 과학: 보유 태그 카드 수에 비례한 곱연산 (캡은 합산 후 적용)
+          settleMultFactor *= 1 + e.perCard * counts[e.tag];
+          break;
+        case "settlementEduLevel":
+          // 교육: 누적 학습 레벨 × points
+          general += Math.max(0, state.eduLevel) * e.points;
+          break;
+        case "penaltyToScore":
+          // 복지: 벌점을 점수로 전환
+          general +=
+            Math.max(0, state.gauges.pollution) * e.perPollution +
+            Math.max(0, state.gauges.corruption) * e.perCorruption;
+          break;
+        case "settlementFloor":
+          floor = Math.max(floor, e.points);
+          break;
         default:
           break;
       }
     }
   }
 
-  // 태그별 배수 적용
+  // 태그별 배수 적용 → 정산 가산 기반
   const perTag: Record<string, number> = {};
-  let settlementScore = general;
+  let settlementBase = general;
   for (const t of ALL_TAGS) {
     const v = bucket[t] * (tagMult[t] ?? 1);
     if (v !== 0) perTag[t] = Math.round(v);
-    settlementScore += v;
+    settlementBase += v;
   }
-  settlementScore = Math.round(settlementScore);
+  // 과학 정산 배수 (하드 캡 적용)
+  const settlementMult = Math.min(CAPS.settlementMultCap, Math.max(1, settleMultFactor));
+  const settlementScore = Math.round(settlementBase * settlementMult);
 
   const pollutionPenalty = -2 * Math.max(0, state.gauges.pollution);
 
@@ -97,6 +118,8 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   finalScore *= 1 - penaltyPct / 100;
   finalScore *= 1 - corruptionPct / 100;
   finalScore = Math.max(0, Math.round(finalScore));
+  // 복지: 하한 보장
+  finalScore = Math.max(finalScore, floor);
 
   const target = EVAL_TARGETS[state.evalIndex];
   const passed = finalScore >= target;
@@ -106,6 +129,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     target,
     baseCycleScore,
     settlementScore,
+    settlementMult,
     pollutionPenalty,
     globalMult,
     penaltyPct,
@@ -115,6 +139,11 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     fundGained: passed ? finalScore : 0,
     perTag,
   };
+}
+
+/** 보유 교육 카드 수 (eduLevel 누적용) */
+export function educationCount(state: GameState, content: Content): number {
+  return tagCounts(state, content).education;
 }
 
 export function tagLabelCounts(state: GameState, content: Content): Array<[Tag, number]> {

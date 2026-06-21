@@ -12,7 +12,7 @@ import {
   hasRemoveScorePenalty,
   tagMultiplier,
 } from "./effects";
-import { computeSettlement, ownedCards } from "./settlement";
+import { computeSettlement, ownedCards, educationCount } from "./settlement";
 import { generateCandidates } from "./market";
 
 const clone = <T>(x: T): T => structuredClone(x);
@@ -51,6 +51,7 @@ export function newGame(content: Content, seed = 1): GameState {
     relicSlots: CAPS.relicSlots,
     policies: [],
     gauges: { pollution: 0, corruption: 0, populismDebuff: 0 },
+    eduLevel: 0,
     triggerCount: 0,
     turnMult: {},
     activePenaltyPct: 0,
@@ -77,6 +78,8 @@ function startCycle(prev: GameState, content: Content): GameState {
   s.inPlay = [];
   s.cycleScore = 0;
   s.turn = 1;
+  // 교육: 이번 주기 시작 시 보유 교육 카드 수만큼 학습 레벨 누적(복리)
+  s.eduLevel += educationCount(s, content);
   // 지난 주기에 누적된 포퓰리즘 디버프가 이번 주기에 발효
   s.activePenaltyPct = s.gauges.populismDebuff;
   s.gauges.populismDebuff = 0;

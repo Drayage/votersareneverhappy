@@ -62,6 +62,14 @@ export type Effect =
   | { kind: "settlementPerDeck"; points: number }
   | { kind: "settlementTagCountMult"; tag: Tag; mult: number }
   | { kind: "settlementFormula"; formula: "squareTags"; tags: Tag[]; divide: number; cap: number }
+  // 과학: 정산 전체를 곱한다 (태그 카드 1장당 +perCard 배)
+  | { kind: "settlementGlobalMultPerTag"; tag: Tag; perCard: number }
+  // 교육: 누적 학습 레벨(eduLevel)을 점수로 (런 내내 복리)
+  | { kind: "settlementEduLevel"; points: number }
+  // 복지: 환경/부패 벌점을 오히려 점수로 전환
+  | { kind: "penaltyToScore"; perPollution: number; perCorruption: number }
+  // 복지: 이번 평가 점수 하한 보장
+  | { kind: "settlementFloor"; points: number }
   // 시너지/배수 (턴 한정)
   | { kind: "multiplyTagScore"; tag: Tag; mult: number }
   // 리스크 게이지
@@ -169,6 +177,9 @@ export interface GameState {
 
   gauges: Gauges;
 
+  // 교육 누적 학습 레벨 (평가 주기 시작마다 보유 교육 카드 수만큼 증가, 복리)
+  eduLevel: number;
+
   // 이번 턴 누적 트리거 횟수(캡 적용용)
   triggerCount: number;
 
@@ -197,7 +208,8 @@ export interface SettlementResult {
   evalIndex: number;
   target: number;
   baseCycleScore: number; // 정산 전 누적(즉발/지속)
-  settlementScore: number; // 정산 가산분
+  settlementScore: number; // 정산 가산분(과학 배수 적용 후)
+  settlementMult: number; // 과학 정산 배수
   pollutionPenalty: number; // 음수
   globalMult: number; // 곱연산 유물 결과 배수
   penaltyPct: number; // 포퓰리즘

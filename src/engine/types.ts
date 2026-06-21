@@ -68,8 +68,8 @@ export type Effect =
   | { kind: "settlementEduLevel"; points: number }
   // 복지: 환경/부패 벌점을 오히려 점수로 전환
   | { kind: "penaltyToScore"; perPollution: number; perCorruption: number }
-  // 복지: 이번 평가 점수 하한 보장
-  | { kind: "settlementFloor"; points: number }
+  // 복지: 통과 목표의 일정 비율만큼 안정적으로 점수 획득(과학 배수 미적용)
+  | { kind: "settlementPctOfTarget"; pct: number }
   // 시너지/배수 (턴 한정)
   | { kind: "multiplyTagScore"; tag: Tag; mult: number }
   // 리스크 게이지

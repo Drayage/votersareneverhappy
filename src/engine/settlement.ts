@@ -31,7 +31,12 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   let general = 0;
   const tagMult: Record<string, number> = {};
   let settleMultFactor = 1; // 과학: 정산 전체 배수
-  let floor = 0; // 복지: 하한 보장
+  let pctOfTargetSum = 0; // 복지: 통과 목표 비례 안정 점수(과학 배수 미적용)
+
+  // 통과 목표(포퓰리즘 증가 포함)는 settlementPctOfTarget 계산에 필요 → 먼저 구한다.
+  const targetBonusPctEarly = Math.max(0, state.activeTargetBonusPct);
+  const baseTarget = EVAL_TARGETS[state.evalIndex];
+  const target = Math.round(baseTarget * (1 + targetBonusPctEarly / 100));
 
   // settlement 효과원 = 보유 카드 각 인스턴스 + relic settlement
   const sources = [
@@ -77,8 +82,9 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
             Math.max(0, state.gauges.pollution) * e.perPollution +
             Math.max(0, state.gauges.corruption) * e.perCorruption;
           break;
-        case "settlementFloor":
-          floor = Math.max(floor, e.points);
+        case "settlementPctOfTarget":
+          // 복지: 통과 목표의 일정 비율을 안정 점수로 (과학 배수 미적용)
+          pctOfTargetSum += e.pct;
           break;
         default:
           break;
@@ -96,7 +102,9 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   }
   // 과학 정산 배수 (하드 캡 적용)
   const settlementMult = Math.min(CAPS.settlementMultCap, Math.max(1, settleMultFactor));
-  const settlementScore = Math.round(settlementBase * settlementMult);
+  // 복지 안정 세입(목표 비례)은 과학 배수와 별개로 더한다.
+  const stableIncome = Math.round(target * pctOfTargetSum);
+  const settlementScore = Math.round(settlementBase * settlementMult) + stableIncome;
 
   const pollutionPenalty = -2 * Math.max(0, state.gauges.pollution);
 
@@ -111,19 +119,14 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     .slice(0, CAPS.maxScoreMultipliers);
   const globalMult = mults.reduce((a, b) => a * b, 1);
 
-  const targetBonusPct = Math.max(0, state.activeTargetBonusPct);
+  const targetBonusPct = targetBonusPctEarly;
   const corruptionPct = Math.floor(Math.max(0, state.gauges.corruption) / 5) * 10;
 
-  // 부패만 점수를 직접 깎는다(곱연산). 포퓰리즘은 점수가 아니라 목표를 올린다.
+  // 부패만 점수를 직접 깎는다(곱연산). 포퓰리즘은 점수가 아니라 목표를 올린다(target에 이미 반영).
   let finalScore = subtotal * globalMult;
   finalScore *= 1 - corruptionPct / 100;
   finalScore = Math.max(0, Math.round(finalScore));
-  // 복지: 하한 보장
-  finalScore = Math.max(finalScore, floor);
 
-  // 포퓰리즘: 이번 평가의 목표 점수를 증가시킨다(점수 감산 대신).
-  const baseTarget = EVAL_TARGETS[state.evalIndex];
-  const target = Math.round(baseTarget * (1 + targetBonusPct / 100));
   const passed = finalScore >= target;
 
   return {

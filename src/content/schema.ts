@@ -27,7 +27,7 @@ const effectSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("settlementGlobalMultPerTag"), tag: tagSchema, perCard: z.number() }),
   z.object({ kind: z.literal("settlementEduLevel"), points: z.number() }),
   z.object({ kind: z.literal("penaltyToScore"), perPollution: z.number(), perCorruption: z.number() }),
-  z.object({ kind: z.literal("settlementFloor"), points: z.number() }),
+  z.object({ kind: z.literal("settlementPctOfTarget"), pct: z.number() }),
   z.object({ kind: z.literal("multiplyTagScore"), tag: tagSchema, mult: z.number() }),
   z.object({ kind: z.literal("pollution"), amount: z.number() }),
   z.object({ kind: z.literal("corruption"), amount: z.number() }),

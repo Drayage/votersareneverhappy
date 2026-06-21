@@ -56,10 +56,10 @@ describe("정산 계산", () => {
     expect(r.settlementScore).toBe(15);
   });
 
-  it("복지: 하한 보장(settlementFloor)", () => {
-    // welfare_net: 최소 35점 보장. 점수원이 없어도 최종 35 이상
-    const s = withDeck(["welfare_net"]);
-    expect(computeSettlement(s, content).finalScore).toBeGreaterThanOrEqual(35);
+  it("복지: 통과 목표 비례 안정 세입(settlementPctOfTarget)", () => {
+    // welfare_net: 통과 목표의 20%. 1차 목표 50 → +10점 (과학 배수 미적용)
+    const s = withDeck(["welfare_net"]); // evalIndex 0 → 목표 50
+    expect(computeSettlement(s, content).settlementScore).toBe(10);
   });
 
   it("환경 벌점은 정산에서 차감된다", () => {

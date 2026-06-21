@@ -28,6 +28,8 @@ export const CAPS = {
   turnsPerCycle: 8,
   /** 정산 곱연산(과학) 총 배수 하드 캡 */
   settlementMultCap: 10,
+  /** 복지 '목표 비례 안정 세입' 총합 상한(목표 대비). 다수 적재로 자동 통과 방지 */
+  stableIncomeMaxPct: 0.4,
 } as const;
 
 /** 평가 차수별 목표 점수 */

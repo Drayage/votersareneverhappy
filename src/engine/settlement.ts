@@ -102,8 +102,8 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   }
   // 과학 정산 배수 (하드 캡 적용)
   const settlementMult = Math.min(CAPS.settlementMultCap, Math.max(1, settleMultFactor));
-  // 복지 안정 세입(목표 비례)은 과학 배수와 별개로 더한다.
-  const stableIncome = Math.round(target * pctOfTargetSum);
+  // 복지 안정 세입(목표 비례)은 과학 배수와 별개로 더한다. 총합은 상한으로 캡(자동 통과 방지).
+  const stableIncome = Math.round(target * Math.min(pctOfTargetSum, CAPS.stableIncomeMaxPct));
   const settlementScore = Math.round(settlementBase * settlementMult) + stableIncome;
 
   const pollutionPenalty = -2 * Math.max(0, state.gauges.pollution);

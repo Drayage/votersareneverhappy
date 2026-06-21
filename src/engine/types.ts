@@ -97,6 +97,8 @@ export interface CardDef {
   onPlay?: Effect[]; // 사용 시 1회
   trigger?: Effect[]; // 지속 트리거(다른 카드 사용/구매 시)
   settlement?: Effect[]; // 평가 시 정산
+  /** 플레이 코스트(액션 풀에서 차감). 미지정 시 타입 기본값: 재물 0 / 액션 1 / 점수 0 */
+  playCost?: number;
   /** 손에 들면 드로우를 막는 빈 카드(낡은 공약 등) */
   deadInHand?: boolean;
 }

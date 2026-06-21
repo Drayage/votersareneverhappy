@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
 import type { CardDef, Content, GameState } from "../engine/types";
-import { effectiveCost } from "../engine/effects";
+import { effectiveCost, playCostOf } from "../engine/effects";
 import { CAPS } from "../engine/caps";
 import { ownedCards, computeSettlement } from "../engine/settlement";
 
@@ -91,15 +91,15 @@ function PlayPhase() {
             <div className="cardrow">
               {state.hand.map((ci) => {
                 const d = def(content, ci.defId);
-                const isAction = d.type === "action";
+                const pc = playCostOf(d);
                 const dead = d.deadInHand;
                 return (
                   <CardView
                     key={ci.uid}
                     card={d}
                     onClick={() => play(ci.uid)}
-                    disabled={dead || (isAction && state.actions <= 0)}
-                    badge={dead ? "빈 카드" : isAction ? "액션" : "사용"}
+                    disabled={dead || state.actions < pc}
+                    badge={dead ? "빈 카드" : pc > 0 ? `액션 ${pc}` : "사용"}
                   />
                 );
               })}

@@ -10,6 +10,7 @@ import {
   effectiveCost,
   extraMarketSlots,
   hasRemoveScorePenalty,
+  playCostOf,
   tagMultiplier,
 } from "./effects";
 import { computeSettlement, ownedCards, educationCount } from "./settlement";
@@ -160,10 +161,9 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
   const def = content.cards.get(card.defId);
   if (!def) return prev;
   if (def.deadInHand && !hasRemoveScorePenalty(s, content)) return prev; // 빈 카드 사용 불가
-  if (def.type === "action") {
-    if (s.actions <= 0) return prev;
-    s.actions -= 1;
-  }
+  const pc = playCostOf(def);
+  if (s.actions < pc) return prev; // 플레이 코스트만큼 액션 필요
+  s.actions -= pc;
 
   // 1) 비점수 onPlay 효과 먼저 (배수/자원/게이지)
   let baseScore = 0;

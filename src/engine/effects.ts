@@ -3,6 +3,11 @@
 
 import type { CardDef, Content, Effect, GameState, Tag, CardType } from "./types";
 
+/** 카드 플레이 코스트(액션 풀에서 차감). 기본: 재물 0 / 액션 1 / 점수 0. */
+export function playCostOf(card: CardDef): number {
+  return card.playCost ?? (card.type === "action" ? 1 : 0);
+}
+
 /** relic + policy 의 passive 효과를 모두 모은다. */
 export function collectPassives(state: GameState, content: Content): Effect[] {
   const out: Effect[] = [];

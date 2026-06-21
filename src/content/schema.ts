@@ -52,6 +52,7 @@ export const cardSchema = z.object({
   onPlay: z.array(effectSchema).optional(),
   trigger: z.array(effectSchema).optional(),
   settlement: z.array(effectSchema).optional(),
+  playCost: z.number().min(0).optional(),
   deadInHand: z.boolean().optional(),
 });
 

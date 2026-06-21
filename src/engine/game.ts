@@ -20,10 +20,11 @@ const clone = <T>(x: T): T => structuredClone(x);
 const STARTING_DECK: Array<[string, number]> = [
   ["basic_tax", 7],
   ["old_pledge", 3],
+  ["community_center", 1], // +2액션 +1드로우: 액션 엔진 씨앗(시장엔 액션이 없으므로 덱에 기본 제공)
 ];
 // 초반 시장은 액션 카드 없이 "순수 예산(재물) + 순수 점수" 카드로만 구성.
 // 액션·시너지 카드는 매 턴 시장 진화(후보)로 점차 합류한다.
-const STARTING_MARKET = ["tax_collect", "treasury", "municipal_bond", "small_park", "festival", "banner"];
+const STARTING_MARKET = ["tax_collect", "treasury", "municipal_bond", "festival", "banner"];
 
 export function newGame(content: Content, seed = 1): GameState {
   let uid = 1;

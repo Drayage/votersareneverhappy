@@ -1,6 +1,7 @@
 [
   { "id": "basic_tax", "name": "기본 세수", "type": "treasure", "tags": ["admin"], "cost": 0, "tier": "start", "text": "+1 예산", "onPlay": [{ "kind": "gainBudget", "amount": 1 }] },
   { "id": "old_pledge", "name": "낡은 공약", "type": "score", "tags": ["populism"], "cost": 0, "tier": "start", "text": "사용: +2점", "onPlay": [{ "kind": "gainScore", "amount": 2 }] },
+  { "id": "community_center", "name": "주민센터", "type": "action", "tags": ["admin"], "cost": 0, "tier": "start", "text": "+2액션, +1드로우 (엔진 씨앗)", "onPlay": [{ "kind": "gainAction", "amount": 2 }, { "kind": "gainDraw", "amount": 1 }] },
 
   { "id": "tax_collect", "name": "세금 징수", "type": "treasure", "tags": ["commerce"], "cost": 2, "tier": "B", "text": "+2 예산", "onPlay": [{ "kind": "gainBudget", "amount": 2 }] },
   { "id": "small_park", "name": "소규모 공원", "type": "score", "tags": ["environment", "residential"], "cost": 2, "tier": "B", "text": "사용: +5점", "onPlay": [{ "kind": "gainScore", "amount": 5 }] },

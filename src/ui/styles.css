@@ -125,6 +125,48 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .card.is-compact .card-name { font-size: 13px; }
 .card.is-compact .card-text { font-size: 10px; }
 
+/* v0.2.1 — 실제 보드게임 카드처럼 보이는 세로 비율·액자·아트·규칙 박스 */
+.card-grid { gap: 11px; align-items: start; }
+.hand-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.market-grid { grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); }
+.card {
+  width: 100%; min-height: 0; aspect-ratio: 5 / 7; padding: 9px;
+  color: #1c2722; border: 2px solid color-mix(in srgb, var(--tone) 68%, #493f2d); border-radius: 15px;
+  background: linear-gradient(115deg, #fff8e8aa 0 1px, transparent 1px 8px), linear-gradient(145deg, #f1ead7 0%, #ddd2b8 100%);
+  box-shadow: inset 0 0 0 2px #fff8e9, inset 0 0 0 4px color-mix(in srgb, var(--tone) 28%, #c8bda5), 0 9px 0 #05080688, 0 15px 26px #0006;
+}
+.card::after { content: ""; position: absolute; inset: 5px; z-index: 0; pointer-events: none; border: 1px solid #483f3270; border-radius: 9px; }
+.card > * { position: relative; z-index: 1; }
+.card-accent { position: absolute; inset: 0 0 auto; z-index: 2; width: auto; height: 7px; background: var(--tone); border-bottom: 1px solid #312b22aa; box-shadow: 0 2px 8px color-mix(in srgb, var(--tone) 60%, transparent); }
+.card.is-interactive:hover:not(:disabled) {
+  transform: translateY(-5px) rotate(-.35deg); border-color: var(--tone);
+  box-shadow: inset 0 0 0 2px #fff8e9, inset 0 0 0 4px color-mix(in srgb, var(--tone) 35%, #c8bda5), 0 12px 0 #05080688, 0 21px 35px #0008;
+}
+.card.is-selected { border-color: var(--gold-2); box-shadow: inset 0 0 0 2px #fff8e9, inset 0 0 0 4px #e4b64f88, 0 0 0 3px #ffc96088, 0 14px 30px #0008; }
+.card-head { min-height: 34px; margin: 1px 1px 6px; padding: 7px 7px 5px; align-items: center; border-bottom: 2px solid color-mix(in srgb, var(--tone) 70%, #4b4030); background: color-mix(in srgb, var(--tone) 19%, #f6edd9); }
+.card-name { padding-top: 1px; color: #1c2722; font-size: 14px; line-height: 1.12; font-weight: 900; letter-spacing: -.025em; }
+.card-cost { width: 29px; height: 29px; border: 2px solid #72551f; color: #2a200e; background: radial-gradient(circle at 35% 30%, #ffe39a, #dca93d 72%); font-family: Georgia, serif; font-size: 13px; box-shadow: inset 0 0 0 2px #fff2b366, 0 2px 4px #4b391d88; }
+.card-art { position: relative; height: 32%; min-height: 58px; margin: 0 1px 6px; overflow: hidden; border: 2px solid #524738; background: linear-gradient(155deg, color-mix(in srgb, var(--tone) 62%, #f3e7c8), color-mix(in srgb, var(--tone) 20%, #9a8d70)); box-shadow: inset 0 0 0 2px #f8efd0aa; }
+.art-grid { position: absolute; inset: 0; opacity: .28; background: linear-gradient(90deg, transparent 47%, #2c302c 48% 52%, transparent 53%), linear-gradient(transparent 47%, #2c302c 48% 52%, transparent 53%); background-size: 18px 18px; transform: perspective(70px) rotateX(55deg) scale(1.8); transform-origin: bottom; }
+.art-glyph { position: absolute; inset: 42% auto auto 50%; translate: -50% -50%; color: #fff8e8; font-family: Georgia, serif; font-size: clamp(31px, 3.2vw, 48px); line-height: 1; text-shadow: 0 2px 0 #302b24, 0 5px 15px #0008; }
+.art-label { position: absolute; left: 7px; top: 6px; padding: 2px 5px; color: #fff9e9; background: #1d2a25b8; border: 1px solid #fff5d544; font-size: 7px; font-weight: 900; letter-spacing: .13em; }
+.art-skyline { position: absolute; inset: auto 0 0; height: 21%; background: #29332e; clip-path: polygon(0 45%, 7% 45%, 7% 8%, 20% 8%, 20% 55%, 32% 55%, 32% 22%, 45% 22%, 45% 0, 53% 0, 53% 62%, 65% 62%, 65% 31%, 80% 31%, 80% 16%, 91% 16%, 91% 55%, 100% 55%, 100% 100%, 0 100%); opacity: .92; }
+.card-meta { gap: 4px; margin: 0 2px 5px; }
+.type-chip, .playcost, .tier { padding: 2px 5px; border-radius: 3px; color: #e7e0cf; background: #26322d; font-size: 8px; font-weight: 900; }
+.tier { margin-left: auto; color: #514638; background: transparent; }
+.card-tags { gap: 3px; margin: 0 2px 5px; }
+.tag { padding: 2px 5px; border: 1px solid color-mix(in srgb, var(--tone) 68%, #746957); border-radius: 3px; color: #302c25; background: color-mix(in srgb, var(--tone) 22%, #efe5ce); font-size: 8px; font-weight: 900; }
+.card-rules { position: relative; flex: 1; min-height: 49px; margin: 0 1px; padding: 9px 7px 7px 17px; border: 1px solid #8a7d66; background: #faf3dfcc; box-shadow: inset 0 0 8px #594d3522; }
+.rules-mark { position: absolute; left: 6px; top: 10px; color: var(--tone); font-size: 7px; }
+.card-text { margin-top: 0; color: #39342c; font-size: 10px; line-height: 1.42; font-weight: 650; }
+.card-footer { min-height: 18px; margin-top: 5px; padding: 0 2px; }
+.card-badge { color: #f4ecda; background: #27332e; }
+.card.is-compact { min-height: 0; padding: 8px; }
+.card.is-compact .card-head { min-height: 30px; padding: 6px 6px 4px; }
+.card.is-compact .card-name { font-size: 12px; }
+.card.is-compact .card-art { min-height: 48px; }
+.card.is-compact .card-text { font-size: 9px; line-height: 1.35; }
+
 .tone-commerce { --tone: #e7ad50; }
 .tone-industry { --tone: #d37a58; }
 .tone-science { --tone: #7fa8ff; }
@@ -239,12 +281,12 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
   .resource { border-bottom: 1px solid var(--line-soft); }
   .resource:nth-child(3) { border-right: 0; }
   .hand-grid, .market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .card { min-height: 177px; }
+  .card { min-height: 0; aspect-ratio: 5 / 7; }
   .section-title { align-items: start; flex-direction: column; gap: 4px; }
   .section-title p { text-align: left; }
   .city-profile { display: block; }
   .identity-list { margin: 12px 0; }
-  .choice-grid { grid-template-columns: 1fr; }
+  .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .compact-choices { grid-template-columns: repeat(2, 1fr); }
   .shop-grid, .deck-list { grid-template-columns: 1fr; }
   .modal-backdrop { padding: 10px; }
@@ -256,11 +298,28 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
   .city-seal { width: 44px; height: 44px; border-radius: 12px; font-size: 20px; }
   .topbar p { display: none; }
   .resource { justify-content: flex-start; }
-  .hand-grid, .market-grid { grid-template-columns: 1fr; }
-  .card, .card.is-compact { min-height: 154px; }
+  .hand-grid, .market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .card, .card.is-compact { min-height: 238px; aspect-ratio: auto; padding: 7px; }
+  .card-head, .card.is-compact .card-head { min-height: 28px; margin-bottom: 4px; padding: 5px 5px 3px; }
+  .card-name, .card.is-compact .card-name { font-size: 11px; }
+  .card-cost { width: 25px; height: 25px; font-size: 11px; }
+  .card-art, .card.is-compact .card-art { height: 58px; min-height: 58px; margin-bottom: 4px; }
+  .art-glyph { font-size: 29px; }
+  .art-label { left: 5px; top: 5px; padding: 1px 4px; font-size: 6px; }
+  .card-meta, .card-tags { margin-bottom: 4px; }
+  .type-chip, .playcost, .tier, .tag { padding: 2px 4px; font-size: 7px; }
+  .card-rules { min-height: 53px; padding: 7px 5px 5px 14px; }
+  .rules-mark { left: 5px; top: 8px; }
+  .card-text, .card.is-compact .card-text { font-size: 8.5px; line-height: 1.34; }
+  .card-footer { margin-top: 4px; }
   .action-row { flex-direction: column; }
   .action-row .button { width: 100%; }
   footer { flex-direction: column; gap: 3px; }
+}
+
+@media (max-width: 350px) {
+  .hand-grid, .market-grid, .choice-grid { grid-template-columns: 1fr; }
+  .card, .card.is-compact { min-height: 0; aspect-ratio: 5 / 7; }
 }
 
 @media (prefers-reduced-motion: reduce) {

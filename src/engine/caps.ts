@@ -11,7 +11,7 @@ export const CAPS = {
   /** 동시 발효 가능한 곱연산(globalScoreMult) 유물 최대 개수 */
   maxScoreMultipliers: 2,
   /** 시장 더미 종류당 재고 */
-  marketStock: 10,
+  marketStock: 5,
   /** 기본 시장 슬롯 */
   marketSlots: 10,
   /** 기본 유물 슬롯 */

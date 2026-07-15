@@ -133,6 +133,11 @@ function SectionTitle({ kicker, title, note }: { kicker: string; title: string; 
 function PlayPhase() {
   const { state, content, play, playTreasures, buy, endTurn } = useGame();
   const hasTreasure = state.hand.some((c) => cardDef(content, c.defId).type === "treasure");
+  const affordableCards = state.market.filter((entry) => {
+    const card = cardDef(content, entry.defId);
+    return entry.stock > 0 && state.budget >= effectiveCost(state, content, card);
+  }).length;
+  const marketStatus = state.buys <= 0 ? "이번 턴 구매 완료" : affordableCards > 0 ? `${affordableCards}종 구매 가능` : "예산 부족";
   return (
     <div className="game-grid">
       <div className="game-main">
@@ -154,6 +159,12 @@ function PlayPhase() {
         </section>
 
         <section className="panel market-panel">
+          <div className="market-wallet" role="status" aria-live="polite" aria-label={`상점 지갑, 예산 ${state.budget}, 구매 ${state.buys}, ${marketStatus}`}>
+            <div className="wallet-title"><span className="eyebrow">MARKET WALLET</span><strong>상점 지갑</strong></div>
+            <div className="wallet-stat wallet-budget"><span aria-hidden="true">₩</span><small>예산</small><strong>{state.budget.toLocaleString()}</strong></div>
+            <div className="wallet-stat"><span aria-hidden="true">＋</span><small>구매</small><strong>{state.buys}</strong></div>
+            <div className={`wallet-status ${state.buys > 0 && affordableCards > 0 ? "is-ready" : ""}`}><span aria-hidden="true">●</span>{marketStatus}</div>
+          </div>
           <SectionTitle kicker="CITY SUPPLY" title={`정책 시장 ${state.market.length}/${state.marketSlots}`} note="예산으로 매입하면 버린 더미에 들어갑니다." />
           <div className="card-grid market-grid">
             {state.market.map((entry) => {

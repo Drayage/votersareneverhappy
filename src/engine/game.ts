@@ -244,6 +244,7 @@ export function buyCard(prev: GameState, content: Content, defId: string): GameS
   s.budget -= cost;
   s.buys -= 1;
   entry.stock -= 1;
+  if (entry.stock === 0) s.market = s.market.filter((item) => item.defId !== defId);
   s.discard.push({ uid: s.uidCounter++, defId });
   // 구매 트리거 (상권 활성화 등)
   s.cycleScore += computeBuyTriggerScore(s, content);

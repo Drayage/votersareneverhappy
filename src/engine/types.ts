@@ -54,6 +54,8 @@ export type Effect =
   | { kind: "gainDraw"; amount: number }
   | { kind: "gainAction"; amount: number }
   | { kind: "gainBuy"; amount: number }
+  // 연계: 이 카드를 내기 전에 사용한 특정 태그 카드 수만큼 점수 획득
+  | { kind: "comboScore"; tag: Tag; points: number; cap: number }
   // 지속(트리거)
   | { kind: "onPlayTag"; tag: Tag; score: number }
   | { kind: "onBuyScore"; score: number }
@@ -146,7 +148,7 @@ export interface MarketEntry {
 export interface Gauges {
   pollution: number;
   corruption: number;
-  populismDebuff: number; // 다음 주기 점수 감소율 누적 (%)
+  populismDebuff: number; // 다음 평가 목표 증가율 누적 (%)
 }
 
 export interface GameState {
@@ -187,6 +189,9 @@ export interface GameState {
 
   // 이번 턴 태그별 점수 배수 (relic passive + multiplyTagScore). 매 턴 리셋.
   turnMult: Record<string, number>;
+
+  // 이번 턴 이미 사용한 카드의 태그 수. comboScore와 UI의 연계 미리보기에 사용.
+  playedTagCounts: Record<string, number>;
 
   // 포퓰리즘: 이번 평가의 "목표 점수 증가율(%)" (지난 주기 누적분이 이월되어 발효)
   activeTargetBonusPct: number;

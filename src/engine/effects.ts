@@ -90,6 +90,12 @@ export function computeTriggerScore(
   for (const id of state.relics) {
     consider(content.relics.get(id)?.trigger);
   }
+  // 정책/유물 passive에 붙는 태그 트리거도 동일한 턴당 캡을 공유한다.
+  for (const e of passivesOfKind(state, content, "triggerBonusTag")) {
+    if (!playedTags.includes(e.tag) || fired >= triggerCapRemaining) continue;
+    score += e.score;
+    fired += 1;
+  }
   return { score, fired };
 }
 

@@ -2,5 +2,7 @@
   { "id": "p_extra_buy", "name": "구매 확대 조례", "text": "매 턴 +1구매 (영구)", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] },
   { "id": "p_extra_action", "name": "행정 권한 강화", "text": "매 턴 +1액션 (영구)", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }] },
   { "id": "p_no_penalty", "name": "공약 면책 특례", "text": "점수 카드 손패 패널티 철폐", "price": 150, "passive": [{ "kind": "removeScorePenalty" }] },
-  { "id": "p_market_slot", "name": "광역시 승격", "text": "시장 슬롯 +1", "price": 250, "passive": [{ "kind": "extraMarketSlot", "amount": 1 }] }
+  { "id": "p_market_slot", "name": "광역시 승격", "text": "시장 슬롯 +1", "price": 250, "passive": [{ "kind": "extraMarketSlot", "amount": 1 }] },
+  { "id": "p_citizen_budget", "name": "시민참여 예산제", "text": "행정 카드 사용 시 +1점", "price": 180, "passive": [{ "kind": "triggerBonusTag", "tag": "admin", "score": 1 }] },
+  { "id": "p_culture_city", "name": "문화도시 특별법", "text": "문화 카드 사용 시 +1점", "price": 180, "passive": [{ "kind": "triggerBonusTag", "tag": "culture", "score": 1 }] }
 ]

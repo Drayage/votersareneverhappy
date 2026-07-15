@@ -57,6 +57,7 @@ export function newGame(content: Content, seed = 1): GameState {
     eduLevel: 0,
     triggerCount: 0,
     turnMult: {},
+    playedTagCounts: {},
     activeTargetBonusPct: 0,
     shopRelics: [],
     shopPolicies: [],
@@ -114,6 +115,7 @@ function startTurn(prev: GameState, content: Content): GameState {
   s.buys = Math.min(buys, CAPS.buysPerTurn);
   s.budget = budget;
   s.triggerCount = 0;
+  s.playedTagCounts = {};
 
   // 턴 점수 배수: relic passive multiplyTagScore
   s.turnMult = {};
@@ -184,6 +186,9 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
       case "gainScore":
         baseScore += e.amount;
         break;
+      case "comboScore":
+        baseScore += Math.min(e.cap, (s.playedTagCounts[e.tag] ?? 0) * e.points);
+        break;
       case "multiplyTagScore":
         s.turnMult[e.tag] = (s.turnMult[e.tag] ?? 1) * e.mult;
         break;
@@ -214,6 +219,7 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
   // 4) inPlay 로 이동
   s.hand.splice(idx, 1);
   s.inPlay.push(card);
+  for (const tag of def.tags) s.playedTagCounts[tag] = (s.playedTagCounts[tag] ?? 0) + 1;
   return s;
 }
 
@@ -275,6 +281,7 @@ export function chooseCandidate(
   removeId?: string
 ): GameState {
   if (prev.phase !== "candidate") return prev;
+  if (!prev.candidates.includes(addId) || !content.cards.has(addId)) return prev;
   const s = clone(prev);
   const slots = CAPS.marketSlots + extraMarketSlots(s, content);
   s.marketSlots = slots;
@@ -282,6 +289,7 @@ export function chooseCandidate(
   if (!already) {
     if (s.market.length >= slots) {
       if (!removeId) return prev; // 포화 시 제거 대상 필수
+      if (!s.market.some((m) => m.defId === removeId)) return prev;
       s.market = s.market.filter((m) => m.defId !== removeId);
     }
     s.market.push({ defId: addId, stock: CAPS.marketStock });

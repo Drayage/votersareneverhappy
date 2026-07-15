@@ -44,10 +44,14 @@ function greedyTurn(s0: GameState, content: Content): GameState {
       const draw = sum(def, "gainDraw");
       const act = sum(def, "gainAction");
       const buy = sum(def, "gainBuy");
+      const combo = (def.onPlay ?? []).reduce(
+        (a, e) => a + (e.kind === "comboScore" ? Math.min(e.cap, e.points * 2) : 0),
+        0
+      );
       const trig = def.trigger?.length ? 4 : 0;
       const settle = def.settlement?.length ? 3 : 0;
       const econW = s.turn <= 2 ? 2.5 : 1.5;
-      return score * 3 + budget * econW + buy * 5 + draw * 2 + act * 1.5 + trig + settle;
+      return score * 3 + combo * 2 + budget * econW + buy * 5 + draw * 2 + act * 1.5 + trig + settle;
     };
     affordable.sort((a, b) => value(b.def) - value(a.def));
     const ns = G.buyCard(s, content, affordable[0].m.defId);
@@ -65,8 +69,12 @@ function chooseGreedy(s: GameState, content: Content): GameState {
     const settle = d.settlement?.length ? 4 : 0;
     const trig = d.trigger?.length ? 4 : 0;
     const econ = (d.onPlay ?? []).reduce((a, e) => a + (e.kind === "gainBudget" ? e.amount : 0), 0);
+    const combo = (d.onPlay ?? []).reduce(
+      (a, e) => a + (e.kind === "comboScore" ? Math.min(e.cap, e.points * 2) : 0),
+      0
+    );
     // 저렴할수록 가산점(초반에 바로 살 수 있어야 함)
-    return imm * 2 + settle + trig + econ * 1.5 + Math.max(0, 6 - d.cost);
+    return imm * 2 + combo * 1.5 + settle + trig + econ * 1.5 + Math.max(0, 6 - d.cost);
   };
   const cands = s.candidates.map((id) => ({ id, v: candValue(id) }));
   cands.sort((a, b) => b.v - a.v);
@@ -80,7 +88,7 @@ function chooseGreedy(s: GameState, content: Content): GameState {
   return G.chooseCandidate(s, content, addId);
 }
 
-/** 한 평가 주기(5턴 + 후보) 자동진행 후, evaluation 단계의 state 반환. */
+/** 한 평가 주기(8턴 + 후보) 자동진행 후, evaluation 단계의 state 반환. */
 function autoCycle(s0: GameState, content: Content): GameState {
   let s = s0;
   for (let guard = 0; guard < 50; guard++) {
@@ -100,9 +108,9 @@ function autoCycle(s0: GameState, content: Content): GameState {
 
 describe("그리디 자동플레이 시뮬레이션", () => {
   // 그리디 봇은 룩어헤드가 없는 "하수" 기준선이다.
-  // 목표 50 대비 봇이 평균적으로 목표에 도달하면(=평균 통과), 유능한 인간 플레이는
+  // 목표 70 대비 봇이 평균적으로 목표에 도달하면(=평균 통과), 유능한 인간 플레이는
   // 여유롭게 통과한다는 의미 — 즉 1차 난이도가 "초보도 통과 가능" 구간에 있음을 검증.
-  it("1차 평가: 그리디 봇이 목표(50) 근처에 안정적으로 도달한다", () => {
+  it("1차 평가: 그리디 봇이 목표(70)를 안정적으로 넘되 과도하게 폭주하지 않는다", () => {
     const seeds = [1, 2, 3, 7, 42];
     const scores: number[] = [];
     for (const seed of seeds) {
@@ -114,9 +122,10 @@ describe("그리디 자동플레이 시뮬레이션", () => {
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
     const passed = scores.filter((x) => x >= 50).length;
     console.log("1차 finalScores:", scores, "avg:", avg.toFixed(1), "passed:", passed);
-    expect(Math.min(...scores)).toBeGreaterThanOrEqual(40); // 모든 시드에서 목표의 80%+
-    expect(avg).toBeGreaterThanOrEqual(48); // 평균적으로 목표 근처
-    expect(passed).toBeGreaterThanOrEqual(2); // 다수 시드에서 실제 통과
+    expect(Math.min(...scores)).toBeGreaterThanOrEqual(65);
+    expect(avg).toBeGreaterThanOrEqual(80);
+    expect(avg).toBeLessThan(130); // 첫 평가부터 점수가 지나치게 폭주하지 않음
+    expect(passed).toBeGreaterThanOrEqual(4);
   });
 
   it("전체 런이 예외 없이 종료되고(승/패), 무한 루프에 빠지지 않는다", () => {

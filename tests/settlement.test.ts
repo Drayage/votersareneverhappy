@@ -57,17 +57,17 @@ describe("정산 계산", () => {
   });
 
   it("복지: 통과 목표 비례 안정 세입(settlementPctOfTarget)", () => {
-    // welfare_net: 통과 목표의 20%. 1차 목표 50 → +10점 (과학 배수 미적용)
-    const s = withDeck(["welfare_net"]); // evalIndex 0 → 목표 50
-    expect(computeSettlement(s, content).settlementScore).toBe(10);
+    // welfare_net: 통과 목표의 20%. 1차 목표 70 → +14점 (과학 배수 미적용)
+    const s = withDeck(["welfare_net"]); // evalIndex 0 → 목표 70
+    expect(computeSettlement(s, content).settlementScore).toBe(14);
   });
 
   it("안정 세입은 상한(목표의 40%)으로 캡되어 다수 적재로 자동 통과 불가", () => {
-    // welfare_net 5장 = 20%×5 = 100% → 캡 40%로 제한 → 목표 50의 40% = 20점
+    // welfare_net 5장 = 20%×5 = 100% → 캡 40%로 제한 → 목표 70의 40% = 28점
     const five = withDeck(["welfare_net", "welfare_net", "welfare_net", "welfare_net", "welfare_net"]);
     const r = computeSettlement(five, content);
-    expect(r.settlementScore).toBe(20); // 50점이 아니라 캡 적용 20점
-    expect(r.passed).toBe(false); // 목표 50 미달 → 자동 통과 안 됨
+    expect(r.settlementScore).toBe(28); // 70점이 아니라 캡 적용 28점
+    expect(r.passed).toBe(false); // 목표 70 미달 → 자동 통과 안 됨
   });
 
   it("환경 벌점은 정산에서 차감된다", () => {
@@ -84,5 +84,18 @@ describe("정산 계산", () => {
     });
     const r = computeSettlement(s, content);
     expect(r.globalMult).toBeCloseTo(1.8, 5);
+  });
+
+  it("포퓰리즘 목표 증가와 부패 감산은 80%에서 멈춘다", () => {
+    const s = withDeck(["festival"], {
+      cycleScore: 100,
+      activeTargetBonusPct: 999,
+      gauges: { pollution: 0, corruption: 100, populismDebuff: 0 },
+    });
+    const r = computeSettlement(s, content);
+    expect(r.targetBonusPct).toBe(80);
+    expect(r.target).toBe(126); // 70 × 1.8
+    expect(r.corruptionPct).toBe(80);
+    expect(r.finalScore).toBe(20);
   });
 });

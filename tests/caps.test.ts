@@ -29,4 +29,12 @@ describe("무한콤보 안전장치", () => {
     expect(CAPS.actionsPerTurn).toBeGreaterThan(0);
     expect(CAPS.buysPerTurn).toBeGreaterThan(0);
   });
+
+  it("정책의 태그 보너스도 지속 트리거 캡을 공유한다", () => {
+    const s: GameState = newGame(content, 2);
+    s.policies = ["p_citizen_budget"];
+    const r = computeTriggerScore(s, content, ["admin"], 1);
+    expect(r).toEqual({ score: 1, fired: 1 });
+    expect(computeTriggerScore(s, content, ["admin"], 0)).toEqual({ score: 0, fired: 0 });
+  });
 });

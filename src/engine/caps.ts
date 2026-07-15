@@ -30,10 +30,14 @@ export const CAPS = {
   settlementMultCap: 10,
   /** 복지 '목표 비례 안정 세입' 총합 상한(목표 대비). 다수 적재로 자동 통과 방지 */
   stableIncomeMaxPct: 0.4,
+  /** 포퓰리즘으로 증가할 수 있는 평가 목표의 최대치 */
+  targetBonusMaxPct: 80,
+  /** 부패로 깎일 수 있는 최종 점수의 최대치 — 완전 봉쇄 대신 회복 여지를 남긴다. */
+  corruptionPenaltyMaxPct: 80,
 } as const;
 
 /** 평가 차수별 목표 점수 */
-export const EVAL_TARGETS = [50, 150, 400, 1000, 2500];
+export const EVAL_TARGETS = [70, 180, 420, 900, 1800];
 
 /** 상점 새로고침 비용(기본/증가) */
 export const REROLL_BASE = 20;

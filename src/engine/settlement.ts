@@ -34,7 +34,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   let pctOfTargetSum = 0; // 복지: 통과 목표 비례 안정 점수(과학 배수 미적용)
 
   // 통과 목표(포퓰리즘 증가 포함)는 settlementPctOfTarget 계산에 필요 → 먼저 구한다.
-  const targetBonusPctEarly = Math.max(0, state.activeTargetBonusPct);
+  const targetBonusPctEarly = Math.min(CAPS.targetBonusMaxPct, Math.max(0, state.activeTargetBonusPct));
   const baseTarget = EVAL_TARGETS[state.evalIndex];
   const target = Math.round(baseTarget * (1 + targetBonusPctEarly / 100));
 
@@ -120,7 +120,10 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   const globalMult = mults.reduce((a, b) => a * b, 1);
 
   const targetBonusPct = targetBonusPctEarly;
-  const corruptionPct = Math.floor(Math.max(0, state.gauges.corruption) / 5) * 10;
+  const corruptionPct = Math.min(
+    CAPS.corruptionPenaltyMaxPct,
+    Math.floor(Math.max(0, state.gauges.corruption) / 5) * 10
+  );
 
   // 부패만 점수를 직접 깎는다(곱연산). 포퓰리즘은 점수가 아니라 목표를 올린다(target에 이미 반영).
   let finalScore = subtotal * globalMult;

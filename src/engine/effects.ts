@@ -2,6 +2,7 @@
 // game.ts / settlement.ts 가 이 헬퍼를 호출한다.
 
 import type { CardDef, Content, Effect, GameState, Tag, CardType } from "./types";
+import { CAPS } from "./caps";
 
 /** 카드 플레이 코스트(액션 풀에서 차감). 기본: 재물 0 / 액션 1 / 점수 0. */
 export function playCostOf(card: CardDef): number {
@@ -68,40 +69,48 @@ export function tagMultiplier(state: GameState, tags: Tag[]): number {
 
 /**
  * 카드를 사용할 때 발생하는 "지속 트리거" 점수를 계산한다.
- * 트리거원 = 이미 inPlay 인 카드들의 trigger + relic trigger.
- * CAPS.triggerPerTurn 으로 턴당 발동 횟수를 제한한다.
+ * 트리거원 = 이미 inPlay 인 카드들의 trigger + relic trigger + 유물/정책의 triggerBonusTag.
+ * - 재물 플레이에는 반응하지 않는다 — 공짜 플레이(액션 불요)가 공짜 트리거가 되는 것을 막고,
+ *   트리거 수입을 액션 경제에 묶는다.
+ * - 상한은 소스당: 각 소스는 턴에 CAPS.triggerPerSource + extraTriggerCap 회까지 발동.
  */
 export function computeTriggerScore(
   state: GameState,
   content: Content,
   playedTags: Tag[],
-  triggerCapRemaining: number
-): { score: number; fired: number } {
+  playedType: CardType
+): { score: number; fires: Record<string, number> } {
+  const fires: Record<string, number> = {};
   let score = 0;
-  let fired = 0;
-  const consider = (effs: Effect[] | undefined) => {
+  if (playedType === "treasure") return { score, fires };
+  const perSource = CAPS.triggerPerSource + extraTriggerCap(state, content);
+
+  const tally = (key: string, pts: number) => {
+    const used = (state.triggerFires[key] ?? 0) + (fires[key] ?? 0);
+    if (used >= perSource) return;
+    fires[key] = (fires[key] ?? 0) + 1;
+    score += pts;
+  };
+  const consider = (key: string, effs: Effect[] | undefined) => {
     if (!effs) return;
     for (const e of effs) {
-      if (e.kind === "onPlayTag" && playedTags.includes(e.tag)) {
-        if (fired >= triggerCapRemaining) return;
-        score += e.score;
-        fired += 1;
-      }
+      if (e.kind === "onPlayTag" && playedTags.includes(e.tag)) tally(key, e.score);
     }
   };
-  for (const ci of state.inPlay) {
-    consider(content.cards.get(ci.defId)?.trigger);
-  }
+
+  for (const ci of state.inPlay) consider(`card:${ci.uid}`, content.cards.get(ci.defId)?.trigger);
+  for (const id of state.relics) consider(`relic:${id}`, content.relics.get(id)?.trigger);
   for (const id of state.relics) {
-    consider(content.relics.get(id)?.trigger);
+    for (const e of content.relics.get(id)?.passive ?? []) {
+      if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`relicp:${id}`, e.score);
+    }
   }
-  // 정책/유물 passive에 붙는 태그 트리거도 동일한 턴당 캡을 공유한다.
-  for (const e of passivesOfKind(state, content, "triggerBonusTag")) {
-    if (!playedTags.includes(e.tag) || fired >= triggerCapRemaining) continue;
-    score += e.score;
-    fired += 1;
+  for (const id of state.policies) {
+    for (const e of content.policies.get(id)?.passive ?? []) {
+      if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`policy:${id}`, e.score);
+    }
   }
-  return { score, fired };
+  return { score, fires };
 }
 
 /** 구매 시 발동하는 onBuyScore 트리거 합 (inPlay + relic) */

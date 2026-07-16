@@ -192,8 +192,8 @@ export interface GameState {
   // 교육 누적 학습 레벨 (평가 주기 시작마다 보유 교육 카드 수만큼 증가, 복리)
   eduLevel: number;
 
-  // 이번 턴 누적 트리거 횟수(캡 적용용)
-  triggerCount: number;
+  // 이번 턴 트리거원(소스)별 발동 횟수 — 소스당 상한 적용용. 매 턴 리셋.
+  triggerFires: Record<string, number>;
 
   // 이번 턴 태그별 점수 배수 (relic passive + multiplyTagScore). 매 턴 리셋.
   turnMult: Record<string, number>;

@@ -6,6 +6,6 @@
   { "id": "p_citizen_budget", "name": "시민참여 예산제", "text": "행정 카드 사용 시 +1점", "price": 180, "passive": [{ "kind": "triggerBonusTag", "tag": "admin", "score": 1 }] },
   { "id": "p_culture_city", "name": "문화도시 특별법", "text": "문화 카드 사용 시 +1점", "price": 180, "passive": [{ "kind": "triggerBonusTag", "tag": "culture", "score": 1 }] },
   { "id": "p_welfare_state", "name": "복지도시 조례", "text": "복지 카드 사용 시 +1점", "price": 180, "passive": [{ "kind": "triggerBonusTag", "tag": "welfare", "score": 1 }] },
-  { "id": "p_broadcast", "name": "시정 방송국", "text": "지속 트리거 턴당 발동 +2회", "price": 220, "passive": [{ "kind": "extraTriggerCap", "amount": 2 }] },
+  { "id": "p_broadcast", "name": "시정 방송국", "text": "트리거 소스 1개당 턴 발동 +1회", "price": 220, "passive": [{ "kind": "extraTriggerCap", "amount": 1 }] },
   { "id": "p_night_ops", "name": "야간 행정 조례", "text": "매 턴 +1드로우 (영구)", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "draw", "amount": 1 }] }
 ]

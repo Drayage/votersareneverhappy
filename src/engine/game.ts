@@ -9,7 +9,6 @@ import {
   computeTriggerScore,
   effectiveCost,
   extraMarketSlots,
-  extraTriggerCap,
   hasRemoveScorePenalty,
   playCostOf,
   tagMultiplier,
@@ -56,7 +55,7 @@ export function newGame(content: Content, seed = 1): GameState {
     policies: [],
     gauges: { pollution: 0, corruption: 0, populismDebuff: 0 },
     eduLevel: 0,
-    triggerCount: 0,
+    triggerFires: {},
     turnMult: {},
     playedTagCounts: {},
     cyclePlays: 0,
@@ -119,7 +118,7 @@ function startTurn(prev: GameState, content: Content): GameState {
   s.actions = Math.min(actions, CAPS.actionsPerTurn);
   s.buys = Math.min(buys, CAPS.buysPerTurn);
   s.budget = budget;
-  s.triggerCount = 0;
+  s.triggerFires = {};
   s.playedTagCounts = {};
 
   // 턴 점수 배수: relic passive multiplyTagScore
@@ -218,10 +217,11 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
     }
   }
 
-  // 2) 지속 트리거 점수 (자기 자신 제외 — 아직 inPlay 미추가)
-  const capRemaining = Math.max(0, CAPS.triggerPerTurn + extraTriggerCap(s, content) - s.triggerCount);
-  const trig = computeTriggerScore(s, content, def.tags as Tag[], capRemaining);
-  s.triggerCount += trig.fired;
+  // 2) 지속 트리거 점수 (자기 자신 제외 — 아직 inPlay 미추가. 재물 플레이는 미발동)
+  const trig = computeTriggerScore(s, content, def.tags as Tag[], def.type);
+  for (const [key, n] of Object.entries(trig.fires)) {
+    s.triggerFires[key] = (s.triggerFires[key] ?? 0) + n;
+  }
 
   // 3) 배수 적용 후 점수 적립
   const mult = tagMultiplier(s, def.tags as Tag[]);

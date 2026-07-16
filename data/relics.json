@@ -32,6 +32,6 @@
 
   { "id": "street_stage", "name": "거리 무대", "rarity": "common", "role": "점수배수", "price": 80, "text": "주기 점수(플레이 점수) +15%", "passive": [{ "kind": "cycleScoreMult", "mult": 1.15 }] },
   { "id": "live_city", "name": "라이브 시티", "rarity": "legendary", "role": "점수배수", "price": 350, "text": "주기 점수(플레이 점수) ×1.5", "passive": [{ "kind": "cycleScoreMult", "mult": 1.5 }] },
-  { "id": "city_reporter", "name": "전속 리포터", "rarity": "rare", "role": "규칙변형", "price": 180, "text": "지속 트리거 턴당 발동 +3회", "passive": [{ "kind": "extraTriggerCap", "amount": 3 }] },
+  { "id": "city_reporter", "name": "전속 리포터", "rarity": "rare", "role": "규칙변형", "price": 180, "text": "트리거 소스 1개당 턴 발동 +2회", "passive": [{ "kind": "extraTriggerCap", "amount": 2 }] },
   { "id": "edu_endowment", "name": "평생학습 기금", "rarity": "rare", "role": "태그강화", "price": 180, "text": "정산: 학습 레벨 1당 +2점", "settlement": [{ "kind": "settlementEduLevel", "points": 2 }] }
 ]

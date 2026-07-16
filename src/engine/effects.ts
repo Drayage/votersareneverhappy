@@ -42,6 +42,11 @@ export function extraMarketSlots(state: GameState, content: Content): number {
   return passivesOfKind(state, content, "extraMarketSlot").reduce((a, e) => a + e.amount, 0);
 }
 
+/** 지속 트리거 턴당 발동 상한 확장량 (relic/policy passive) */
+export function extraTriggerCap(state: GameState, content: Content): number {
+  return passivesOfKind(state, content, "extraTriggerCap").reduce((a, e) => a + e.amount, 0);
+}
+
 /** 카드 실구매 비용 (costReduction 적용, 최소 0) */
 export function effectiveCost(state: GameState, content: Content, card: CardDef): number {
   let reduction = 0;

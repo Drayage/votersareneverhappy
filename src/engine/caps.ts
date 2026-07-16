@@ -40,8 +40,8 @@ export const CAPS = {
   fundMaxRatio: 1.5,
 } as const;
 
-/** 평가 차수별 목표 점수 */
-export const EVAL_TARGETS = [70, 180, 420, 900, 1800];
+/** 평가 차수별 목표 점수 — 2차는 플레이형 덱(트리거/러시)의 엔진 완성 전이라 완만하게 */
+export const EVAL_TARGETS = [70, 160, 420, 900, 1800];
 
 /** 상점 새로고침 비용(기본/증가) */
 export const REROLL_BASE = 20;

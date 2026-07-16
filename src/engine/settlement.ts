@@ -86,6 +86,12 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
           // 복지: 통과 목표의 일정 비율을 안정 점수로 (과학 배수 미적용)
           pctOfTargetSum += e.pct;
           break;
+        case "settlementPerPlays": {
+          // 회전: 이번 주기 낸 카드 수 기반 (tag 지정 시 해당 태그 플레이만)
+          const plays = e.tag ? state.cyclePlayedTagCounts[e.tag] ?? 0 : state.cyclePlays;
+          general += Math.min(e.cap, plays * e.points);
+          break;
+        }
         default:
           break;
       }
@@ -108,11 +114,16 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
 
   const pollutionPenalty = -2 * Math.max(0, state.gauges.pollution);
 
-  const baseCycleScore = state.cycleScore;
+  const passives = collectPassives(state, content);
+  // 주기 점수 배수: 플레이로 쌓은 점수에만 곱한다 (정산 배수(과학)와 대칭 축)
+  const cycleMult = passives
+    .filter((e) => e.kind === "cycleScoreMult")
+    .reduce((a, e) => a * (e as { mult: number }).mult, 1);
+  const baseCycleScore = Math.round(state.cycleScore * cycleMult);
   const subtotal = baseCycleScore + settlementScore + pollutionPenalty;
 
   // globalScoreMult: 상위 2개만 발효 (CAPS.maxScoreMultipliers)
-  const mults = collectPassives(state, content)
+  const mults = passives
     .filter((e) => e.kind === "globalScoreMult")
     .map((e) => (e as { mult: number }).mult)
     .sort((a, b) => b - a)

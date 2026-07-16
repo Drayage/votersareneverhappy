@@ -58,6 +58,12 @@ export type Effect =
   | { kind: "comboScore"; tag: Tag; points: number; cap: number }
   // 리사이클: 이번 턴 낸 카드(최근 순) 최대 count장을 덱 맨 위로 되돌린다
   | { kind: "recycleInPlay"; count: number }
+  // 정산: 이번 주기에 낸 카드 수 기반 (tag 지정 시 해당 태그 플레이만) — 회전 덱의 정산 경로
+  | { kind: "settlementPerPlays"; tag?: Tag; points: number; cap: number }
+  // passive: 주기 점수(플레이로 쌓은 점수)에만 곱해지는 배수 — 정산 배수(과학)와 대칭
+  | { kind: "cycleScoreMult"; mult: number }
+  // passive: 지속 트리거 턴당 발동 상한 확장
+  | { kind: "extraTriggerCap"; amount: number }
   // 지속(트리거)
   | { kind: "onPlayTag"; tag: Tag; score: number }
   | { kind: "onBuyScore"; score: number }
@@ -194,6 +200,10 @@ export interface GameState {
 
   // 이번 턴 이미 사용한 카드의 태그 수. comboScore와 UI의 연계 미리보기에 사용.
   playedTagCounts: Record<string, number>;
+
+  // 이번 평가 주기 동안 낸 카드 총수/태그별 수. settlementPerPlays(회전 정산)에 사용.
+  cyclePlays: number;
+  cyclePlayedTagCounts: Record<string, number>;
 
   // 포퓰리즘: 이번 평가의 "목표 점수 증가율(%)" (지난 주기 누적분이 이월되어 발효)
   activeTargetBonusPct: number;

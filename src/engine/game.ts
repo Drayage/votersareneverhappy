@@ -9,6 +9,7 @@ import {
   computeTriggerScore,
   effectiveCost,
   extraMarketSlots,
+  extraTriggerCap,
   hasRemoveScorePenalty,
   playCostOf,
   tagMultiplier,
@@ -58,6 +59,8 @@ export function newGame(content: Content, seed = 1): GameState {
     triggerCount: 0,
     turnMult: {},
     playedTagCounts: {},
+    cyclePlays: 0,
+    cyclePlayedTagCounts: {},
     activeTargetBonusPct: 0,
     shopRelics: [],
     shopPolicies: [],
@@ -81,6 +84,8 @@ function startCycle(prev: GameState, content: Content): GameState {
   s.inPlay = [];
   s.cycleScore = 0;
   s.turn = 1;
+  s.cyclePlays = 0;
+  s.cyclePlayedTagCounts = {};
   // 교육: 이번 주기 시작 시 보유 교육 카드 수만큼 학습 레벨 누적(복리)
   s.eduLevel += educationCount(s, content);
   // 지난 주기에 누적된 포퓰리즘 부담이 이번 평가의 "목표 증가"로 발효
@@ -214,7 +219,7 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
   }
 
   // 2) 지속 트리거 점수 (자기 자신 제외 — 아직 inPlay 미추가)
-  const capRemaining = Math.max(0, CAPS.triggerPerTurn - s.triggerCount);
+  const capRemaining = Math.max(0, CAPS.triggerPerTurn + extraTriggerCap(s, content) - s.triggerCount);
   const trig = computeTriggerScore(s, content, def.tags as Tag[], capRemaining);
   s.triggerCount += trig.fired;
 
@@ -226,7 +231,11 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
   // 4) inPlay 로 이동
   s.hand.splice(idx, 1);
   s.inPlay.push(card);
-  for (const tag of def.tags) s.playedTagCounts[tag] = (s.playedTagCounts[tag] ?? 0) + 1;
+  s.cyclePlays += 1;
+  for (const tag of def.tags) {
+    s.playedTagCounts[tag] = (s.playedTagCounts[tag] ?? 0) + 1;
+    s.cyclePlayedTagCounts[tag] = (s.cyclePlayedTagCounts[tag] ?? 0) + 1;
+  }
   return s;
 }
 

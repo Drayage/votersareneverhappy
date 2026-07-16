@@ -3,7 +3,7 @@
   { "id": "industry_medal", "name": "산업 훈장", "rarity": "common", "role": "태그강화", "price": 80, "text": "산업 카드 점수 +25%", "passive": [{ "kind": "multiplyTagScore", "tag": "industry", "mult": 1.25 }] },
   { "id": "science_award", "name": "과학 진흥상", "rarity": "common", "role": "태그강화", "price": 80, "text": "과학 카드 점수 +25%", "passive": [{ "kind": "multiplyTagScore", "tag": "science", "mult": 1.25 }] },
   { "id": "culture_patron", "name": "문예 후원", "rarity": "common", "role": "태그강화", "price": 80, "text": "문화 카드 사용 시 +1점", "trigger": [{ "kind": "onPlayTag", "tag": "culture", "score": 1 }] },
-  { "id": "nobel", "name": "노벨상 유치", "rarity": "rare", "role": "태그강화", "price": 180, "text": "정산: 과학 카드 1장당 전체 정산 +15%", "settlement": [{ "kind": "settlementGlobalMultPerTag", "tag": "science", "perCard": 0.15 }] },
+  { "id": "nobel", "name": "노벨상 유치", "rarity": "rare", "role": "태그강화", "price": 180, "text": "정산: 이번 주기 낸 과학 카드 1장당 전체 정산 +15%", "settlement": [{ "kind": "settlementGlobalMultPerTag", "tag": "science", "perCard": 0.15 }] },
   { "id": "unesco", "name": "유네스코 등재", "rarity": "rare", "role": "태그강화", "price": 180, "text": "문화 정산 점수 ×2", "settlement": [{ "kind": "settlementMultTag", "tag": "culture", "mult": 2 }] },
   { "id": "transport_plan", "name": "교통 마스터플랜", "rarity": "rare", "role": "드로우", "price": 180, "text": "매 턴 +1드로우", "passive": [{ "kind": "passivePerTurn", "resource": "draw", "amount": 1 }] },
   { "id": "commerce_guild", "name": "상공회의소", "rarity": "rare", "role": "엔진", "price": 180, "text": "매 턴 +2예산", "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 2 }] },

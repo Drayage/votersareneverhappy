@@ -181,7 +181,7 @@ function PlayPhase() {
           <div className="mini-card-row">
             {state.inPlay.map((instance) => {
               const card = cardDef(content, instance.defId);
-              return <div className={`mini-card tone-${card.tags[0]}`} key={instance.uid}><strong>{card.name}</strong><span>{card.tags.map((tag) => TAG_LABELS[tag]).join(" · ")}</span></div>;
+              return <div className={`mini-card tone-${card.tags[0]}`} key={instance.uid}><strong>{card.name}</strong><span>{card.tags.map((tag) => TAG_LABELS[tag]).join(" · ")}</span>{(instance.persistLeft ?? 0) > 1 && <em className="persist-badge">지속 {instance.persistLeft! - 1}턴 남음</em>}</div>;
             })}
             {state.inPlay.length === 0 && <span className="muted">아직 처리한 카드가 없습니다.</span>}
           </div>

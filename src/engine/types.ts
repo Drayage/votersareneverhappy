@@ -111,6 +111,8 @@ export interface CardDef {
   playCost?: number;
   /** 손에 들면 드로우를 막는 빈 카드(낡은 공약 등) */
   deadInHand?: boolean;
+  // (지속 N턴): 낸 뒤 N턴 동안 플레이 영역에 유지된다(트리거가 다음 턴에도 발동).
+  persistTurns?: number;
 }
 
 export type RelicRarity = "common" | "rare" | "legendary";
@@ -143,6 +145,8 @@ export interface PolicyDef {
 export interface CardInstance {
   uid: number;
   defId: string;
+  // (지속) 카드가 플레이 영역에 남아 있을 잔여 턴 수. 플레이 영역을 떠나면 제거된다.
+  persistLeft?: number;
 }
 
 export type Phase = "play" | "candidate" | "evaluation" | "shop" | "gameover" | "win";

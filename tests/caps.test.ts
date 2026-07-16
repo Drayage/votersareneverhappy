@@ -15,7 +15,7 @@ describe("무한콤보 안전장치", () => {
 
     // 첫 플레이: 소스 2개가 각각 1회씩 발동
     const r1 = computeTriggerScore(s, content, ["tourism"], "score");
-    expect(r1.score).toBe(6); // 3점 × 2소스
+    expect(r1.score).toBe(4); // 2점 × 2소스
     expect(Object.values(r1.fires)).toEqual([1, 1]);
 
     // 각 소스가 이미 상한(3회)까지 발동한 상태면 더 이상 발동 없음

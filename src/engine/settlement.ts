@@ -30,7 +30,9 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   for (const t of ALL_TAGS) bucket[t] = 0;
   let general = 0;
   const tagMult: Record<string, number> = {};
-  let settleMultFactor = 1; // 과학: 정산 전체 배수
+  // 과학: 정산 전체 배수 — 소스는 "가산" 합산하고, 이번 주기에 실제로 낸 해당 태그 카드 수를 곱한다.
+  // (보유 수 × 소스별 곱연산이던 구식은 잡식 덱이 과학을 곁다리로 삼켜도 폭발 → 전문덱 전용으로 재설계)
+  const multPerCardByTag: Record<string, number> = {};
   let pctOfTargetSum = 0; // 복지: 통과 목표 비례 안정 점수(과학 배수 미적용)
 
   // 통과 목표(포퓰리즘 증가 포함)는 settlementPctOfTarget 계산에 필요 → 먼저 구한다.
@@ -69,8 +71,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
           tagMult[e.tag] = (tagMult[e.tag] ?? 1) * e.mult;
           break;
         case "settlementGlobalMultPerTag":
-          // 과학: 보유 태그 카드 수에 비례한 곱연산 (캡은 합산 후 적용)
-          settleMultFactor *= 1 + e.perCard * counts[e.tag];
+          multPerCardByTag[e.tag] = (multPerCardByTag[e.tag] ?? 0) + e.perCard;
           break;
         case "settlementEduLevel":
           // 교육: 누적 학습 레벨 × points
@@ -106,8 +107,12 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     if (v !== 0) perTag[t] = Math.round(v);
     settlementBase += v;
   }
-  // 과학 정산 배수 (하드 캡 적용)
-  const settlementMult = Math.min(CAPS.settlementMultCap, Math.max(1, settleMultFactor));
+  // 과학 정산 배수 (하드 캡 적용): 1 + Σ(태그별 perCard 합 × 이번 주기 낸 해당 태그 카드 수)
+  let multBonus = 0;
+  for (const [tag, perCard] of Object.entries(multPerCardByTag)) {
+    multBonus += perCard * (state.cyclePlayedTagCounts[tag] ?? 0);
+  }
+  const settlementMult = Math.min(CAPS.settlementMultCap, 1 + multBonus);
   // 복지 안정 세입(목표 비례)은 과학 배수와 별개로 더한다. 총합은 상한으로 캡(자동 통과 방지).
   const stableIncome = Math.round(target * Math.min(pctOfTargetSum, CAPS.stableIncomeMaxPct));
   const settlementScore = Math.round(settlementBase * settlementMult) + stableIncome;

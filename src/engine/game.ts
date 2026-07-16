@@ -197,7 +197,11 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
         // 이번 턴 낸 카드(자신 제외 — 아직 inPlay 미추가) 최근 count장을 덱 위로.
         // 액션을 소모하는 카드에만 붙여 무한 루프를 막는다(액션 상한이 자연 제동).
         const n = Math.min(e.count, s.inPlay.length);
-        if (n > 0) s.deck.unshift(...s.inPlay.splice(s.inPlay.length - n, n));
+        if (n > 0) {
+          const returned = s.inPlay.splice(s.inPlay.length - n, n);
+          for (const c of returned) delete c.persistLeft; // 플레이 영역을 떠나면 지속 해제
+          s.deck.unshift(...returned);
+        }
         break;
       }
       case "multiplyTagScore":
@@ -230,6 +234,7 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
 
   // 4) inPlay 로 이동
   s.hand.splice(idx, 1);
+  if (def.persistTurns) card.persistLeft = def.persistTurns;
   s.inPlay.push(card);
   s.cyclePlays += 1;
   for (const tag of def.tags) {
@@ -270,10 +275,19 @@ export function buyCard(prev: GameState, content: Content, defId: string): GameS
 export function endTurn(prev: GameState, content: Content): GameState {
   if (prev.phase !== "play") return prev;
   const s = clone(prev);
-  // 클린업
-  s.discard.push(...s.hand, ...s.inPlay);
+  // 클린업 — (지속) 카드는 잔여 턴이 남아 있으면 플레이 영역에 유지
+  const staying: CardInstance[] = [];
+  for (const c of s.inPlay) {
+    if ((c.persistLeft ?? 0) > 1) {
+      staying.push({ ...c, persistLeft: (c.persistLeft as number) - 1 });
+    } else {
+      delete c.persistLeft;
+      s.discard.push(c);
+    }
+  }
+  s.discard.push(...s.hand);
   s.hand = [];
-  s.inPlay = [];
+  s.inPlay = staying;
   // 예산은 턴 종료 시 소멸(이월 없음). 다음 턴 시작 시 기초 세수로 재충전된다.
   s.budget = 0;
   s.actions = 0;

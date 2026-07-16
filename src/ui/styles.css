@@ -212,6 +212,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .mini-card { --tone: #71817b; display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid color-mix(in srgb, var(--tone) 45%, var(--line)); border-radius: 7px; background: #0c1613; }
 .mini-card strong { font-size: 10px; }
 .mini-card span { color: var(--muted); font-size: 8px; }
+.mini-card .persist-badge { padding: 2px 5px; border-radius: 4px; color: #c8f9e7; background: #17372b; font-size: 8px; font-style: normal; font-weight: 800; }
 .city-profile { position: sticky; top: 12px; padding: 15px; border: 1px solid var(--line); border-radius: 15px; background: linear-gradient(160deg, #172720, #0d1714); box-shadow: var(--shadow); }
 .profile-head strong { display: block; margin-top: 4px; font-family: Georgia, "Noto Serif KR", serif; font-size: 16px; }
 .identity-list { margin: 14px 0; }

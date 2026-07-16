@@ -59,6 +59,7 @@ export const cardSchema = z.object({
   settlement: z.array(effectSchema).optional(),
   playCost: z.number().min(0).optional(),
   deadInHand: z.boolean().optional(),
+  persistTurns: z.number().min(1).optional(),
 });
 
 export const relicSchema = z.object({

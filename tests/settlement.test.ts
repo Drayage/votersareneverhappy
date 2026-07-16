@@ -26,19 +26,18 @@ describe("정산 계산", () => {
     expect(r.settlementScore).toBe(9);
   });
 
-  it("과학은 정산 전체를 곱한다(settlementGlobalMultPerTag) — 단독이면 거의 0", () => {
-    // 점수 기반이 없는 순수 과학 덱: 곱할 대상이 없어 0
-    const pure = withDeck(["lab", "smart_city"]);
-    expect(computeSettlement(pure, content).settlementScore).toBe(0);
+  it("과학 배수는 '이번 주기에 낸 과학 카드 수'로 계산된다 — 안 내면 배수 없음", () => {
+    // 과학 카드를 보유만 하고 한 장도 안 냈으면 배수 1 (스플래시 억제)
+    const idle = withDeck(["museum", "lab", "smart_city"]);
+    expect(computeSettlement(idle, content).settlementMult).toBe(1);
 
-    // 문화 기반(평면) + 과학(곱): 과학이 문화 점수를 증폭
-    // 문화 카드 museum 1장 → 문화 1장×3 = 3점 기반.
-    // 과학 카드 = lab+smart_city+university(science 태그 포함) → count(science)=3
-    // 배수 = (1+0.08*3)*(1+0.18*3) = 1.24 * 1.54 = 1.9096 → 3 * 1.9096 ≈ 6 (반올림)
-    const mixed = withDeck(["museum", "lab", "smart_city", "university"]);
-    const r = computeSettlement(mixed, content);
-    expect(r.settlementMult).toBeGreaterThan(1.5);
-    expect(r.settlementScore).toBeGreaterThan(3); // 문화 기반 3점이 과학 배수로 증폭됨
+    // 소스는 가산 합산: lab(8%) + smart_city(18%) = 26%/장, 과학 5장 플레이 → ×2.3
+    const active = withDeck(["museum", "lab", "smart_city"], {
+      cyclePlayedTagCounts: { science: 5 },
+    });
+    const r = computeSettlement(active, content);
+    expect(r.settlementMult).toBeCloseTo(2.3, 5);
+    expect(r.settlementScore).toBe(7); // 문화 기반 3점 × 2.3 ≈ 7
   });
 
   it("교육 학습 레벨(eduLevel)이 점수로 환산된다", () => {

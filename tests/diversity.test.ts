@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { loadContent } from "../src/content/loader";
-import { newGame, playCard } from "../src/engine/game";
+import { chooseCandidate, endTurn, newGame, playCard } from "../src/engine/game";
+import { CAPS } from "../src/engine/caps";
 import { computeSettlement } from "../src/engine/settlement";
 import type { GameState } from "../src/engine/types";
 
@@ -78,15 +79,44 @@ describe("트리거 소스당 상한과 확장(extraTriggerCap)", () => {
     };
   };
 
-  it("소스당 상한(3회)에 도달한 트리거는 더 발동하지 않는다", () => {
-    const s = playCard(withTriggers([], 3), content, 9320);
+  it("소스당 상한에 도달한 트리거는 더 발동하지 않는다", () => {
+    const s = playCard(withTriggers([], CAPS.triggerPerSource), content, 9320);
     expect(s.cycleScore).toBe(8); // 도심 퍼레이드 +8만, 트리거 0회
   });
 
-  it("전속 리포터(소스당 +2회)가 있으면 상한이 5회로 늘어 다시 발동한다", () => {
-    const s = playCard(withTriggers(["city_reporter"], 3), content, 9320);
+  it("전속 리포터(소스당 +2회)가 있으면 상한이 늘어 다시 발동한다", () => {
+    const s = playCard(withTriggers(["city_reporter"], CAPS.triggerPerSource), content, 9320);
     expect(s.cycleScore).toBe(10); // +8 + 소스 2개 × 1점
-    expect(s.triggerFires["card:9300"]).toBe(4);
+    expect(s.triggerFires["card:9300"]).toBe(CAPS.triggerPerSource + 1);
+  });
+
+  it("(지속) 카드는 턴이 끝나도 플레이 영역에 남아 다음 턴에도 트리거가 발동한다", () => {
+    let s = newGame(content, 45);
+    s = {
+      ...s,
+      hand: [{ uid: 9400, defId: "grand_theater" }], // (지속 2턴) 문화 사용 시 +2점
+      deck: [{ uid: 9401, defId: "festival" }],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+      cycleScore: 0,
+      turn: 1,
+    };
+    s = playCard(s, content, 9400); // 대극장 배치 (점수 타입, 액션 불요)
+    expect(s.inPlay[0].persistLeft).toBe(2);
+
+    s = endTurn(s, content); // 클린업 — 대극장은 잔여 1턴으로 유지
+    expect(s.inPlay.map((c) => c.uid)).toEqual([9400]);
+    expect(s.inPlay[0].persistLeft).toBe(1);
+
+    s = chooseCandidate(s, content, s.candidates[0]); // 다음 턴 시작 (festival 드로우)
+    const festival = s.hand.find((c) => c.defId === "festival")!;
+    s = playCard(s, content, festival.uid); // 문화 카드 → 지속 중인 대극장 트리거 +2
+    expect(s.cycleScore).toBe(7); // 축제 +5 + 트리거 +2
+
+    s = endTurn(s, content); // 잔여 턴 소진 → 이번엔 버린 더미로
+    expect(s.inPlay).toEqual([]);
+    expect(s.discard.some((c) => c.uid === 9400 && c.persistLeft === undefined)).toBe(true);
   });
 
   it("재물 플레이는 트리거를 울리지 않는다", () => {

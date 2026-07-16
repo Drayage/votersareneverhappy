@@ -61,7 +61,9 @@ export function CardView({
       <span className="card-accent" aria-hidden="true" />
       <div className="card-head">
         <span className="card-name">{card.name}</span>
-        {cost !== undefined && <span className="card-cost" title="구매 예산">{cost}</span>}
+        {card.costResearch
+          ? <span className="card-cost cost-research" title="구매에 필요한 연구지수">🔬{card.costResearch}</span>
+          : cost !== undefined && <span className="card-cost" title="구매 예산">{cost}</span>}
       </div>
       <div className="card-art" aria-hidden="true">
         <span className="art-grid" />

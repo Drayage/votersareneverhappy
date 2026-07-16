@@ -71,6 +71,7 @@ function Dashboard({ state, content }: { state: GameState; content: Content }) {
       <div className="resource-grid">
         <Resource icon="₩" label="예산" value={state.budget} tone="gold" />
         <Resource icon="★" label="누적 점수" value={state.cycleScore} tone="mint" />
+        {state.research > 0 && <Resource icon="🔬" label="연구" value={state.research} />}
         <Resource icon="⚡" label="액션" value={state.actions} />
         <Resource icon="＋" label="구매" value={state.buys} />
         <Resource icon="◆" label="상점 자금" value={state.fund} tone="gold" />
@@ -135,7 +136,8 @@ function PlayPhase() {
   const hasTreasure = state.hand.some((c) => cardDef(content, c.defId).type === "treasure");
   const affordableCards = state.market.filter((entry) => {
     const card = cardDef(content, entry.defId);
-    return entry.stock > 0 && state.budget >= effectiveCost(state, content, card);
+    const payable = card.costResearch ? state.research >= card.costResearch : state.budget >= effectiveCost(state, content, card);
+    return entry.stock > 0 && payable;
   }).length;
   const marketStatus = state.buys <= 0 ? "이번 턴 구매 완료" : affordableCards > 0 ? `${affordableCards}종 구매 가능` : "예산 부족";
   return (
@@ -170,7 +172,8 @@ function PlayPhase() {
             {state.market.map((entry) => {
               const card = cardDef(content, entry.defId);
               const cost = effectiveCost(state, content, card);
-              const canBuy = state.buys > 0 && state.budget >= cost && entry.stock > 0;
+              const payable = card.costResearch ? state.research >= card.costResearch : state.budget >= cost;
+              const canBuy = state.buys > 0 && payable && entry.stock > 0;
               return <CardView compact key={entry.defId} card={card} cost={cost} onClick={() => buy(entry.defId)} disabled={!canBuy} badge={entry.stock > 0 ? `재고 ${entry.stock}` : "품절"} />;
             })}
           </div>

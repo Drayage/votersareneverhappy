@@ -34,7 +34,7 @@ function greedyTurn(s0: GameState, content: Content): GameState {
         const def = content.cards.get(m.defId)!;
         return { m, def, cost: effectiveCost(s, content, def) };
       })
-      .filter((x) => x.cost <= s.budget);
+      .filter((x) => (x.def.costResearch ? s.research >= x.def.costResearch : x.cost <= s.budget));
     if (affordable.length === 0) break;
     const sum = (def: (typeof affordable)[number]["def"], k: string) =>
       (def.onPlay ?? []).reduce((a, e) => a + ((e as { kind: string; amount?: number }).kind === k ? (e as { amount: number }).amount : 0), 0);

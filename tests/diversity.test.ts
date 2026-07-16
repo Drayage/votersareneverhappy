@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadContent } from "../src/content/loader";
-import { chooseCandidate, endTurn, newGame, playCard } from "../src/engine/game";
+import { buyCard, chooseCandidate, endTurn, newGame, playCard } from "../src/engine/game";
 import { CAPS } from "../src/engine/caps";
 import { computeSettlement } from "../src/engine/settlement";
 import type { GameState } from "../src/engine/types";
@@ -44,6 +44,39 @@ describe("회전 정산(settlementPerPlays)", () => {
     };
     // 문화: 60×2=120 → 상한 30, 관광: 2×2=4
     expect(computeSettlement(s, content).settlementScore).toBe(34);
+  });
+});
+
+describe("연구지수(research)", () => {
+  it("과학 카드가 연구를 생산하고, 턴이 지나도 유지된다", () => {
+    let s = newGame(content, 46);
+    s = {
+      ...s,
+      hand: [{ uid: 9500, defId: "lab" }],
+      deck: [{ uid: 9501, defId: "basic_tax" }],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+    };
+    s = playCard(s, content, 9500); // +1드로우, +2연구
+    expect(s.research).toBe(2);
+    s = endTurn(s, content);
+    expect(s.research).toBe(2); // 예산과 달리 소멸하지 않음
+  });
+
+  it("연구 비용 카드는 예산 대신 연구지수로 산다", () => {
+    let s = newGame(content, 47);
+    s = { ...s, market: [{ defId: "fusion_plant", stock: 5 }], buys: 1, budget: 0, research: 10 };
+    const bought = buyCard(s, content, "fusion_plant");
+    expect(bought.research).toBe(0); // 🔬10 차감
+    expect(bought.budget).toBe(0); // 예산은 건드리지 않음
+    expect(bought.discard.some((c) => c.defId === "fusion_plant")).toBe(true);
+  });
+
+  it("연구가 모자라면 구매할 수 없다", () => {
+    let s = newGame(content, 48);
+    s = { ...s, market: [{ defId: "fusion_plant", stock: 5 }], buys: 1, budget: 99, research: 9 };
+    expect(buyCard(s, content, "fusion_plant")).toBe(s); // 예산이 많아도 불가
   });
 });
 

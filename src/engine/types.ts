@@ -58,6 +58,8 @@ export type Effect =
   | { kind: "comboScore"; tag: Tag; points: number; cap: number }
   // 리사이클: 이번 턴 낸 카드(최근 순) 최대 count장을 덱 맨 위로 되돌린다
   | { kind: "recycleInPlay"; count: number }
+  // 연구지수 획득 (과학 태그 전용 누적 재화 — 턴/주기가 지나도 유지)
+  | { kind: "gainResearch"; amount: number }
   // 정산: 이번 주기에 낸 카드 수 기반 (tag 지정 시 해당 태그 플레이만) — 회전 덱의 정산 경로
   | { kind: "settlementPerPlays"; tag?: Tag; points: number; cap: number }
   // passive: 주기 점수(플레이로 쌓은 점수)에만 곱해지는 배수 — 정산 배수(과학)와 대칭
@@ -113,6 +115,8 @@ export interface CardDef {
   deadInHand?: boolean;
   // (지속 N턴): 낸 뒤 N턴 동안 플레이 영역에 유지된다(트리거가 다음 턴에도 발동).
   persistTurns?: number;
+  // 연구 비용: 지정 시 이 카드는 예산 대신 연구지수로 구매한다 (cost는 0으로 둔다).
+  costResearch?: number;
 }
 
 export type RelicRarity = "common" | "rare" | "legendary";
@@ -174,6 +178,8 @@ export interface GameState {
   budget: number;
   cycleScore: number;
   fund: number;
+  // 연구지수: 과학 카드가 생산하는 누적 재화. 턴/주기가 지나도 유지되며 연구 비용 카드 구매에 쓴다.
+  research: number;
 
   deck: CardInstance[];
   hand: CardInstance[];

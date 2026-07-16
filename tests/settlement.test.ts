@@ -27,17 +27,17 @@ describe("정산 계산", () => {
   });
 
   it("과학 배수는 '이번 주기에 낸 과학 카드 수'로 계산된다 — 안 내면 배수 없음", () => {
-    // 과학 카드를 보유만 하고 한 장도 안 냈으면 배수 1 (스플래시 억제)
-    const idle = withDeck(["museum", "lab", "smart_city"]);
+    // 배수 소스(smart_city)를 보유해도 과학 카드를 한 장도 안 냈으면 배수 1 (스플래시 억제)
+    const idle = withDeck(["museum", "smart_city"]);
     expect(computeSettlement(idle, content).settlementMult).toBe(1);
 
-    // 소스는 가산 합산: lab(8%) + smart_city(18%) = 26%/장, 과학 5장 플레이 → ×2.3
-    const active = withDeck(["museum", "lab", "smart_city"], {
+    // smart_city(18%/장) × 과학 5장 플레이 → ×1.9
+    const active = withDeck(["museum", "smart_city"], {
       cyclePlayedTagCounts: { science: 5 },
     });
     const r = computeSettlement(active, content);
-    expect(r.settlementMult).toBeCloseTo(2.3, 5);
-    expect(r.settlementScore).toBe(7); // 문화 기반 3점 × 2.3 ≈ 7
+    expect(r.settlementMult).toBeCloseTo(1.9, 5);
+    expect(r.settlementScore).toBe(6); // 문화 기반 3점 × 1.9 ≈ 6
   });
 
   it("교육 학습 레벨(eduLevel)이 점수로 환산된다", () => {

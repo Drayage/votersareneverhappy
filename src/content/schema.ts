@@ -14,6 +14,7 @@ const effectSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("gainBuy"), amount: z.number() }),
   z.object({ kind: z.literal("comboScore"), tag: tagSchema, points: z.number().min(0), cap: z.number().min(0) }),
   z.object({ kind: z.literal("recycleInPlay"), count: z.number().min(1) }),
+  z.object({ kind: z.literal("gainResearch"), amount: z.number().min(1) }),
   z.object({ kind: z.literal("settlementPerPlays"), tag: tagSchema.optional(), points: z.number().min(0), cap: z.number().min(0) }),
   z.object({ kind: z.literal("cycleScoreMult"), mult: z.number().min(1) }),
   z.object({ kind: z.literal("extraTriggerCap"), amount: z.number().min(1) }),
@@ -60,6 +61,7 @@ export const cardSchema = z.object({
   playCost: z.number().min(0).optional(),
   deadInHand: z.boolean().optional(),
   persistTurns: z.number().min(1).optional(),
+  costResearch: z.number().min(1).optional(),
 });
 
 export const relicSchema = z.object({

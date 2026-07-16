@@ -41,6 +41,7 @@ export function newGame(content: Content, seed = 1): GameState {
     budget: 0,
     cycleScore: 0,
     fund: 0,
+    research: 0,
     deck,
     hand: [],
     discard: [],
@@ -190,6 +191,9 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
       case "gainScore":
         baseScore += e.amount;
         break;
+      case "gainResearch":
+        s.research += e.amount;
+        break;
       case "comboScore":
         baseScore += Math.min(e.cap, (s.playedTagCounts[e.tag] ?? 0) * e.points);
         break;
@@ -260,9 +264,15 @@ export function buyCard(prev: GameState, content: Content, defId: string): GameS
   const def = content.cards.get(defId);
   if (!entry || !def || entry.stock <= 0) return prev;
   if (s.buys <= 0) return prev;
-  const cost = effectiveCost(s, content, def);
-  if (s.budget < cost) return prev;
-  s.budget -= cost;
+  if (def.costResearch) {
+    // 연구 비용 카드: 예산 대신 연구지수로 산다 (구매 횟수는 동일하게 소모)
+    if (s.research < def.costResearch) return prev;
+    s.research -= def.costResearch;
+  } else {
+    const cost = effectiveCost(s, content, def);
+    if (s.budget < cost) return prev;
+    s.budget -= cost;
+  }
   s.buys -= 1;
   entry.stock -= 1;
   if (entry.stock === 0) s.market = s.market.filter((item) => item.defId !== defId);

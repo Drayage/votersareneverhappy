@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - claude/city-builder-game-design-450p51
+      - claude/codex-first-upgrade-review-w6pnl2
       - main
   workflow_dispatch:
 

@@ -123,11 +123,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .card-name { padding-top: 1px; font-family: Georgia, "Noto Serif KR", serif; font-size: 15px; line-height: 1.2; font-weight: 800; word-break: keep-all; }
 .card-cost { width: 28px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid #f4cf7a; border-radius: 50%; color: #241c0c; background: var(--gold-2); font-size: 12px; font-weight: 950; box-shadow: 0 3px 9px #0005; }
 .card-meta { display: flex; align-items: center; gap: 5px; margin: 8px 0 7px; }
-.type-chip, .playcost, .tier { padding: 2px 5px; border-radius: 4px; color: var(--muted); background: #0b1512; font-size: 9px; font-weight: 800; }
+.type-chip, .playcost, .dead-chip, .tier { padding: 2px 5px; border-radius: 4px; color: var(--muted); background: #0b1512; font-size: 9px; font-weight: 800; }
 .type-chip-treasure { color: #f4d17d; }
 .type-chip-action { color: #a9c8fa; }
 .type-chip-score { color: #e0b4ef; }
 .playcost { color: #bed2ff; background: #1a2742; }
+.dead-chip { color: #f2b8b0; background: #35201d; }
 .tier { margin-left: auto; color: var(--tone); background: transparent; }
 .card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
 .tag { padding: 2px 6px; border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent); border-radius: 99px; color: #d9e0dc; background: color-mix(in srgb, var(--tone) 13%, #101915); font-size: 9px; font-weight: 700; }

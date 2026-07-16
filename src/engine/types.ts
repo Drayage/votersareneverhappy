@@ -56,6 +56,8 @@ export type Effect =
   | { kind: "gainBuy"; amount: number }
   // 연계: 이 카드를 내기 전에 사용한 특정 태그 카드 수만큼 점수 획득
   | { kind: "comboScore"; tag: Tag; points: number; cap: number }
+  // 리사이클: 이번 턴 낸 카드(최근 순) 최대 count장을 덱 맨 위로 되돌린다
+  | { kind: "recycleInPlay"; count: number }
   // 지속(트리거)
   | { kind: "onPlayTag"; tag: Tag; score: number }
   | { kind: "onBuyScore"; score: number }

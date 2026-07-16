@@ -189,6 +189,13 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
       case "comboScore":
         baseScore += Math.min(e.cap, (s.playedTagCounts[e.tag] ?? 0) * e.points);
         break;
+      case "recycleInPlay": {
+        // 이번 턴 낸 카드(자신 제외 — 아직 inPlay 미추가) 최근 count장을 덱 위로.
+        // 액션을 소모하는 카드에만 붙여 무한 루프를 막는다(액션 상한이 자연 제동).
+        const n = Math.min(e.count, s.inPlay.length);
+        if (n > 0) s.deck.unshift(...s.inPlay.splice(s.inPlay.length - n, n));
+        break;
+      }
       case "multiplyTagScore":
         s.turnMult[e.tag] = (s.turnMult[e.tag] ?? 1) * e.mult;
         break;

@@ -132,6 +132,12 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
 
   const passed = finalScore >= target;
 
+  // 자금: 목표 대비 달성률 기반. 턱걸이 통과도 목표만큼 받고,
+  // 초과분은 절반 비율로만 얹어 상한(목표×1.5)에서 멈춘다 — 오버킬 스노볼 방지.
+  const fundGained = passed
+    ? Math.round(target * Math.min(CAPS.fundMaxRatio, 1 + (finalScore / target - 1) * CAPS.fundOverflowRate))
+    : 0;
+
   return {
     evalIndex: state.evalIndex,
     target,
@@ -145,7 +151,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     corruptionPct,
     finalScore,
     passed,
-    fundGained: passed ? finalScore : 0,
+    fundGained,
     perTag,
   };
 }

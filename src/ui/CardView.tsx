@@ -72,6 +72,7 @@ export function CardView({
       <div className="card-meta">
         <span className={`type-chip type-chip-${card.type}`}><span aria-hidden="true">{meta.icon}</span> {meta.label}</span>
         {playCostOf(card) > 0 && <span className="playcost" title="사용할 때 필요한 액션">⚡ {playCostOf(card)}</span>}
+        {card.deadInHand && <span className="dead-chip" title="손에서는 사용할 수 없고, 평가 정산 때만 계산됩니다">정산 전용</span>}
         <span className="tier">{card.tier === "start" ? "기본" : `${card.tier}급`}</span>
       </div>
       <div className="card-tags">

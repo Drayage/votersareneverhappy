@@ -110,6 +110,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .wallet-status.is-ready { color: #c8f9e7; background: #17372b; }
 .wallet-status.is-ready span { color: var(--mint); text-shadow: 0 0 8px var(--mint); }
 
+.mobile-actionbar { display: none; }
 .card-grid { display: grid; gap: 9px; }
 .hand-grid { grid-template-columns: repeat(auto-fit, minmax(166px, 1fr)); }
 .market-grid { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); }
@@ -298,17 +299,53 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
   .resource-grid { grid-template-columns: repeat(3, 1fr); }
   .resource { border-bottom: 1px solid var(--line-soft); }
   .resource:nth-child(3) { border-right: 0; }
-  .hand-grid, .market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .card { min-height: 0; aspect-ratio: 5 / 7; }
   .section-title { align-items: start; flex-direction: column; gap: 4px; }
   .section-title p { text-align: left; }
-  .city-profile { display: block; }
+  /* 폰에서는 손패가 최우선 — 프로필은 본문 아래로 내린다 */
+  .city-profile { display: block; order: 0; }
   .identity-list { margin: 12px 0; }
-  .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .compact-choices { grid-template-columns: repeat(2, 1fr); }
+  .topbar p { display: none; }
   .shop-grid, .deck-list { grid-template-columns: 1fr; }
   .modal-backdrop { padding: 10px; }
   .modal { max-height: calc(100vh - 20px); padding: 19px; }
+
+  /* ── 모바일: 카드를 한 줄 리스트로 — 손패 전체가 한 화면에, 탭 한 번으로 사용/구매 ── */
+  .hand-grid, .market-grid, .choice-grid, .compact-choices { grid-template-columns: 1fr; gap: 7px; }
+  .card, .card.is-compact {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+    gap: 2px 10px; min-height: 0; aspect-ratio: auto; padding: 8px 11px;
+  }
+  .card::after { inset: 3px; }
+  .card-accent { height: 4px; }
+  .card-art, .card.is-compact .card-art { display: none; }
+  .card-head, .card.is-compact .card-head { grid-column: 1; grid-row: 1; align-items: center; gap: 6px; min-height: 0; margin: 0; padding: 0; border: 0; background: none; }
+  .card-name, .card.is-compact .card-name { font-size: 12.5px; }
+  .card-cost { width: 24px; height: 24px; font-size: 11px; }
+  .card-meta { grid-column: 1; grid-row: 2; margin: 2px 0 0; }
+  .tier { display: none; }
+  .card-tags, .card.is-compact .card-tags { display: none; }
+  .card-rules, .card.is-compact .card-rules { grid-column: 1 / -1; grid-row: 3; min-height: 0; margin: 3px 0 0; padding: 4px 7px; }
+  .rules-mark { display: none; }
+  .card-text, .card.is-compact .card-text {
+    margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 10px; line-height: 1.45;
+  }
+  .card-footer { grid-column: 2; grid-row: 1 / 3; flex-direction: column; align-items: flex-end; justify-content: center; min-height: 0; margin: 0; padding: 0; }
+  .card.is-interactive:hover:not(:disabled) { transform: none; }
+
+  /* 상단 다이어트 + 하단 고정 액션 바 (스크롤 없이 턴 마감/재정 사용) */
+  .app-shell { padding-bottom: 78px; }
+  .market-wallet { display: none; }
+  .hand-panel .action-row { display: none; }
+  .mobile-actionbar {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    padding: 9px 12px calc(9px + env(safe-area-inset-bottom));
+    border-top: 1px solid #34443e; background: #0a1511f2; backdrop-filter: blur(12px);
+  }
+  .mab-stats { display: flex; align-items: center; gap: 11px; overflow-x: auto; color: var(--ink); font-size: 13px; font-weight: 900; white-space: nowrap; }
+  .mab-stats .gold { color: var(--gold-2); }
+  .mobile-actionbar .button { padding: 9px 13px; }
 }
 
 @media (max-width: 430px) {
@@ -316,26 +353,6 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
   .city-seal { width: 44px; height: 44px; border-radius: 12px; font-size: 20px; }
   .topbar p { display: none; }
   .resource { justify-content: flex-start; }
-  .market-wallet { top: 6px; grid-template-columns: auto auto minmax(0, 1fr); gap: 4px; margin: -6px -6px 12px; padding: 5px; }
-  .wallet-title { display: none; }
-  .wallet-stat { grid-template-columns: 20px auto; min-width: 77px; padding: 5px 6px; }
-  .wallet-stat > span { width: 18px; height: 18px; font-size: 9px; }
-  .wallet-stat strong { font-size: 13px; }
-  .wallet-status { justify-content: center; min-width: 0; padding: 0 5px; font-size: 8px; }
-  .hand-grid, .market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .card, .card.is-compact { min-height: 238px; aspect-ratio: auto; padding: 7px; }
-  .card-head, .card.is-compact .card-head { min-height: 28px; margin-bottom: 4px; padding: 5px 5px 3px; }
-  .card-name, .card.is-compact .card-name { font-size: 11px; }
-  .card-cost { width: 25px; height: 25px; font-size: 11px; }
-  .card-art, .card.is-compact .card-art { height: 58px; min-height: 58px; margin-bottom: 4px; }
-  .art-glyph { font-size: 29px; }
-  .art-label { left: 5px; top: 5px; padding: 1px 4px; font-size: 6px; }
-  .card-meta, .card-tags { margin-bottom: 4px; }
-  .type-chip, .playcost, .tier, .tag { padding: 2px 4px; font-size: 7px; }
-  .card-rules { min-height: 53px; padding: 7px 5px 5px 14px; }
-  .rules-mark { left: 5px; top: 8px; }
-  .card-text, .card.is-compact .card-text { font-size: 8.5px; line-height: 1.34; }
-  .card-footer { margin-top: 4px; }
   .action-row { flex-direction: column; }
   .action-row .button { width: 100%; }
   footer { flex-direction: column; gap: 3px; }

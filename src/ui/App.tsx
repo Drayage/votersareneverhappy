@@ -24,7 +24,7 @@ function Header() {
       <div className="brand-lockup">
         <div className="city-seal" aria-hidden="true">市</div>
         <div>
-          <div className="eyebrow">CITY HALL DECKBUILDER · v0.2</div>
+          <div className="eyebrow">CITY HALL DECKBUILDER · v0.5</div>
           <h1>유권자가 너무해</h1>
           <p>시장을 설계하고, 공약을 엮고, 다섯 번의 평가를 버텨라.</p>
         </div>
@@ -191,6 +191,16 @@ function PlayPhase() {
         </section>
       </div>
       <CityProfile state={state} content={content} />
+      <div className="mobile-actionbar" role="toolbar" aria-label="빠른 조작">
+        <div className="mab-stats">
+          <span className="gold">₩ {state.budget.toLocaleString()}</span>
+          <span>⚡ {state.actions}</span>
+          <span>＋ {state.buys}</span>
+          {state.research > 0 && <span>🔬 {state.research}</span>}
+        </div>
+        <button className="button button-secondary" disabled={!hasTreasure} onClick={playTreasures}>재정 사용</button>
+        <button className="button button-primary" onClick={endTurn}>턴 마감 →</button>
+      </div>
     </div>
   );
 }
@@ -289,7 +299,7 @@ export default function App() {
       {state.phase === "evaluation" && <EvaluationModal />}
       {state.phase === "win" && <EndModal win />}
       {state.phase === "gameover" && <EndModal win={false} />}
-      <footer><span>유권자가 너무해 · playable prototype v0.2</span><span>시장 진화형 도시 덱빌더</span></footer>
+      <footer><span>유권자가 너무해 · playable prototype v0.5</span><span>시장 진화형 도시 덱빌더</span></footer>
     </div>
   );
 }

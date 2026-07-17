@@ -368,6 +368,8 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
   }
   .mab-stats { display: flex; align-items: center; gap: 11px; overflow-x: auto; color: var(--ink); font-size: 13px; font-weight: 900; white-space: nowrap; }
   .mab-stats .gold { color: var(--gold-2); }
+  .mab-stats .mint { color: var(--mint); }
+  .mab-stats small { margin-left: 1px; color: var(--muted); font-size: 10px; font-weight: 800; }
   .mobile-actionbar .button { padding: 9px 13px; }
 }
 

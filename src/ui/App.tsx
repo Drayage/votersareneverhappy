@@ -152,9 +152,13 @@ function PlayPhase() {
   // 이 useState는 자동으로 매 턴 초기화된다 — 그 시점 손패가 곧 "이번 턴 시작 손패".
   const [turnStartUids] = useState(() => new Set(state.hand.map((c) => c.uid)));
   const [mobileTab, setMobileTab] = useState<MobileTab>("hand");
+  // 손패 소진 시 시장 탭으로 넘기는 자동 전환은 턴당 한 번만 — 이후 손패 탭으로
+  // 직접 돌아오면(예: 빈 손패 확인) 다시 강제로 밀어내지 않는다.
+  const [autoAdvancedToMarket, setAutoAdvancedToMarket] = useState(false);
 
   const hasTreasure = state.hand.some((c) => cardDef(content, c.defId).type === "treasure");
   const displayHand = useMemo(() => sortHandForDisplay(state.hand, turnStartUids, content), [state.hand, turnStartUids, content]);
+  const projection = useMemo(() => computeSettlement(state, content), [state, content]);
   const affordableCards = state.market.filter((entry) => {
     const card = cardDef(content, entry.defId);
     const payable = card.costResearch ? state.research >= card.costResearch : state.budget >= effectiveCost(state, content, card);
@@ -162,10 +166,13 @@ function PlayPhase() {
   }).length;
   const marketStatus = state.buys <= 0 ? "이번 턴 구매 완료" : affordableCards > 0 ? `${affordableCards}종 구매 가능` : "예산 부족";
 
-  // 손패를 다 쓰면 자동으로 시장 탭으로 — 사용할 카드가 없는데 손패 화면에 머물 이유가 없다.
+  // 손패를 다 쓰면 자동으로 시장 탭으로 — 턴당 한 번만.
   useEffect(() => {
-    if (state.hand.length === 0 && mobileTab === "hand") setMobileTab("market");
-  }, [state.hand.length, mobileTab]);
+    if (state.hand.length === 0 && mobileTab === "hand" && !autoAdvancedToMarket) {
+      setMobileTab("market");
+      setAutoAdvancedToMarket(true);
+    }
+  }, [state.hand.length, mobileTab, autoAdvancedToMarket]);
 
   // 시장 탭에서 구매를 다 쓰거나 살 수 있는 카드가 없으면(손패도 이미 빈 상태) 자동으로 턴 마감.
   useEffect(() => {
@@ -241,6 +248,8 @@ function PlayPhase() {
         </nav>
         <div className="mobile-actionbar" role="toolbar" aria-label="빠른 조작">
           <div className="mab-stats">
+            <span className={projection.finalScore >= projection.target ? "mint" : ""}>🎯 {projection.finalScore.toLocaleString()}<small>/{projection.target.toLocaleString()}</small></span>
+            <span>★ {state.cycleScore.toLocaleString()}</span>
             <span className="gold">₩ {state.budget.toLocaleString()}</span>
             <span>⚡ {state.actions}</span>
             <span>＋ {state.buys}</span>

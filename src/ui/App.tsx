@@ -232,6 +232,9 @@ function PlayPhase() {
           </div>
         </section>
       </div>
+      <div className="status-dashboard" data-section="status">
+        <Dashboard state={state} content={content} />
+      </div>
       <CityProfile state={state} content={content} />
 
       <div className="mobile-bottombar">
@@ -249,6 +252,7 @@ function PlayPhase() {
         <div className="mobile-actionbar" role="toolbar" aria-label="빠른 조작">
           <div className="mab-stats">
             <span className={projection.finalScore >= projection.target ? "mint" : ""}>🎯 {projection.finalScore.toLocaleString()}<small>/{projection.target.toLocaleString()}</small></span>
+            <span>⏳ {CAPS.turnsPerCycle - state.turn + 1}턴</span>
             <span>★ {state.cycleScore.toLocaleString()}</span>
             <span className="gold">₩ {state.budget.toLocaleString()}</span>
             <span>⚡ {state.actions}</span>

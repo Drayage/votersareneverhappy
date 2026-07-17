@@ -302,8 +302,9 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
   .resource:nth-child(3) { border-right: 0; }
   .section-title { align-items: start; flex-direction: column; gap: 4px; }
   .section-title p { text-align: left; }
-  /* 대시보드(예산/점수/목표 등)는 하단 바에 상시 노출되므로 모바일에서는 생략해 카드 공간 확보 */
-  .dashboard { display: none; }
+  /* 상단 대시보드는 하단 바와 중복이라 모바일에서 숨기고, 현황 탭 안의 복사본으로 대체 */
+  .app-shell > .dashboard { display: none; }
+  .status-dashboard { margin-bottom: 12px; }
   /* 폰에서는 손패가 최우선 — 프로필은 본문 아래로 내린다 */
   .city-profile { display: block; order: 0; }
   .identity-list { margin: 12px 0; }
@@ -382,7 +383,7 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
 }
 
 @media (min-width: 761px) {
-  .mobile-tabbar, .mobile-bottombar { display: none; }
+  .mobile-tabbar, .mobile-bottombar, .status-dashboard { display: none; }
 }
 
 @media (max-width: 430px) {

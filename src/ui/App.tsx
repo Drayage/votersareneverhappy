@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
 import type { CardDef, Content, GameState } from "../engine/types";
@@ -15,6 +15,18 @@ function comboPreview(card: CardDef, state: GameState): number | undefined {
   const effects = (card.onPlay ?? []).filter((e) => e.kind === "comboScore");
   if (effects.length === 0) return undefined;
   return effects.reduce((sum, effect) => sum + Math.min(effect.cap, (state.playedTagCounts[effect.tag] ?? 0) * effect.points), 0);
+}
+
+// 손패 기본 정렬: 액션 → 재정 → 사업 순. 턴 중 새로 드로우된 카드는 정렬에 섞이지 않고
+// 뒤에 그대로 붙는다(매번 순서가 튀지 않게) — turnStartUids는 이번 턴 시작 시점의 손패를 기록.
+const HAND_TYPE_ORDER: Record<CardDef["type"], number> = { action: 0, treasure: 1, score: 2 };
+function sortHandForDisplay(hand: GameState["hand"], turnStartUids: Set<number>, content: Content): GameState["hand"] {
+  const original = hand.filter((c) => turnStartUids.has(c.uid));
+  const drawnLater = hand.filter((c) => !turnStartUids.has(c.uid));
+  const sortedOriginal = [...original].sort(
+    (a, b) => HAND_TYPE_ORDER[cardDef(content, a.defId).type] - HAND_TYPE_ORDER[cardDef(content, b.defId).type]
+  );
+  return [...sortedOriginal, ...drawnLater];
 }
 
 function Header() {
@@ -88,7 +100,7 @@ function CityProfile({ state, content }: { state: GameState; content: Content })
   const topTags = tagLabelCounts(state, content).slice(0, 4);
   const projection = computeSettlement(state, content);
   return (
-    <aside className="city-profile">
+    <aside className="city-profile" data-section="status">
       <div className="profile-head"><span className="eyebrow">CITY PROFILE</span><strong>우리 도시의 색</strong></div>
       <div className="identity-list">
         {topTags.map(([tag, count], index) => (
@@ -131,36 +143,70 @@ function SectionTitle({ kicker, title, note }: { kicker: string; title: string; 
   return <div className="section-title"><div><span className="eyebrow">{kicker}</span><h2>{title}</h2></div>{note && <p>{note}</p>}</div>;
 }
 
+type MobileTab = "hand" | "market" | "status";
+
 function PlayPhase() {
   const { state, content, play, playTreasures, buy, endTurn } = useGame();
+
+  // PlayPhase는 매 턴 phase가 'play'를 벗어났다 돌아올 때 새로 마운트되므로,
+  // 이 useState는 자동으로 매 턴 초기화된다 — 그 시점 손패가 곧 "이번 턴 시작 손패".
+  const [turnStartUids] = useState(() => new Set(state.hand.map((c) => c.uid)));
+  const [mobileTab, setMobileTab] = useState<MobileTab>("hand");
+
   const hasTreasure = state.hand.some((c) => cardDef(content, c.defId).type === "treasure");
+  const displayHand = useMemo(() => sortHandForDisplay(state.hand, turnStartUids, content), [state.hand, turnStartUids, content]);
   const affordableCards = state.market.filter((entry) => {
     const card = cardDef(content, entry.defId);
     const payable = card.costResearch ? state.research >= card.costResearch : state.budget >= effectiveCost(state, content, card);
     return entry.stock > 0 && payable;
   }).length;
   const marketStatus = state.buys <= 0 ? "이번 턴 구매 완료" : affordableCards > 0 ? `${affordableCards}종 구매 가능` : "예산 부족";
-  return (
-    <div className="game-grid">
-      <div className="game-main">
-        <section className="panel hand-panel">
-          <SectionTitle kicker={`TURN ${state.turn} · COUNCIL DESK`} title={`손에 든 안건 ${state.hand.length}장`} note="카드 순서를 바꾸면 연계 점수가 달라집니다." />
-          <div className="card-grid hand-grid">
-            {state.hand.map((instance) => {
-              const card = cardDef(content, instance.defId);
-              const playCost = playCostOf(card);
-              const dead = card.deadInHand;
-              return <CardView key={instance.uid} card={card} onClick={() => play(instance.uid)} disabled={dead || state.actions < playCost} badge={dead ? "처리 불가" : state.actions < playCost ? "액션 부족" : "사용"} comboPreview={comboPreview(card, state)} />;
-            })}
-            {state.hand.length === 0 && <EmptyState>처리할 안건이 없습니다.</EmptyState>}
-          </div>
-          <div className="action-row">
-            <button className="button button-secondary" disabled={!hasTreasure} onClick={playTreasures}>재정 카드 모두 사용</button>
-            <button className="button button-primary" onClick={endTurn}>턴 마감 <span>→</span></button>
-          </div>
-        </section>
 
-        <section className="panel market-panel">
+  // 손패를 다 쓰면 자동으로 시장 탭으로 — 사용할 카드가 없는데 손패 화면에 머물 이유가 없다.
+  useEffect(() => {
+    if (state.hand.length === 0 && mobileTab === "hand") setMobileTab("market");
+  }, [state.hand.length, mobileTab]);
+
+  // 시장 탭에서 구매를 다 쓰거나 살 수 있는 카드가 없으면(손패도 이미 빈 상태) 자동으로 턴 마감.
+  useEffect(() => {
+    if (mobileTab !== "market" || state.hand.length > 0) return;
+    if (state.buys <= 0 || affordableCards === 0) endTurn();
+  }, [mobileTab, state.hand.length, state.buys, affordableCards, endTurn]);
+
+  return (
+    <div className="game-grid" data-tab={mobileTab}>
+      <div className="game-main">
+        <div data-section="hand">
+          <section className="panel hand-panel">
+            <SectionTitle kicker={`TURN ${state.turn} · COUNCIL DESK`} title={`손에 든 안건 ${state.hand.length}장`} note="카드 순서를 바꾸면 연계 점수가 달라집니다." />
+            <div className="card-grid hand-grid">
+              {displayHand.map((instance) => {
+                const card = cardDef(content, instance.defId);
+                const playCost = playCostOf(card);
+                const dead = card.deadInHand;
+                return <CardView key={instance.uid} card={card} onClick={() => play(instance.uid)} disabled={dead || state.actions < playCost} badge={dead ? "처리 불가" : state.actions < playCost ? "액션 부족" : "사용"} comboPreview={comboPreview(card, state)} />;
+              })}
+              {state.hand.length === 0 && <EmptyState>처리할 안건이 없습니다. 시장에서 카드를 구매하거나 턴을 마감하세요.</EmptyState>}
+            </div>
+            <div className="action-row">
+              <button className="button button-secondary" disabled={!hasTreasure} onClick={playTreasures}>재정 카드 모두 사용</button>
+              <button className="button button-primary" onClick={endTurn}>턴 마감 <span>→</span></button>
+            </div>
+          </section>
+
+          <section className="panel inplay-panel">
+            <SectionTitle kicker="TODAY'S RECORD" title={`이번 턴 처리 완료 ${state.inPlay.length}장`} />
+            <div className="mini-card-row">
+              {state.inPlay.map((instance) => {
+                const card = cardDef(content, instance.defId);
+                return <div className={`mini-card tone-${card.tags[0]}`} key={instance.uid}><strong>{card.name}</strong><span>{card.tags.map((tag) => TAG_LABELS[tag]).join(" · ")}</span>{(instance.persistLeft ?? 0) > 1 && <em className="persist-badge">지속 {instance.persistLeft! - 1}턴 남음</em>}</div>;
+              })}
+              {state.inPlay.length === 0 && <span className="muted">아직 처리한 카드가 없습니다.</span>}
+            </div>
+          </section>
+        </div>
+
+        <section className="panel market-panel" data-section="market">
           <div className="market-wallet" role="status" aria-live="polite" aria-label={`상점 지갑, 예산 ${state.budget}, 구매 ${state.buys}, ${marketStatus}`}>
             <div className="wallet-title"><span className="eyebrow">MARKET WALLET</span><strong>상점 지갑</strong></div>
             <div className="wallet-stat wallet-budget"><span aria-hidden="true">₩</span><small>예산</small><strong>{state.budget.toLocaleString()}</strong></div>
@@ -178,28 +224,31 @@ function PlayPhase() {
             })}
           </div>
         </section>
-
-        <section className="panel inplay-panel">
-          <SectionTitle kicker="TODAY'S RECORD" title={`이번 턴 처리 완료 ${state.inPlay.length}장`} />
-          <div className="mini-card-row">
-            {state.inPlay.map((instance) => {
-              const card = cardDef(content, instance.defId);
-              return <div className={`mini-card tone-${card.tags[0]}`} key={instance.uid}><strong>{card.name}</strong><span>{card.tags.map((tag) => TAG_LABELS[tag]).join(" · ")}</span>{(instance.persistLeft ?? 0) > 1 && <em className="persist-badge">지속 {instance.persistLeft! - 1}턴 남음</em>}</div>;
-            })}
-            {state.inPlay.length === 0 && <span className="muted">아직 처리한 카드가 없습니다.</span>}
-          </div>
-        </section>
       </div>
       <CityProfile state={state} content={content} />
-      <div className="mobile-actionbar" role="toolbar" aria-label="빠른 조작">
-        <div className="mab-stats">
-          <span className="gold">₩ {state.budget.toLocaleString()}</span>
-          <span>⚡ {state.actions}</span>
-          <span>＋ {state.buys}</span>
-          {state.research > 0 && <span>🔬 {state.research}</span>}
+
+      <div className="mobile-bottombar">
+        <nav className="mobile-tabbar" role="tablist" aria-label="화면 전환">
+          <button type="button" role="tab" aria-selected={mobileTab === "hand"} className={mobileTab === "hand" ? "is-active" : ""} onClick={() => setMobileTab("hand")}>
+            손패{state.hand.length > 0 && <em>{state.hand.length}</em>}
+          </button>
+          <button type="button" role="tab" aria-selected={mobileTab === "market"} className={mobileTab === "market" ? "is-active" : ""} onClick={() => setMobileTab("market")}>
+            시장{affordableCards > 0 && <em>{affordableCards}</em>}
+          </button>
+          <button type="button" role="tab" aria-selected={mobileTab === "status"} className={mobileTab === "status" ? "is-active" : ""} onClick={() => setMobileTab("status")}>
+            현황
+          </button>
+        </nav>
+        <div className="mobile-actionbar" role="toolbar" aria-label="빠른 조작">
+          <div className="mab-stats">
+            <span className="gold">₩ {state.budget.toLocaleString()}</span>
+            <span>⚡ {state.actions}</span>
+            <span>＋ {state.buys}</span>
+            {state.research > 0 && <span>🔬 {state.research}</span>}
+          </div>
+          <button className="button button-secondary" disabled={!hasTreasure} onClick={playTreasures}>재정 사용</button>
+          <button className="button button-primary" onClick={endTurn}>턴 마감 →</button>
         </div>
-        <button className="button button-secondary" disabled={!hasTreasure} onClick={playTreasures}>재정 사용</button>
-        <button className="button button-primary" onClick={endTurn}>턴 마감 →</button>
       </div>
     </div>
   );

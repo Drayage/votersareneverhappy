@@ -125,9 +125,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .card-cost { width: 28px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid #f4cf7a; border-radius: 50%; color: #241c0c; background: var(--gold-2); font-size: 12px; font-weight: 950; box-shadow: 0 3px 9px #0005; }
 .card-meta { display: flex; align-items: center; gap: 5px; margin: 8px 0 7px; }
 .type-chip, .playcost, .dead-chip, .tier { padding: 2px 5px; border-radius: 4px; color: var(--muted); background: #0b1512; font-size: 9px; font-weight: 800; }
-.type-chip-treasure { color: #f4d17d; }
-.type-chip-action { color: #a9c8fa; }
-.type-chip-score { color: #e0b4ef; }
+/* 타입 칩은 채움색으로 — 특히 액션 카드가 한눈에 구분되게 */
+.type-chip-treasure { color: #241c0c; background: var(--gold-2); }
+.type-chip-action { color: #0d1a33; background: #a9c8fa; }
+.type-chip-score { color: #2a1030; background: #e0b4ef; }
 .playcost { color: #bed2ff; background: #1a2742; }
 .dead-chip { color: #f2b8b0; background: #35201d; }
 .tier { margin-left: auto; color: var(--tone); background: transparent; }
@@ -333,19 +334,45 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
   .card-footer { grid-column: 2; grid-row: 1 / 3; flex-direction: column; align-items: flex-end; justify-content: center; min-height: 0; margin: 0; padding: 0; }
   .card.is-interactive:hover:not(:disabled) { transform: none; }
 
-  /* 상단 다이어트 + 하단 고정 액션 바 (스크롤 없이 턴 마감/재정 사용) */
-  .app-shell { padding-bottom: 78px; }
+  /* 탭 전환: game-grid[data-tab]에 따라 손패/시장/현황 중 하나만 보인다 */
+  .game-grid[data-tab="hand"] [data-section="market"],
+  .game-grid[data-tab="hand"] [data-section="status"],
+  .game-grid[data-tab="market"] [data-section="hand"],
+  .game-grid[data-tab="market"] [data-section="status"],
+  .game-grid[data-tab="status"] [data-section="hand"],
+  .game-grid[data-tab="status"] [data-section="market"] { display: none; }
+
+  /* 상단 다이어트 + 하단 고정 탭바+액션바 (스크롤 없이 화면 전환/턴 마감/재정 사용) */
+  .app-shell { padding-bottom: 118px; }
   .market-wallet { display: none; }
   .hand-panel .action-row { display: none; }
+  .mobile-bottombar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid #34443e; background: #0a1511f2; backdrop-filter: blur(12px);
+  }
+  .mobile-tabbar { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid #24322c; }
+  .mobile-tabbar button {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 6px; color: var(--muted); background: none; border: 0; border-right: 1px solid #24322c;
+    font-size: 12px; font-weight: 850;
+  }
+  .mobile-tabbar button:last-child { border-right: 0; }
+  .mobile-tabbar button.is-active { color: var(--mint); background: #12241cbb; box-shadow: inset 0 -2px 0 var(--mint); }
+  .mobile-tabbar button em { padding: 1px 6px; border-radius: 99px; color: #112019; background: currentColor; font-size: 10px; font-style: normal; }
+  .mobile-tabbar button.is-active em { color: #0d1f17; background: var(--mint); }
+  .mobile-tabbar button:not(.is-active) em { color: #cfd8d4; background: #24322c; }
   .mobile-actionbar {
     display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center;
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-    padding: 9px 12px calc(9px + env(safe-area-inset-bottom));
-    border-top: 1px solid #34443e; background: #0a1511f2; backdrop-filter: blur(12px);
+    padding: 9px 12px;
   }
   .mab-stats { display: flex; align-items: center; gap: 11px; overflow-x: auto; color: var(--ink); font-size: 13px; font-weight: 900; white-space: nowrap; }
   .mab-stats .gold { color: var(--gold-2); }
   .mobile-actionbar .button { padding: 9px 13px; }
+}
+
+@media (min-width: 761px) {
+  .mobile-tabbar, .mobile-bottombar { display: none; }
 }
 
 @media (max-width: 430px) {

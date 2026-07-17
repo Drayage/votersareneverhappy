@@ -4,7 +4,7 @@ import { playCostOf } from "../engine/effects";
 
 const TYPE_META: Record<CardDef["type"], { label: string; icon: string }> = {
   treasure: { label: "재정", icon: "◆" },
-  action: { label: "행정", icon: "↻" },
+  action: { label: "액션", icon: "⚡" },
   score: { label: "사업", icon: "★" },
 };
 

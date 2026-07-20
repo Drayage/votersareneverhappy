@@ -22,15 +22,17 @@ function rankedTags(state: GameState, content: Content): Tag[] {
   return (ALL_TAGS as Tag[]).slice().sort((a, b) => freq[b] - freq[a]);
 }
 
-/** 평가 차수에 따른 티어 가중치 — 후반일수록 고티어 등장↑ */
+/** 평가 차수에 따른 티어 가중치 — 후반일수록 고티어 등장↑.
+ *  S는 초반 등장을 크게 올렸다(0.1→0.35): 엔진 덱이 2차 벽 전에 페이오프 카드를 "볼" 수 있어야 한다.
+ *  균형은 가격(스케일 카드는 비쌈)·재고(3장)가 잡으므로, 등장률은 "접근/계획"만 담당한다. */
 function tierWeight(tier: CardDef["tier"], evalIndex: number): number {
   switch (tier) {
     case "B":
       return 1.0;
     case "A":
-      return 0.5 + 0.4 * evalIndex;
+      return 0.6 + 0.4 * evalIndex;
     case "S":
-      return 0.1 + 0.5 * evalIndex;
+      return 0.35 + 0.55 * evalIndex;
     default:
       return 0; // start 티어는 후보에 등장하지 않음
   }

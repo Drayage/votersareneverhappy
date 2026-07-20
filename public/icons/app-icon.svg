@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">유권자가 너무해 도시 인장</title>
+  <defs>
+    <radialGradient id="bg" cx="32%" cy="24%" r="90%">
+      <stop offset="0" stop-color="#1e493b" />
+      <stop offset="0.58" stop-color="#10251e" />
+      <stop offset="1" stop-color="#07100d" />
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f6dc8a" />
+      <stop offset="1" stop-color="#bd7f24" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <rect x="54" y="54" width="404" height="404" rx="88" fill="none" stroke="url(#gold)" stroke-width="9" />
+  <rect x="72" y="72" width="368" height="368" rx="72" fill="none" stroke="#f6dc8a" stroke-opacity=".28" stroke-width="3" />
+  <path d="M96 384h320v24H96zm24-48h52v48h-52zm68-72h64v120h-64zm82 34h50v86h-50zm68-82h54v168h-54z" fill="#07100d" opacity=".88" />
+  <circle cx="256" cy="238" r="128" fill="#0a1713" stroke="#e9bd5d" stroke-width="5" />
+  <text x="256" y="301" text-anchor="middle" fill="url(#gold)" font-family="'Yu Mincho','Noto Serif CJK KR',serif" font-size="172" font-weight="700">市</text>
+  <circle cx="256" cy="238" r="110" fill="none" stroke="#f6dc8a" stroke-opacity=".2" stroke-width="2" />
+</svg>

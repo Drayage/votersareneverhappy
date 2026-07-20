@@ -252,7 +252,9 @@ export interface SettlementResult {
   evalIndex: number;
   target: number;
   baseCycleScore: number; // 정산 전 누적(즉발/지속)
-  settlementScore: number; // 정산 가산분(과학 배수 적용 후)
+  settlementScore: number; // 정산 가산분(과학 배수·처리 한도 적용 후)
+  settlementRaw: number; // 처리 한도 적용 전 정산 원점수
+  settlementCap: number; // 이번 주기 처리 한도(= 낸 카드 수 × settlementPerPlay)
   settlementMult: number; // 과학 정산 배수
   pollutionPenalty: number; // 음수
   globalMult: number; // 곱연산 유물 결과 배수

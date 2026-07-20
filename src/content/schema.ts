@@ -3,7 +3,7 @@ import { ALL_TAGS } from "../engine/types";
 
 const tagSchema = z.enum(ALL_TAGS as [string, ...string[]]);
 const cardType = z.enum(["treasure", "action", "score"]);
-const resource = z.enum(["budget", "draw", "action", "buy"]);
+const resource = z.enum(["budget", "draw", "action", "buy", "research"]);
 
 // Effect 판별 유니온 — 새 kind 추가 시 여기에 한 줄 추가하면 검증된다.
 const effectSchema = z.discriminatedUnion("kind", [
@@ -82,6 +82,7 @@ export const policySchema = z.object({
   text: z.string(),
   price: z.number().min(0),
   passive: z.array(effectSchema).optional(),
+  settlement: z.array(effectSchema).optional(),
 });
 
 export const cardsFileSchema = z.array(cardSchema);

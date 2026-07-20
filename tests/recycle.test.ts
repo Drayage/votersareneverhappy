@@ -13,7 +13,7 @@ describe("리사이클(recycleInPlay)", () => {
       ...s,
       hand: [
         { uid: 9101, defId: "tax_collect" },
-        { uid: 9102, defId: "night_shift" },
+        { uid: 9102, defId: "night_shuttle" },
       ],
       deck: [],
       discard: [],
@@ -35,7 +35,7 @@ describe("리사이클(recycleInPlay)", () => {
     let s = newGame(content, 32);
     s = {
       ...s,
-      hand: [{ uid: 9105, defId: "night_shift" }],
+      hand: [{ uid: 9105, defId: "night_shuttle" }],
       deck: [{ uid: 9106, defId: "basic_tax" }],
       discard: [],
       inPlay: [],

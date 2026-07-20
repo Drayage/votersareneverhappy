@@ -89,7 +89,7 @@ export type Effect =
   | { kind: "corruption"; amount: number }
   | { kind: "populismDebuff"; amount: number }
   // 유물 전용 (passive 훅)
-  | { kind: "passivePerTurn"; resource: "budget" | "draw" | "action" | "buy"; amount: number }
+  | { kind: "passivePerTurn"; resource: "budget" | "draw" | "action" | "buy" | "research"; amount: number }
   | { kind: "costReduction"; cardType: CardType | "all"; amount: number }
   | { kind: "globalScoreMult"; mult: number }
   | { kind: "extraMarketSlot"; amount: number }
@@ -143,6 +143,8 @@ export interface PolicyDef {
   text: string;
   price: number;
   passive?: Effect[];
+  /** 정산 시 적용되는 효과 (유물과 동일하게 정산 소스로 집계) */
+  settlement?: Effect[];
 }
 
 /** 덱 안의 카드 인스턴스 (같은 정의의 여러 장을 구분) */

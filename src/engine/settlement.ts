@@ -40,10 +40,11 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   const baseTarget = EVAL_TARGETS[state.evalIndex];
   const target = Math.round(baseTarget * (1 + targetBonusPctEarly / 100));
 
-  // settlement 효과원 = 보유 카드 각 인스턴스 + relic settlement
+  // settlement 효과원 = 보유 카드 각 인스턴스 + relic/policy settlement
   const sources = [
     ...owned.map((ci) => content.cards.get(ci.defId)?.settlement),
     ...state.relics.map((id) => content.relics.get(id)?.settlement),
+    ...state.policies.map((id) => content.policies.get(id)?.settlement),
   ];
 
   for (const effs of sources) {

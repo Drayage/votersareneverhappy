@@ -110,6 +110,7 @@ function startTurn(prev: GameState, content: Content): GameState {
       else if (e.resource === "buy") buys += e.amount;
       else if (e.resource === "budget") budget += e.amount;
       else if (e.resource === "draw") drawBonus += e.amount;
+      else if (e.resource === "research") s.research += e.amount;
     } else if (e.kind === "corruption") {
       s.gauges.corruption = Math.max(0, s.gauges.corruption + e.amount);
     } else if (e.kind === "populismDebuff") {

@@ -13,6 +13,7 @@ interface Store {
   newGame: (seed?: number) => void;
   setSeed: (n: number) => void;
   play: (uid: number) => void;
+  resolveChoice: (uids: number[]) => void;
   playTreasures: () => void;
   buy: (defId: string) => void;
   endTurn: () => void;
@@ -33,6 +34,7 @@ export const useGame = create<Store>((set) => ({
   newGame: (seed) => set((s) => ({ state: G.newGame(s.content, seed ?? s.seedInput) })),
   setSeed: (n) => set({ seedInput: n }),
   play: (uid) => set((s) => ({ state: G.playCard(s.state, s.content, uid) })),
+  resolveChoice: (uids) => set((s) => ({ state: G.resolveChoice(s.state, s.content, uids) })),
   playTreasures: () => set((s) => ({ state: G.playAllTreasures(s.state, s.content) })),
   buy: (defId) => set((s) => ({ state: G.buyCard(s.state, s.content, defId) })),
   endTurn: () => set((s) => ({ state: G.endTurn(s.state, s.content) })),

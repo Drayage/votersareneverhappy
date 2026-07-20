@@ -60,6 +60,14 @@ export type Effect =
   | { kind: "recycleInPlay"; count: number }
   // 연구지수 획득 (과학 태그 전용 누적 재화 — 턴/주기가 지나도 유지)
   | { kind: "gainResearch"; amount: number }
+  // 남은 액션 1개당 +N예산 (액션 비축의 환금 — playCost 차감 후의 액션 수 기준)
+  | { kind: "budgetPerAction"; amount: number }
+  // 선택형(pendingChoice 보류): 손패에서 최대 count장을 버리고 그 수만큼 드로우 (필터)
+  | { kind: "discardThenDraw"; count: number }
+  // 선택형: 손패에서 최대 count장을 게임에서 완전히 폐기 (압축)
+  | { kind: "trashFromHand"; count: number }
+  // 선택형: 손패의 카드 1장을 골라 액션 소모 없이 두 번 발동 (왕좌의 방)
+  | { kind: "playTwice" }
   // 정산: 이번 주기에 낸 카드 수 기반 (tag 지정 시 해당 태그 플레이만) — 회전 덱의 정산 경로
   | { kind: "settlementPerPlays"; tag?: Tag; points: number; cap: number }
   // passive: 주기 점수(플레이로 쌓은 점수)에만 곱해지는 배수 — 정산 배수(과학)와 대칭
@@ -115,6 +123,9 @@ export interface CardDef {
   deadInHand?: boolean;
   // (지속 N턴): 낸 뒤 N턴 동안 플레이 영역에 유지된다(트리거가 다음 턴에도 발동).
   persistTurns?: number;
+  // (지속) 카드가 플레이 영역에 남아 있는 동안 매 턴 시작 시 발동하는 효과 (Seaside 지속형).
+  // 자원류(gainDraw/gainBudget/gainAction/gainBuy/gainScore/gainResearch)만 지원.
+  duration?: Effect[];
   // 연구 비용: 지정 시 이 카드는 예산 대신 연구지수로 구매한다 (cost는 0으로 둔다).
   costResearch?: number;
 }
@@ -216,6 +227,9 @@ export interface GameState {
   // 이번 평가 주기 동안 낸 카드 총수/태그별 수. settlementPerPlays(회전 정산)에 사용.
   cyclePlays: number;
   cyclePlayedTagCounts: Record<string, number>;
+
+  // 선택형 효과의 보류 상태. 설정되어 있는 동안 다른 행동이 막히고, resolveChoice 로만 해소된다.
+  pendingChoice: { kind: "discardThenDraw" | "trashFromHand" | "playTwice"; max: number } | null;
 
   // 포퓰리즘: 이번 평가의 "목표 점수 증가율(%)" (지난 주기 누적분이 이월되어 발효)
   activeTargetBonusPct: number;

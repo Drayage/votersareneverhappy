@@ -61,6 +61,7 @@ export function newGame(content: Content, seed = 1): GameState {
     playedTagCounts: {},
     cyclePlays: 0,
     cyclePlayedTagCounts: {},
+    pendingChoice: null,
     activeTargetBonusPct: 0,
     shopRelics: [],
     shopPolicies: [],
@@ -131,6 +132,20 @@ function startTurn(prev: GameState, content: Content): GameState {
 
   // 드로우
   drawInto(s, content, CAPS.handSize + drawBonus);
+
+  // (지속) 카드의 duration 효과 — 플레이 영역에 남아 있는 동안 매 턴 시작 시 발동
+  for (const ci of s.inPlay) {
+    for (const e of content.cards.get(ci.defId)?.duration ?? []) {
+      if (e.kind === "gainBudget") s.budget += e.amount;
+      else if (e.kind === "gainAction") s.actions = Math.min(s.actions + e.amount, CAPS.actionsPerTurn);
+      else if (e.kind === "gainBuy") s.buys = Math.min(s.buys + e.amount, CAPS.buysPerTurn);
+      else if (e.kind === "gainDraw") drawInto(s, content, e.amount);
+      else if (e.kind === "gainScore") s.cycleScore += e.amount;
+      else if (e.kind === "gainResearch") s.research += e.amount;
+    }
+  }
+
+  s.pendingChoice = null;
   s.phase = "play";
   return s;
 }
@@ -160,19 +175,18 @@ function drawInto(s: GameState, content: Content, n: number): void {
   }
 }
 
-export function playCard(prev: GameState, content: Content, uid: number): GameState {
-  if (prev.phase !== "play") return prev;
-  const s = clone(prev);
-  const idx = s.hand.findIndex((c) => c.uid === uid);
-  if (idx < 0) return prev;
-  const card = s.hand[idx];
-  const def = content.cards.get(card.defId);
-  if (!def) return prev;
-  if (def.deadInHand && !hasRemoveScorePenalty(s, content)) return prev; // 빈 카드 사용 불가
-  const pc = playCostOf(def);
-  if (s.actions < pc) return prev; // 플레이 코스트만큼 액션 필요
-  s.actions -= pc;
+/** 선택형 효과 kind — 대상 지정이 필요해 pendingChoice 로 보류된다 */
+const CHOICE_KINDS = ["discardThenDraw", "trashFromHand", "playTwice"] as const;
 
+function hasChoiceEffect(def: CardDef): boolean {
+  return (def.onPlay ?? []).some((e) => (CHOICE_KINDS as readonly string[]).includes(e.kind));
+}
+
+/**
+ * 카드 1회 "발동"의 공통 처리 — 효과·트리거·점수·플레이 카운트.
+ * 손패→inPlay 이동과 액션 비용 지불은 호출부(playCard/resolveChoice) 책임.
+ */
+function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
   // 1) 비점수 onPlay 효과 먼저 (배수/자원/게이지)
   let baseScore = 0;
   for (const e of def.onPlay ?? []) {
@@ -194,6 +208,19 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
         break;
       case "gainResearch":
         s.research += e.amount;
+        break;
+      case "budgetPerAction":
+        // playCost 차감 후 남아 있는 액션 수 기준 (액션을 소모하지는 않는다)
+        s.budget += s.actions * e.amount;
+        break;
+      case "discardThenDraw":
+        s.pendingChoice = { kind: "discardThenDraw", max: e.count };
+        break;
+      case "trashFromHand":
+        s.pendingChoice = { kind: "trashFromHand", max: e.count };
+        break;
+      case "playTwice":
+        s.pendingChoice = { kind: "playTwice", max: 1 };
         break;
       case "comboScore":
         baseScore += Math.min(e.cap, (s.playedTagCounts[e.tag] ?? 0) * e.points);
@@ -234,17 +261,76 @@ export function playCard(prev: GameState, content: Content, uid: number): GameSt
 
   // 3) 배수 적용 후 점수 적립
   const mult = tagMultiplier(s, def.tags as Tag[]);
-  const gained = Math.round((baseScore + trig.score) * mult);
-  s.cycleScore += gained;
+  s.cycleScore += Math.round((baseScore + trig.score) * mult);
 
-  // 4) inPlay 로 이동
-  s.hand.splice(idx, 1);
-  if (def.persistTurns) card.persistLeft = def.persistTurns;
-  s.inPlay.push(card);
+  // 4) 플레이 카운트 (연계/회전 정산용)
   s.cyclePlays += 1;
   for (const tag of def.tags) {
     s.playedTagCounts[tag] = (s.playedTagCounts[tag] ?? 0) + 1;
     s.cyclePlayedTagCounts[tag] = (s.cyclePlayedTagCounts[tag] ?? 0) + 1;
+  }
+}
+
+export function playCard(prev: GameState, content: Content, uid: number): GameState {
+  if (prev.phase !== "play" || prev.pendingChoice) return prev;
+  const s = clone(prev);
+  const idx = s.hand.findIndex((c) => c.uid === uid);
+  if (idx < 0) return prev;
+  const card = s.hand[idx];
+  const def = content.cards.get(card.defId);
+  if (!def) return prev;
+  if (def.deadInHand && !hasRemoveScorePenalty(s, content)) return prev; // 빈 카드 사용 불가
+  const pc = playCostOf(def);
+  if (s.actions < pc) return prev; // 플레이 코스트만큼 액션 필요
+  s.actions -= pc;
+
+  applyPlayEffects(s, content, def);
+
+  // 손패 → inPlay 이동
+  s.hand.splice(idx, 1);
+  if (def.persistTurns) card.persistLeft = def.persistTurns;
+  s.inPlay.push(card);
+  return s;
+}
+
+/**
+ * 보류 중인 선택형 효과를 해소한다. uids = 손패에서 고른 카드들 (빈 배열 = 선택 안 함).
+ * - discardThenDraw: 고른 카드를 버리고 그 수만큼 드로우
+ * - trashFromHand: 고른 카드를 게임에서 완전히 제거 (압축)
+ * - playTwice: 고른 카드 1장을 액션 소모 없이 두 번 발동
+ */
+export function resolveChoice(prev: GameState, content: Content, uids: number[]): GameState {
+  const pending = prev.pendingChoice;
+  if (prev.phase !== "play" || !pending) return prev;
+  const unique = new Set(uids);
+  if (unique.size !== uids.length || uids.length > pending.max) return prev;
+  if (!uids.every((u) => prev.hand.some((c) => c.uid === u))) return prev;
+
+  const s = clone(prev);
+  s.pendingChoice = null;
+
+  if (pending.kind === "discardThenDraw") {
+    for (const u of uids) {
+      const i = s.hand.findIndex((c) => c.uid === u);
+      s.discard.push(s.hand.splice(i, 1)[0]);
+    }
+    drawInto(s, content, uids.length);
+  } else if (pending.kind === "trashFromHand") {
+    for (const u of uids) {
+      s.hand.splice(s.hand.findIndex((c) => c.uid === u), 1); // 어디에도 넣지 않음 = 영구 제거
+    }
+  } else if (pending.kind === "playTwice" && uids.length === 1) {
+    const i = s.hand.findIndex((c) => c.uid === uids[0]);
+    const card = s.hand[i];
+    const def = content.cards.get(card.defId);
+    if (!def) return prev;
+    if (def.deadInHand && !hasRemoveScorePenalty(s, content)) return prev;
+    if (hasChoiceEffect(def)) return prev; // 선택형 효과의 중첩 보류 방지
+    applyPlayEffects(s, content, def);
+    applyPlayEffects(s, content, def);
+    s.hand.splice(s.hand.findIndex((c) => c.uid === uids[0]), 1);
+    if (def.persistTurns) card.persistLeft = def.persistTurns;
+    s.inPlay.push(card);
   }
   return s;
 }
@@ -259,7 +345,7 @@ export function playAllTreasures(prev: GameState, content: Content): GameState {
 }
 
 export function buyCard(prev: GameState, content: Content, defId: string): GameState {
-  if (prev.phase !== "play") return prev;
+  if (prev.phase !== "play" || prev.pendingChoice) return prev;
   const s = clone(prev);
   const entry = s.market.find((m) => m.defId === defId);
   const def = content.cards.get(defId);
@@ -284,7 +370,7 @@ export function buyCard(prev: GameState, content: Content, defId: string): GameS
 }
 
 export function endTurn(prev: GameState, content: Content): GameState {
-  if (prev.phase !== "play") return prev;
+  if (prev.phase !== "play" || prev.pendingChoice) return prev;
   const s = clone(prev);
   // 클린업 — (지속) 카드는 잔여 턴이 남아 있으면 플레이 영역에 유지
   const staying: CardInstance[] = [];

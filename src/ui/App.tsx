@@ -273,6 +273,50 @@ function EmptyState({ children }: { children: React.ReactNode }) {
   return <div className="empty-state">{children}</div>;
 }
 
+const CHOICE_META = {
+  discardThenDraw: { kicker: "FILTER", title: "버릴 카드를 고르세요", desc: "고른 카드를 버리고 그 수만큼 새로 뽑습니다.", confirm: "버리고 뽑기" },
+  trashFromHand: { kicker: "URBAN RENEWAL", title: "폐기할 카드를 고르세요", desc: "고른 카드는 게임에서 영구히 제거됩니다 (덱 압축).", confirm: "폐기" },
+  playTwice: { kicker: "DOUBLE STAMP", title: "두 번 사용할 카드를 고르세요", desc: "고른 카드 1장을 액션 소모 없이 두 번 발동합니다.", confirm: "두 번 사용" },
+} as const;
+
+function ChoiceModal() {
+  const { state, content, resolveChoice } = useGame();
+  const [picked, setPicked] = useState<number[]>([]);
+  const pending = state.pendingChoice!;
+  const meta = CHOICE_META[pending.kind];
+  const toggle = (uid: number) => {
+    setPicked((prev) => {
+      if (prev.includes(uid)) return prev.filter((u) => u !== uid);
+      if (pending.kind === "playTwice") return [uid]; // 단일 선택
+      if (prev.length >= pending.max) return prev;
+      return [...prev, uid];
+    });
+  };
+  const commit = (uids: number[]) => { resolveChoice(uids); setPicked([]); };
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section className="modal choice-modal" role="dialog" aria-modal="true" aria-labelledby="choice-title">
+        <span className="modal-kicker">{meta.kicker}</span>
+        <h2 id="choice-title">{meta.title}</h2>
+        <p>{meta.desc} {pending.kind !== "playTwice" && `(최대 ${Math.min(pending.max, state.hand.length)}장)`}</p>
+        <div className="card-grid choice-grid">
+          {state.hand.map((instance) => {
+            const card = cardDef(content, instance.defId);
+            // 두 번 사용: 사용 불가 카드·선택형 카드는 대상이 될 수 없다
+            const invalid = pending.kind === "playTwice" && (card.deadInHand || (card.onPlay ?? []).some((e) => ["discardThenDraw", "trashFromHand", "playTwice"].includes(e.kind)));
+            return <CardView compact key={instance.uid} card={card} highlight={picked.includes(instance.uid)} disabled={invalid} onClick={() => toggle(instance.uid)} badge={picked.includes(instance.uid) ? "선택됨" : undefined} />;
+          })}
+          {state.hand.length === 0 && <EmptyState>선택할 카드가 없습니다.</EmptyState>}
+        </div>
+        <div className="action-row">
+          <button className="button button-secondary" onClick={() => commit([])}>선택 안 함</button>
+          <button className="button button-primary" disabled={picked.length === 0} onClick={() => commit(picked)}>{meta.confirm} ({picked.length})</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function CandidateModal() {
   const { state, content, chooseCandidate } = useGame();
   const [pendingAdd, setPendingAdd] = useState<string | null>(null);
@@ -358,6 +402,7 @@ export default function App() {
       <RiskStrip state={state} />
       <RelicStrip state={state} content={content} />
       {state.phase === "play" && <PlayPhase />}
+      {state.phase === "play" && state.pendingChoice && <ChoiceModal />}
       {state.phase === "shop" && <ShopPhase />}
       {state.phase === "candidate" && <CandidateModal />}
       {state.phase === "evaluation" && <EvaluationModal />}

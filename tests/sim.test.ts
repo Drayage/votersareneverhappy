@@ -6,11 +6,26 @@ import type { Content, GameState } from "../src/engine/types";
 
 const content = loadContent();
 
+/** 보류된 선택형 효과를 단순 휴리스틱으로 해소: 정크(기본·사용 불가)를 고르고, 두 번 사용은 건너뜀 */
+function resolvePendingGreedy(s: GameState, content: Content): GameState {
+  if (!s.pendingChoice) return s;
+  if (s.pendingChoice.kind === "playTwice") return G.resolveChoice(s, content, []);
+  const junk = s.hand
+    .filter((c) => {
+      const d = content.cards.get(c.defId)!;
+      return d.tier === "start" || d.deadInHand;
+    })
+    .slice(0, s.pendingChoice.max)
+    .map((c) => c.uid);
+  return G.resolveChoice(s, content, junk);
+}
+
 /** 한 턴을 그리디로 진행: 가능한 카드 모두 사용 → 가장 비싼 카드 구매. */
 function greedyTurn(s0: GameState, content: Content): GameState {
   let s = s0;
   // 사용 가능한 카드 모두 사용 (드로우/액션이 늘어나면 재스캔)
   for (let guard = 0; guard < 100; guard++) {
+    s = resolvePendingGreedy(s, content);
     let acted = false;
     for (const card of s.hand) {
       const def = content.cards.get(card.defId)!;
@@ -25,6 +40,7 @@ function greedyTurn(s0: GameState, content: Content): GameState {
     }
     if (!acted) break;
   }
+  s = resolvePendingGreedy(s, content);
   // 구매: 가치 휴리스틱 (초반 경제 우선, 이후 점수 우선)
   for (let guard = 0; guard < 20; guard++) {
     if (s.buys <= 0) break;

@@ -352,7 +352,6 @@ function EvaluationModal() {
         <div className="result-breakdown">
           <ResultLine label="카드 플레이" value={result.baseCycleScore} />
           <ResultLine label={`정산${result.settlementMult !== 1 ? ` ×${result.settlementMult.toFixed(2)}` : ""}`} value={result.settlementScore} />
-          {result.settlementScore < result.settlementRaw && <ResultLine label={`↳ 처리 한도 (낸 카드 부족)`} value={`${result.settlementRaw.toLocaleString()}→${result.settlementScore.toLocaleString()}`} negative />}
           {result.pollutionPenalty !== 0 && <ResultLine label="환경 페널티" value={result.pollutionPenalty} negative />}
           {result.globalMult !== 1 && <ResultLine label="유물 배수" value={`×${result.globalMult.toFixed(2)}`} />}
           {result.corruptionPct > 0 && <ResultLine label="부패 감산" value={`-${result.corruptionPct}%`} negative />}

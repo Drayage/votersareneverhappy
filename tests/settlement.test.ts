@@ -2,14 +2,11 @@ import { describe, it, expect } from "vitest";
 import { loadContent } from "../src/content/loader";
 import { newGame } from "../src/engine/game";
 import { computeSettlement } from "../src/engine/settlement";
-import { CAPS } from "../src/engine/caps";
 import type { GameState } from "../src/engine/types";
 
 const content = loadContent();
 
-/** 보유 덱을 임의 카드 목록으로 강제 세팅한 상태를 만든다.
- *  정산 값 계산 자체를 검증하기 위해 cyclePlays 를 넉넉히 둬 처리 한도에 걸리지 않게 한다
- *  (처리 한도는 별도 describe 에서 검증). */
+/** 보유 덱을 임의 카드 목록으로 강제 세팅한 상태를 만든다. */
 function withDeck(defIds: string[], patch?: Partial<GameState>): GameState {
   const s = newGame(content, 1);
   let uid = 1000;
@@ -17,7 +14,6 @@ function withDeck(defIds: string[], patch?: Partial<GameState>): GameState {
   s.hand = [];
   s.discard = [];
   s.inPlay = [];
-  s.cyclePlays = 100;
   return { ...s, ...patch };
 }
 
@@ -65,11 +61,11 @@ describe("정산 계산", () => {
     expect(computeSettlement(s, content).settlementScore).toBe(14);
   });
 
-  it("안정 세입은 상한(목표의 40%)으로 캡되어 다수 적재로 자동 통과 불가", () => {
-    // welfare_net 5장 = 20%×5 = 100% → 캡 40%로 제한 → 목표 70의 40% = 28점
+  it("안정 세입은 상한(목표의 20%)으로 캡 — 복지는 안전망이지 승리 버튼이 아니다", () => {
+    // welfare_net 5장 = 20%×5 = 100% → 캡 20%로 제한 → 목표 70의 20% = 14점
     const five = withDeck(["welfare_net", "welfare_net", "welfare_net", "welfare_net", "welfare_net"]);
     const r = computeSettlement(five, content);
-    expect(r.settlementScore).toBe(28); // 70점이 아니라 캡 적용 28점
+    expect(r.settlementScore).toBe(14); // 다수 적재해도 20% 상한
     expect(r.passed).toBe(false); // 목표 70 미달 → 자동 통과 안 됨
   });
 
@@ -100,33 +96,5 @@ describe("정산 계산", () => {
     expect(r.target).toBe(126); // 70 × 1.8
     expect(r.corruptionPct).toBe(80);
     expect(r.finalScore).toBe(20);
-  });
-});
-
-describe("행정 처리 한도 (정산은 낸 카드 수에 비례)", () => {
-  it("아무것도 내지 않으면(cyclePlays 0) 정산 점수는 0 — 무플레이 자동 통과 봉쇄", () => {
-    // 복지 안전망 5장: 원래 목표의 40%(28점)를 무료로 줬지만, 낸 카드가 없으면 0으로 캡
-    const s = withDeck(Array(5).fill("welfare_net"), { cyclePlays: 0 });
-    const r = computeSettlement(s, content);
-    expect(r.settlementRaw).toBe(28); // 계산상 원점수는 그대로
-    expect(r.settlementCap).toBe(0); // 처리 한도 0
-    expect(r.settlementScore).toBe(0); // 캡 적용
-  });
-
-  it("낸 카드 1장당 settlementPerPlay 점까지 정산이 인정된다", () => {
-    const N = CAPS.settlementPerPlay;
-    // 국립박물관(문화당 +3) + 문화 카드 다수로 큰 정산을 만들고, 낸 카드 수로 상한 확인
-    const deck = ["museum", ...Array(10).fill("festival")]; // 문화 11장 → 박물관 정산 33
-    const s = withDeck(deck, { cyclePlays: 0 });
-    expect(computeSettlement(s, content).settlementScore).toBe(0); // 0장 → 0
-    const s1 = withDeck(deck, { cyclePlays: 1 });
-    const r1 = computeSettlement(s1, content);
-    expect(r1.settlementCap).toBe(N);
-    expect(r1.settlementScore).toBe(33); // 33 < N → 그대로 인정
-    const bigDeck = ["big_corp", ...Array(40).fill("tax_collect")]; // 상업 41 → 정산 123
-    const s2 = withDeck(bigDeck, { cyclePlays: 1 });
-    expect(computeSettlement(s2, content).settlementScore).toBe(N); // 123 > N → 한도로 캡
-    const s3 = withDeck(bigDeck, { cyclePlays: 5 });
-    expect(computeSettlement(s3, content).settlementScore).toBe(123); // 5장 → 5N 한도, 그대로
   });
 });

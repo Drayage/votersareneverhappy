@@ -116,11 +116,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   const settlementMult = Math.min(CAPS.settlementMultCap, 1 + multBonus);
   // 복지 안정 세입(목표 비례)은 과학 배수와 별개로 더한다. 총합은 상한으로 캡(자동 통과 방지).
   const stableIncome = Math.round(target * Math.min(pctOfTargetSum, CAPS.stableIncomeMaxPct));
-  const settlementRaw = Math.round(settlementBase * settlementMult) + stableIncome;
-  // 행정 처리 한도: 정산은 이번 주기에 낸 카드 수 × settlementPerPlay 를 넘지 못한다.
-  // (보유만으로 목표를 채우는 무플레이 자동 통과 방지 — 엔진을 돌려 카드를 내야 정산이 현금화됨)
-  const settlementCap = state.cyclePlays * CAPS.settlementPerPlay;
-  const settlementScore = Math.min(settlementRaw, settlementCap);
+  const settlementScore = Math.round(settlementBase * settlementMult) + stableIncome;
 
   const pollutionPenalty = -2 * Math.max(0, state.gauges.pollution);
 
@@ -165,8 +161,6 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     baseTarget,
     baseCycleScore,
     settlementScore,
-    settlementRaw,
-    settlementCap,
     settlementMult,
     pollutionPenalty,
     globalMult,

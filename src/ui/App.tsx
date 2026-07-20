@@ -6,7 +6,7 @@ import type { CardDef, Content, GameState } from "../engine/types";
 import { TAG_LABELS } from "../engine/types";
 import { effectiveCost, playCostOf } from "../engine/effects";
 import { CAPS, EVAL_TARGETS } from "../engine/caps";
-import { computeSettlement, ownedCards, tagLabelCounts } from "../engine/settlement";
+import { computeSettlement, computeRerollTickets, ownedCards, tagLabelCounts } from "../engine/settlement";
 
 function cardDef(content: Content, id: string): CardDef {
   return content.cards.get(id)!;
@@ -88,7 +88,7 @@ function Dashboard({ state, content }: { state: GameState; content: Content }) {
         {state.research > 0 && <Resource icon="🔬" label="연구" value={state.research} />}
         <Resource icon="⚡" label="액션" value={state.actions} />
         <Resource icon="＋" label="구매" value={state.buys} />
-        <Resource icon="◆" label="상점 자금" value={state.fund} tone="gold" />
+        <Resource icon="🎟️" label="리롤권" value={state.rerollTickets} tone="mint" />
       </div>
     </section>
   );
@@ -261,7 +261,6 @@ function PlayPhase() {
             <span>＋ {state.buys}</span>
             {state.research > 0 && <span>🔬 {state.research}</span>}
           </div>
-          <button className="button button-secondary" disabled={!hasTreasure} onClick={playTreasures}>재정 사용</button>
           <button className="button button-primary" onClick={endTurn}>턴 마감 →</button>
         </div>
       </div>
@@ -318,7 +317,7 @@ function ChoiceModal() {
 }
 
 function CandidateModal() {
-  const { state, content, chooseCandidate } = useGame();
+  const { state, content, chooseCandidate, rerollCandidates } = useGame();
   const [pendingAdd, setPendingAdd] = useState<string | null>(null);
   const full = state.market.length >= state.marketSlots;
   const commit = (addId: string, removeId?: string) => { chooseCandidate(addId, removeId); setPendingAdd(null); };
@@ -328,6 +327,10 @@ function CandidateModal() {
         <span className="modal-kicker">MARKET EVOLUTION</span>
         <h2 id="candidate-title">도시에 새 정책이 들어옵니다</h2>
         <p>{full ? "추가할 카드를 고른 뒤 시장에서 내보낼 카드를 선택하세요." : "세 후보 중 하나를 골라 시장의 방향을 결정하세요. 거부할 수는 없습니다."}</p>
+        <div className="reroll-row">
+          <span>🎟️ 리롤권 {state.rerollTickets}</span>
+          <button className="button button-secondary" disabled={state.rerollTickets <= 0} onClick={rerollCandidates}>후보 다시 뽑기</button>
+        </div>
         <div className="choice-label"><span>1</span> 도입할 카드</div>
         <div className="card-grid choice-grid">
           {state.candidates.map((id) => { const card = cardDef(content, id); return <CardView key={id} card={card} cost={effectiveCost(state, content, card)} highlight={pendingAdd === id} onClick={() => full ? setPendingAdd(id) : commit(id)} badge={pendingAdd === id ? "선택됨" : "도입"} />; })}
@@ -341,6 +344,7 @@ function CandidateModal() {
 function EvaluationModal() {
   const { state, confirmEvaluation } = useGame();
   const result = state.lastSettlement!;
+  const ticketsGained = computeRerollTickets(result);
   return (
     <div className="modal-backdrop">
       <section className={`modal evaluation-modal ${result.passed ? "passed" : "failed"}`} role="dialog" aria-modal="true" aria-labelledby="evaluation-title">
@@ -357,8 +361,8 @@ function EvaluationModal() {
           {result.corruptionPct > 0 && <ResultLine label="부패 감산" value={`-${result.corruptionPct}%`} negative />}
           {result.targetBonusPct > 0 && <ResultLine label="포퓰리즘 목표 증가" value={`+${result.targetBonusPct}%`} negative />}
         </div>
-        {result.passed && <div className="fund-reward">다음 상점 자금 <strong>+{result.fundGained.toLocaleString()}</strong></div>}
-        <button className="button button-primary button-wide" onClick={confirmEvaluation}>{result.passed && state.evalIndex < 4 ? "시정 상점으로" : "결과 확인"} →</button>
+        {result.passed && <div className="fund-reward">점수 보상 리롤권 <strong>+{ticketsGained}장</strong></div>}
+        <button className="button button-primary button-wide" onClick={confirmEvaluation}>{result.passed && state.evalIndex < 4 ? "보상 받으러 가기" : "결과 확인"} →</button>
       </section>
     </div>
   );
@@ -368,28 +372,87 @@ function ResultLine({ label, value, negative = false }: { label: string; value: 
   return <div><span>{label}</span><strong className={negative ? "negative" : ""}>{typeof value === "number" && value > 0 ? "+" : ""}{typeof value === "number" ? value.toLocaleString() : value}</strong></div>;
 }
 
-function ShopPhase() {
-  const { state, content, buyRelic, buyPolicy, reroll, removeCard, nextCycle } = useGame();
+/** 평가 통과 후 보상 단계: 유물뽑기(3중1) → 정책뽑기(3중1) → 카드 정비(선택) → 다음 평가. 자금/구매 없음 — 전부 무료 선택. */
+function RewardPhase() {
+  const { state, content, pickRelic, pickPolicy, removeCard, skipRemoval, rerollRelics, rerollPolicies, nextCycle } = useGame();
   const owned = ownedCards(state);
   const counts = useMemo(() => { const map = new Map<string, number>(); for (const card of owned) map.set(card.defId, (map.get(card.defId) ?? 0) + 1); return map; }, [owned]);
+
+  const step: "relic" | "policy" | "removal" | "done" =
+    state.rewardRelicChoices.length > 0 ? "relic" :
+    state.rewardPolicyChoices.length > 0 ? "policy" :
+    !state.rewardRemovalDone ? "removal" : "done";
+
+  const RerollRow = ({ onClick }: { onClick: () => void }) => (
+    <div className="reroll-row">
+      <span>🎟️ 리롤권 {state.rerollTickets}</span>
+      <button className="button button-secondary" disabled={state.rerollTickets <= 0} onClick={onClick}>다른 후보 보기</button>
+    </div>
+  );
+
   return (
-    <div className="shop-layout">
-      <section className="panel shop-main">
-        <SectionTitle kicker="BETWEEN EVALUATIONS" title="시정 상점" note={`사용 가능 자금 ${state.fund.toLocaleString()}`} />
-        <h3>유물 · 도시를 바꾸는 영구 효과</h3>
-        <div className="shop-grid">{state.shopRelics.map((id) => { const item = content.relics.get(id)!; const can = state.fund >= item.price && state.relics.length < state.relicSlots; return <article className={`shop-item ${item.rarity}`} key={id}><span className="shop-role">{item.role}</span><h4>{item.name}</h4><p>{item.text}</p><div><strong>{item.price}</strong><button className="button button-small" disabled={!can} onClick={() => buyRelic(id)}>구매</button></div></article>; })}</div>
-        <div className="shop-subhead"><h3>정책 · 이번 런의 운영 원칙</h3><span>유물 슬롯 {state.relics.length}/{state.relicSlots}</span></div>
-        <div className="shop-grid">{state.shopPolicies.map((id) => { const item = content.policies.get(id)!; return <article className="shop-item policy" key={id}><span className="shop-role">정책</span><h4>{item.name}</h4><p>{item.text}</p><div><strong>{item.price}</strong><button className="button button-small" disabled={state.fund < item.price} onClick={() => buyPolicy(id)}>채택</button></div></article>; })}</div>
-        <div className="action-row shop-actions"><button className="button button-secondary" disabled={state.fund < state.rerollCost} onClick={reroll}>목록 새로고침 · {state.rerollCost}</button><button className="button button-primary" onClick={nextCycle}>다음 평가 시작 →</button></div>
+    <div className="reward-layout">
+      <section className="panel reward-main">
+        <SectionTitle
+          kicker={`BETWEEN EVALUATIONS · STEP ${step === "relic" ? 1 : step === "policy" ? 2 : step === "removal" ? 3 : 4}/3`}
+          title={step === "relic" ? "유물을 선택하세요" : step === "policy" ? "정책을 선택하세요" : step === "removal" ? "카드를 정비하세요" : "준비 완료"}
+          note={step === "relic" || step === "policy" ? "3개 중 하나, 영구 효과 (거부 불가)" : step === "removal" ? "원하는 카드 한 장을 골라 덱에서 완전히 제거합니다 (선택 사항)" : undefined}
+        />
+
+        {step === "relic" && <>
+          <RerollRow onClick={rerollRelics} />
+          <div className="shop-grid">
+            {state.rewardRelicChoices.map((id) => {
+              const item = content.relics.get(id)!;
+              return (
+                <button type="button" className={`shop-item is-pickable ${item.rarity}`} key={id} onClick={() => pickRelic(id)}>
+                  <span className="shop-role">{item.role}</span><h4>{item.name}</h4><p>{item.text}</p>
+                </button>
+              );
+            })}
+          </div>
+        </>}
+
+        {step === "policy" && <>
+          <RerollRow onClick={rerollPolicies} />
+          <div className="shop-grid">
+            {state.rewardPolicyChoices.map((id) => {
+              const item = content.policies.get(id)!;
+              return (
+                <button type="button" className="shop-item policy is-pickable" key={id} onClick={() => pickPolicy(id)}>
+                  <span className="shop-role">정책</span><h4>{item.name}</h4><p>{item.text}</p>
+                </button>
+              );
+            })}
+          </div>
+        </>}
+
+        {step === "removal" && <>
+          <div className="deck-list">
+            {[...counts.entries()].map(([id, count]) => {
+              const instance = owned.find((card) => card.defId === id)!;
+              const card = cardDef(content, id);
+              return (
+                <button key={id} onClick={() => removeCard(instance.uid)}>
+                  <span className={`deck-dot tone-${card.tags[0]}`} />
+                  <span><strong>{card.name}</strong><small>{card.tags.map((tag) => TAG_LABELS[tag]).join(" · ")}</small></span>
+                  <b>×{count}</b>
+                </button>
+              );
+            })}
+          </div>
+          <div className="action-row"><button className="button button-secondary" onClick={skipRemoval}>건너뛰기</button></div>
+        </>}
+
+        {step === "done" && <div className="action-row"><button className="button button-primary button-wide" onClick={nextCycle}>다음 평가 시작 →</button></div>}
       </section>
-      <aside className="panel deck-cleaner"><SectionTitle kicker="URBAN RENEWAL" title="덱 정비" note="30 자금으로 카드 한 장을 제거합니다." /><div className="deck-list">{[...counts.entries()].map(([id, count]) => { const instance = owned.find((card) => card.defId === id)!; const card = cardDef(content, id); return <button key={id} disabled={state.fund < 30} onClick={() => removeCard(instance.uid)}><span className={`deck-dot tone-${card.tags[0]}`} /><span><strong>{card.name}</strong><small>{card.tags.map((tag) => TAG_LABELS[tag]).join(" · ")}</small></span><b>×{count}</b></button>; })}</div></aside>
     </div>
   );
 }
 
 function EndModal({ win }: { win: boolean }) {
   const { state, newGame } = useGame();
-  return <div className="modal-backdrop"><section className={`modal end-modal ${win ? "passed" : "failed"}`} role="dialog" aria-modal="true"><div className="result-mark">{win ? "★" : "×"}</div><span className="modal-kicker">FINAL REPORT</span><h2>{win ? "도시는 전설이 되었습니다" : "새로운 시장을 기다립니다"}</h2><p>{state.evalIndex + 1}차 평가 도달 · 상점 자금 {state.fund.toLocaleString()}</p><button className="button button-primary button-wide" onClick={() => newGame()}>같은 코드로 다시 시작</button></section></div>;
+  return <div className="modal-backdrop"><section className={`modal end-modal ${win ? "passed" : "failed"}`} role="dialog" aria-modal="true"><div className="result-mark">{win ? "★" : "×"}</div><span className="modal-kicker">FINAL REPORT</span><h2>{win ? "도시는 전설이 되었습니다" : "새로운 시장을 기다립니다"}</h2><p>{state.evalIndex + 1}차 평가 도달 · 보유 유물 {state.relics.length} · 정책 {state.policies.length}</p><button className="button button-primary button-wide" onClick={() => newGame()}>같은 코드로 다시 시작</button></section></div>;
 }
 
 export default function App() {
@@ -403,7 +466,7 @@ export default function App() {
       <RelicStrip state={state} content={content} />
       {state.phase === "play" && <PlayPhase />}
       {state.phase === "play" && state.pendingChoice && <ChoiceModal />}
-      {state.phase === "shop" && <ShopPhase />}
+      {state.phase === "reward" && <RewardPhase />}
       {state.phase === "candidate" && <CandidateModal />}
       {state.phase === "evaluation" && <EvaluationModal />}
       {state.phase === "win" && <EndModal win />}

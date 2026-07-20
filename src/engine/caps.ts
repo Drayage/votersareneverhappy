@@ -17,10 +17,6 @@ export const CAPS = {
   marketStock: 3,
   /** 기본 시장 슬롯 */
   marketSlots: 10,
-  /** 기본 유물 슬롯 */
-  relicSlots: 3,
-  /** 최대 유물 슬롯 */
-  maxRelicSlots: 6,
   /** 손패 크기 */
   handSize: 6,
   /** 턴당 기본 예산 — 0: 예산은 재물 카드로만 번다(원래 설계) */
@@ -37,15 +33,9 @@ export const CAPS = {
   targetBonusMaxPct: 80,
   /** 부패로 깎일 수 있는 최종 점수의 최대치 — 완전 봉쇄 대신 회복 여지를 남긴다. */
   corruptionPenaltyMaxPct: 80,
-  /** 통과 자금: 목표 초과율의 이 비율만큼만 보너스로 환산(초과 1%당 0.5%) */
-  fundOverflowRate: 0.5,
-  /** 통과 자금 상한(목표 대비 배수) — 오버킬 스노볼 방지 */
-  fundMaxRatio: 1.5,
+  /** 리롤권: 평가 통과 시 기본 1장 + 초과 달성률 25%마다 +1장, 이 값에서 상한 */
+  rerollTicketsMaxPerCycle: 6,
 } as const;
 
 /** 평가 차수별 목표 점수 — 2차는 플레이형 덱(트리거/러시)의 엔진 완성 전이라 완만하게 */
 export const EVAL_TARGETS = [70, 160, 420, 900, 1800];
-
-/** 상점 새로고침 비용(기본/증가) */
-export const REROLL_BASE = 20;
-export const REROLL_STEP = 10;

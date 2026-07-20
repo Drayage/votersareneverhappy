@@ -146,7 +146,7 @@ describe("그리디 자동플레이 시뮬레이션", () => {
 
   it("전체 런이 예외 없이 종료되고(승/패), 무한 루프에 빠지지 않는다", () => {
     let s = G.newGame(content, 1);
-    let reachedShop = false;
+    let reachedReward = false;
     for (let cycle = 0; cycle < 6; cycle++) {
       s = autoCycle(s, content);
       expect(s.phase).toBe("evaluation");
@@ -158,21 +158,17 @@ describe("그리디 자동플레이 시뮬레이션", () => {
         break;
       }
       if (s.phase === "win") break;
-      // shop: 가장 비싼 살 수 있는 유물 1개 구매 후 진행
-      if (s.phase === "shop") {
-        reachedShop = true;
-        for (const id of [...s.shopRelics]) {
-          const ns = G.buyRelic(s, content, id);
-          if (ns !== s) {
-            s = ns;
-            break;
-          }
-        }
+      // 보상 단계: 유물뽑기 → 정책뽑기 → 카드 정비(건너뛰기) → 다음 주기. 전부 무료 선택.
+      if (s.phase === "reward") {
+        reachedReward = true;
+        s = G.pickRewardRelic(s, content, s.rewardRelicChoices[0]);
+        s = G.pickRewardPolicy(s, content, s.rewardPolicyChoices[0]);
+        s = G.skipRewardRemoval(s);
         s = G.nextCycle(s, content);
       }
     }
     console.log("전체 런 결과:", s.phase, "도달 평가:", s.evalIndex + 1, "차");
     expect(["win", "gameover"]).toContain(s.phase);
-    expect(reachedShop).toBe(true); // 최소 상점·다음주기 경로를 실제로 거친다
+    expect(reachedReward).toBe(true); // 최소 보상·다음주기 경로를 실제로 거친다
   });
 });

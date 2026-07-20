@@ -1,7 +1,7 @@
 // 상태머신 — 모든 게임 진행 액션. 각 액션은 새 GameState 를 반환(불변 스타일).
 import type { CardDef, CardInstance, Content, GameState, Tag } from "./types";
 import { ALL_TAGS } from "./types";
-import { CAPS, EVAL_TARGETS, REROLL_BASE, REROLL_STEP } from "./caps";
+import { CAPS, EVAL_TARGETS } from "./caps";
 import { shuffle, nextInt } from "./rng";
 import {
   collectPassives,
@@ -13,7 +13,7 @@ import {
   playCostOf,
   tagMultiplier,
 } from "./effects";
-import { computeSettlement, ownedCards, educationCount } from "./settlement";
+import { computeSettlement, computeRerollTickets, ownedCards, educationCount } from "./settlement";
 import { generateCandidates } from "./market";
 
 const clone = <T>(x: T): T => structuredClone(x);
@@ -40,8 +40,8 @@ export function newGame(content: Content, seed = 1): GameState {
     turn: 1,
     budget: 0,
     cycleScore: 0,
-    fund: 0,
     research: 0,
+    rerollTickets: 0,
     deck,
     hand: [],
     discard: [],
@@ -52,7 +52,6 @@ export function newGame(content: Content, seed = 1): GameState {
     marketSlots: CAPS.marketSlots,
     candidates: [],
     relics: [],
-    relicSlots: CAPS.relicSlots,
     policies: [],
     gauges: { pollution: 0, corruption: 0, populismDebuff: 0 },
     eduLevel: 0,
@@ -63,9 +62,9 @@ export function newGame(content: Content, seed = 1): GameState {
     cyclePlayedTagCounts: {},
     pendingChoice: null,
     activeTargetBonusPct: 0,
-    shopRelics: [],
-    shopPolicies: [],
-    rerollCost: REROLL_BASE,
+    rewardRelicChoices: [],
+    rewardPolicyChoices: [],
+    rewardRemovalDone: false,
     lastSettlement: null,
     uidCounter: uid,
     log: [],
@@ -435,14 +434,17 @@ export function confirmEvaluation(prev: GameState, content: Content): GameState 
     s.phase = "gameover";
     return s;
   }
-  s.fund += res.fundGained;
+  // 점수 보상: 달성률이 높을수록 리롤권을 더 받는다 (턱걸이 1장, 초과 25%마다 +1, 상한 있음)
+  s.rerollTickets += computeRerollTickets(res);
   if (s.evalIndex >= EVAL_TARGETS.length - 1) {
     s.phase = "win";
     return s;
   }
-  // 상점 오픈
-  generateShop(s, content);
-  s.phase = "shop";
+  // 보상 단계 진입: 유물뽑기 → 정책뽑기 → 카드 정비(선택) → 다음 주기. 펀드/구매 없음.
+  generateRelicDraft(s, content);
+  generatePolicyDraft(s, content);
+  s.rewardRemovalDone = false;
+  s.phase = "reward";
   return s;
 }
 
@@ -457,45 +459,41 @@ function pickRandomN(s: GameState, ids: string[], n: number): string[] {
   return out;
 }
 
-function generateShop(s: GameState, content: Content): void {
+function generateRelicDraft(s: GameState, content: Content): void {
   const ownedRelics = new Set(s.relics);
   const relicPool = content.relicList.filter((r) => !ownedRelics.has(r.id)).map((r) => r.id);
-  s.shopRelics = pickRandomN(s, relicPool, 3);
+  s.rewardRelicChoices = pickRandomN(s, relicPool, 3);
+}
+
+function generatePolicyDraft(s: GameState, content: Content): void {
   const ownedPolicies = new Set(s.policies);
   const policyPool = content.policyList.filter((p) => !ownedPolicies.has(p.id)).map((p) => p.id);
-  s.shopPolicies = pickRandomN(s, policyPool, 2);
-  s.rerollCost = REROLL_BASE;
+  s.rewardPolicyChoices = pickRandomN(s, policyPool, 3);
 }
 
-export function buyRelic(prev: GameState, content: Content, id: string): GameState {
-  if (prev.phase !== "shop") return prev;
+/** 유물뽑기: 3개 중 1택, 1회. 거부 불가(강제 선택) — 단, 후보가 없으면(모두 보유) 자동으로 넘어간다. */
+export function pickRewardRelic(prev: GameState, _content: Content, id: string): GameState {
+  if (prev.phase !== "reward" || !prev.rewardRelicChoices.includes(id)) return prev;
   const s = clone(prev);
-  const relic = content.relics.get(id);
-  if (!relic || !s.shopRelics.includes(id)) return prev;
-  if (s.relics.length >= s.relicSlots) return prev; // 슬롯 가득
-  if (s.fund < relic.price) return prev;
-  s.fund -= relic.price;
   s.relics.push(id);
-  s.shopRelics = s.shopRelics.filter((r) => r !== id);
+  s.rewardRelicChoices = [];
   return s;
 }
 
-export function buyPolicy(prev: GameState, content: Content, id: string): GameState {
-  if (prev.phase !== "shop") return prev;
+/** 정책뽑기: 3개 중 1택, 1회. 유물뽑기가 끝난 뒤에만 가능. */
+export function pickRewardPolicy(prev: GameState, _content: Content, id: string): GameState {
+  if (prev.phase !== "reward" || prev.rewardRelicChoices.length > 0) return prev;
+  if (!prev.rewardPolicyChoices.includes(id)) return prev;
   const s = clone(prev);
-  const policy = content.policies.get(id);
-  if (!policy || !s.shopPolicies.includes(id)) return prev;
-  if (s.fund < policy.price) return prev;
-  s.fund -= policy.price;
   s.policies.push(id);
-  s.shopPolicies = s.shopPolicies.filter((p) => p !== id);
+  s.rewardPolicyChoices = [];
   return s;
 }
 
-export function removeOwnedCard(prev: GameState, _content: Content, uid: number): GameState {
-  if (prev.phase !== "shop") return prev;
-  const cost = 30;
-  if (prev.fund < cost) return prev;
+/** 카드 정비: 원하는 카드 1장을 골라 덱에서 완전히 제거(선택 사항). 앞 두 단계가 끝난 뒤에만 가능. */
+export function removeRewardCard(prev: GameState, _content: Content, uid: number): GameState {
+  if (prev.phase !== "reward") return prev;
+  if (prev.rewardRelicChoices.length > 0 || prev.rewardPolicyChoices.length > 0 || prev.rewardRemovalDone) return prev;
   const s = clone(prev);
   const tryRemove = (arr: CardInstance[]) => {
     const i = arr.findIndex((c) => c.uid === uid);
@@ -506,25 +504,56 @@ export function removeOwnedCard(prev: GameState, _content: Content, uid: number)
     return false;
   };
   if (tryRemove(s.deck) || tryRemove(s.discard) || tryRemove(s.hand)) {
-    s.fund -= cost;
+    s.rewardRemovalDone = true;
     return s;
   }
   return prev;
 }
 
-export function rerollShop(prev: GameState, content: Content): GameState {
-  if (prev.phase !== "shop") return prev;
-  if (prev.fund < prev.rerollCost) return prev;
+/** 카드 정비 단계를 건너뛴다(제거하지 않고 다음으로). */
+export function skipRewardRemoval(prev: GameState): GameState {
+  if (prev.phase !== "reward") return prev;
+  if (prev.rewardRelicChoices.length > 0 || prev.rewardPolicyChoices.length > 0 || prev.rewardRemovalDone) return prev;
   const s = clone(prev);
-  s.fund -= s.rerollCost;
-  const cost = s.rerollCost;
-  generateShop(s, content);
-  s.rerollCost = cost + REROLL_STEP;
+  s.rewardRemovalDone = true;
+  return s;
+}
+
+/** 유물뽑기 후보를 리롤권 1장으로 다시 뽑는다. */
+export function rerollRewardRelics(prev: GameState, content: Content): GameState {
+  if (prev.phase !== "reward" || prev.rewardRelicChoices.length === 0 || prev.rerollTickets <= 0) return prev;
+  const s = clone(prev);
+  s.rerollTickets -= 1;
+  generateRelicDraft(s, content);
+  return s;
+}
+
+/** 정책뽑기 후보를 리롤권 1장으로 다시 뽑는다. */
+export function rerollRewardPolicies(prev: GameState, content: Content): GameState {
+  if (prev.phase !== "reward" || prev.rewardRelicChoices.length > 0 || prev.rewardPolicyChoices.length === 0 || prev.rerollTickets <= 0) {
+    return prev;
+  }
+  const s = clone(prev);
+  s.rerollTickets -= 1;
+  generatePolicyDraft(s, content);
+  return s;
+}
+
+/** 시장 진화 후보(카드보상)를 리롤권 1장으로 다시 뽑는다. */
+export function rerollCandidates(prev: GameState, content: Content): GameState {
+  if (prev.phase !== "candidate" || prev.rerollTickets <= 0) return prev;
+  const s = clone(prev);
+  s.rerollTickets -= 1;
+  const gen = generateCandidates(s, content);
+  s.candidates = gen.candidates;
+  s.rngState = gen.rngState;
   return s;
 }
 
 export function nextCycle(prev: GameState, content: Content): GameState {
-  if (prev.phase !== "shop") return prev;
+  if (prev.phase !== "reward") return prev;
+  // 세 단계(유물뽑기·정책뽑기·카드 정비)가 모두 끝나야 다음 평가로 넘어간다.
+  if (prev.rewardRelicChoices.length > 0 || prev.rewardPolicyChoices.length > 0 || !prev.rewardRemovalDone) return prev;
   const s = clone(prev);
   s.evalIndex += 1;
   return startCycle(s, content);

@@ -166,7 +166,7 @@ export interface CardInstance {
   persistLeft?: number;
 }
 
-export type Phase = "play" | "candidate" | "evaluation" | "shop" | "gameover" | "win";
+export type Phase = "play" | "candidate" | "evaluation" | "reward" | "gameover" | "win";
 
 /** 시장 한 칸 */
 export interface MarketEntry {
@@ -190,9 +190,11 @@ export interface GameState {
 
   budget: number;
   cycleScore: number;
-  fund: number;
   // 연구지수: 과학 카드가 생산하는 누적 재화. 턴/주기가 지나도 유지되며 연구 비용 카드 구매에 쓴다.
   research: number;
+  // 리롤권: 평가 통과 시 달성률에 비례해 지급(점수 높을수록 많음). 턴/주기가 지나도 유지되며
+  // 카드 후보(candidate)·유물뽑기·정책뽑기의 3개 후보를 다시 뽑는 데 쓴다.
+  rerollTickets: number;
 
   deck: CardInstance[];
   hand: CardInstance[];
@@ -207,7 +209,6 @@ export interface GameState {
   candidates: string[]; // 턴 종료 시 제시되는 후보 defId 3장
 
   relics: string[]; // relic defId
-  relicSlots: number; // 기본 3
   policies: string[]; // policy defId
 
   gauges: Gauges;
@@ -234,10 +235,11 @@ export interface GameState {
   // 포퓰리즘: 이번 평가의 "목표 점수 증가율(%)" (지난 주기 누적분이 이월되어 발효)
   activeTargetBonusPct: number;
 
-  // 상점 제시 목록 (evalIndex 사이)
-  shopRelics: string[];
-  shopPolicies: string[];
-  rerollCost: number;
+  // 평가 통과 후 보상 단계 (evalIndex 사이) — 유물뽑기 → 정책뽑기 → 카드 정비 → 다음 주기.
+  // 각 배열이 비면 그 단계는 완료된 것으로 간주(순서대로 소비).
+  rewardRelicChoices: string[]; // 3개 중 1택
+  rewardPolicyChoices: string[]; // 3개 중 1택
+  rewardRemovalDone: boolean; // 카드 정비(선택) 단계 완료 여부
 
   // 직전 평가 결과 (EvaluationScreen 표시용)
   lastSettlement: SettlementResult | null;
@@ -261,7 +263,6 @@ export interface SettlementResult {
   baseTarget: number; // 포퓰리즘 적용 전 기본 목표
   finalScore: number;
   passed: boolean;
-  fundGained: number;
   perTag: Record<string, number>; // 태그별 정산 기여
 }
 

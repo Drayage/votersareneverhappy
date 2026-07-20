@@ -18,11 +18,14 @@ interface Store {
   buy: (defId: string) => void;
   endTurn: () => void;
   chooseCandidate: (addId: string, removeId?: string) => void;
+  rerollCandidates: () => void;
   confirmEvaluation: () => void;
-  buyRelic: (id: string) => void;
-  buyPolicy: (id: string) => void;
+  pickRelic: (id: string) => void;
+  pickPolicy: (id: string) => void;
   removeCard: (uid: number) => void;
-  reroll: () => void;
+  skipRemoval: () => void;
+  rerollRelics: () => void;
+  rerollPolicies: () => void;
   nextCycle: () => void;
 }
 
@@ -40,10 +43,13 @@ export const useGame = create<Store>((set) => ({
   endTurn: () => set((s) => ({ state: G.endTurn(s.state, s.content) })),
   chooseCandidate: (addId, removeId) =>
     set((s) => ({ state: G.chooseCandidate(s.state, s.content, addId, removeId) })),
+  rerollCandidates: () => set((s) => ({ state: G.rerollCandidates(s.state, s.content) })),
   confirmEvaluation: () => set((s) => ({ state: G.confirmEvaluation(s.state, s.content) })),
-  buyRelic: (id) => set((s) => ({ state: G.buyRelic(s.state, s.content, id) })),
-  buyPolicy: (id) => set((s) => ({ state: G.buyPolicy(s.state, s.content, id) })),
-  removeCard: (uid) => set((s) => ({ state: G.removeOwnedCard(s.state, s.content, uid) })),
-  reroll: () => set((s) => ({ state: G.rerollShop(s.state, s.content) })),
+  pickRelic: (id) => set((s) => ({ state: G.pickRewardRelic(s.state, s.content, id) })),
+  pickPolicy: (id) => set((s) => ({ state: G.pickRewardPolicy(s.state, s.content, id) })),
+  removeCard: (uid) => set((s) => ({ state: G.removeRewardCard(s.state, s.content, uid) })),
+  skipRemoval: () => set((s) => ({ state: G.skipRewardRemoval(s.state) })),
+  rerollRelics: () => set((s) => ({ state: G.rerollRewardRelics(s.state, s.content) })),
+  rerollPolicies: () => set((s) => ({ state: G.rerollRewardPolicies(s.state, s.content) })),
   nextCycle: () => set((s) => ({ state: G.nextCycle(s.state, s.content) })),
 }));

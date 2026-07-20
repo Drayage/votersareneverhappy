@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { loadContent } from "../src/content/loader";
 import { newGame, playCard } from "../src/engine/game";
-import { computeSettlement } from "../src/engine/settlement";
+import { computeSettlement, computeRerollTickets } from "../src/engine/settlement";
+import { CAPS } from "../src/engine/caps";
 import type { GameState } from "../src/engine/types";
 
 const content = loadContent();
@@ -74,30 +75,31 @@ describe("정산 전용 카드(손패 패널티)", () => {
   });
 });
 
-describe("자금 보상(목표 달성률 기반)", () => {
+describe("리롤권 보상(점수 달성률 기반)", () => {
   const withScore = (cycleScore: number): GameState => {
     const s = newGame(content, 35);
     return { ...s, cycleScore }; // 시작 덱에는 정산 효과가 없어 finalScore = cycleScore
   };
 
-  it("턱걸이 통과는 목표만큼 받는다", () => {
+  it("턱걸이 통과는 리롤권 1장", () => {
     const r = computeSettlement(withScore(70), content);
     expect(r.passed).toBe(true);
-    expect(r.fundGained).toBe(70);
+    expect(computeRerollTickets(r)).toBe(1);
   });
 
-  it("초과분은 절반 비율로만 얹는다", () => {
-    const r = computeSettlement(withScore(84), content); // 달성률 120% → 자금 110%
-    expect(r.fundGained).toBe(77);
+  it("목표 초과 25%마다 리롤권 +1장", () => {
+    expect(computeRerollTickets(computeSettlement(withScore(84), content))).toBe(1); // 달성률 120% → 초과 20% < 25% → 기본 1장
+    expect(computeRerollTickets(computeSettlement(withScore(90), content))).toBe(2); // 달성률 ~129% → 초과 25%↑ → 1+1
+    expect(computeRerollTickets(computeSettlement(withScore(105), content))).toBe(3); // 달성률 150% → 초과 50% → 1+2
   });
 
-  it("오버킬은 목표×1.5에서 캡된다", () => {
-    const r = computeSettlement(withScore(700), content);
-    expect(r.fundGained).toBe(105);
+  it("오버킬해도 상한(CAPS.rerollTicketsMaxPerCycle)에서 멈춘다", () => {
+    const r = computeSettlement(withScore(700), content); // 목표 대비 10배
+    expect(computeRerollTickets(r)).toBe(CAPS.rerollTicketsMaxPerCycle);
   });
 
-  it("실패 시 자금은 0", () => {
+  it("실패 시 리롤권은 0", () => {
     const r = computeSettlement(withScore(10), content);
-    expect(r.fundGained).toBe(0);
+    expect(computeRerollTickets(r)).toBe(0);
   });
 });

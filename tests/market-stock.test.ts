@@ -6,10 +6,10 @@ import { buyCard, endTurn, newGame } from "../src/engine/game";
 const content = loadContent();
 
 describe("시장 재고 순환", () => {
-  it("시장에 들어온 카드의 기본 재고는 5장이다", () => {
+  it("시장에 들어온 카드의 기본 재고는 3장이다", () => {
     const state = newGame(content, 21);
-    expect(CAPS.marketStock).toBe(5);
-    expect(state.market.every((entry) => entry.stock === 5)).toBe(true);
+    expect(CAPS.marketStock).toBe(3);
+    expect(state.market.every((entry) => entry.stock === CAPS.marketStock)).toBe(true);
   });
 
   it("마지막 재고를 사면 시장에서 즉시 사라진다", () => {

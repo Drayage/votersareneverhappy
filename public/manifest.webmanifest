@@ -1,0 +1,35 @@
+{
+  "id": "./",
+  "name": "유권자가 너무해",
+  "short_name": "유권자가 너무해",
+  "description": "시장을 진화시키고 다섯 번의 평가를 통과하는 도시 경영 덱빌딩 로그라이크",
+  "lang": "ko-KR",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#09110f",
+  "theme_color": "#09110f",
+  "categories": ["games", "strategy"],
+  "icons": [
+    {
+      "src": "icons/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/app-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

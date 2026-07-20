@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
+import { PwaInstallButton } from "./PwaInstall";
 import type { CardDef, Content, GameState } from "../engine/types";
 import { TAG_LABELS } from "../engine/types";
 import { effectiveCost, playCostOf } from "../engine/effects";
@@ -30,6 +31,7 @@ function Header() {
         </div>
       </div>
       <div className="run-controls">
+        <PwaInstallButton />
         <label htmlFor="seed-input">도시 코드</label>
         <input id="seed-input" type="number" value={seedInput} onChange={(e) => setSeed(Number(e.target.value))} />
         <button className="button button-secondary" onClick={() => newGame()}>새 도시</button>

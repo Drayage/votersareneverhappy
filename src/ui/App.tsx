@@ -46,6 +46,17 @@ function Header() {
         <PwaInstallButton />
         <label htmlFor="seed-input">도시 코드</label>
         <input id="seed-input" type="number" value={seedInput} onChange={(e) => setSeed(Number(e.target.value))} />
+        <button
+          className="button button-secondary"
+          title="무작위 도시 코드로 새로 시작"
+          onClick={() => {
+            const r = Math.floor(Math.random() * 1_000_000) + 1;
+            setSeed(r);
+            newGame(r);
+          }}
+        >
+          🎲 랜덤
+        </button>
         <button className="button button-secondary" onClick={() => newGame()}>새 도시</button>
       </div>
     </header>

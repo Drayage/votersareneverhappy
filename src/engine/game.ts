@@ -419,7 +419,7 @@ export function chooseCandidate(
       if (!s.market.some((m) => m.defId === removeId)) return prev;
       s.market = s.market.filter((m) => m.defId !== removeId);
     }
-    s.market.push({ defId: addId, stock: CAPS.marketStock });
+    s.market.push({ defId: addId, stock: CAPS.marketStock + s.evalIndex });
   }
   s.candidates = [];
   s.turn += 1;

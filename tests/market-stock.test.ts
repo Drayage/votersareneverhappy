@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { loadContent } from "../src/content/loader";
 import { CAPS } from "../src/engine/caps";
-import { buyCard, endTurn, newGame } from "../src/engine/game";
+import { buyCard, chooseCandidate, endTurn, newGame } from "../src/engine/game";
+import type { GameState } from "../src/engine/types";
 
 const content = loadContent();
 
@@ -42,5 +43,16 @@ describe("시장 재고 순환", () => {
     state = endTurn(state, candidateOnlyContent);
 
     expect(state.candidates).toContain(defId);
+  });
+
+  it("주기가 지날수록 신규 진입 카드의 재고가 1주기당 +1씩 늘어난다", () => {
+    for (const evalIndex of [0, 1, 2]) {
+      let state: GameState = { ...newGame(content, 24), phase: "candidate", evalIndex };
+      const newId = content.cardList.find((c) => !state.market.some((m) => m.defId === c.id))!.id;
+      state = { ...state, candidates: [newId] };
+      state = chooseCandidate(state, content, newId);
+      const entry = state.market.find((m) => m.defId === newId);
+      expect(entry?.stock).toBe(CAPS.marketStock + evalIndex);
+    }
   });
 });

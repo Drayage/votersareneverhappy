@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadContent } from "../src/content/loader";
-import { chooseCandidate, endTurn, newGame, playCard, resolveChoice } from "../src/engine/game";
+import { chooseCandidate, chooseCandidateTag, endTurn, newGame, playCard, resolveChoice } from "../src/engine/game";
 import { ownedCards } from "../src/engine/settlement";
 import type { GameState } from "../src/engine/types";
 
@@ -121,6 +121,7 @@ describe("선택 시스템(pendingChoice)", () => {
     expect(s.hand.length).toBe(2);
     s = endTurn(s, content);
     expect(s.inPlay.map((c) => c.defId)).toEqual(["wharf"]); // 지속 유지
+    s = chooseCandidateTag(s, content, s.tagChoices[0]); // 1턴째 종료 → 태그 선택 단계
     s = chooseCandidate(s, content, s.candidates[0]); // 다음 턴 시작
     expect(s.hand.length).toBe(8); // 기본 6 + duration 2
   });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadContent } from "../src/content/loader";
-import { buyCard, chooseCandidate, endTurn, newGame, playCard } from "../src/engine/game";
+import { buyCard, chooseCandidate, chooseCandidateTag, endTurn, newGame, playCard } from "../src/engine/game";
 import { CAPS } from "../src/engine/caps";
 import { computeSettlement } from "../src/engine/settlement";
 import type { GameState } from "../src/engine/types";
@@ -142,6 +142,7 @@ describe("트리거 소스당 상한과 확장(extraTriggerCap)", () => {
     expect(s.inPlay.map((c) => c.uid)).toEqual([9400]);
     expect(s.inPlay[0].persistLeft).toBe(1);
 
+    s = chooseCandidateTag(s, content, s.tagChoices[0]); // 1턴째 종료 → 태그 선택 단계
     s = chooseCandidate(s, content, s.candidates[0]); // 다음 턴 시작 (festival 드로우)
     const festival = s.hand.find((c) => c.defId === "festival")!;
     s = playCard(s, content, festival.uid); // 문화 카드 → 지속 중인 대극장 트리거 +2

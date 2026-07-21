@@ -14,7 +14,10 @@ import {
   tagMultiplier,
 } from "./effects";
 import { computeSettlement, computeRerollTickets, ownedCards, educationCount } from "./settlement";
-import { generateCandidates } from "./market";
+import { generateCandidates, generateCandidatesForTag, pickTagChoices } from "./market";
+
+/** 주기당 카드 후보 대신 태그 3개를 먼저 고르게 하는 턴 (docs/05 §1.4) */
+const TAG_CHOICE_TURNS = new Set([1, 4]);
 
 const clone = <T>(x: T): T => structuredClone(x);
 
@@ -51,6 +54,8 @@ export function newGame(content: Content, seed = 1): GameState {
     market: STARTING_MARKET.map((defId) => ({ defId, stock: CAPS.marketStock })),
     marketSlots: CAPS.marketSlots,
     candidates: [],
+    tagChoices: [],
+    candidateTagFilter: null,
     relics: [],
     policies: [],
     gauges: { pollution: 0, corruption: 0, populismDebuff: 0 },
@@ -389,9 +394,19 @@ export function endTurn(prev: GameState, content: Content): GameState {
   s.actions = 0;
   s.buys = 0;
   if (s.turn < CAPS.turnsPerCycle) {
-    const gen = generateCandidates(s, content);
-    s.candidates = gen.candidates;
-    s.rngState = gen.rngState;
+    if (TAG_CHOICE_TURNS.has(s.turn)) {
+      const tc = pickTagChoices(s, content);
+      s.tagChoices = tc.tags;
+      s.candidateTagFilter = null;
+      s.candidates = [];
+      s.rngState = tc.rngState;
+    } else {
+      const gen = generateCandidates(s, content);
+      s.candidates = gen.candidates;
+      s.tagChoices = [];
+      s.candidateTagFilter = null;
+      s.rngState = gen.rngState;
+    }
     s.phase = "candidate";
     return s;
   }
@@ -401,13 +416,25 @@ export function endTurn(prev: GameState, content: Content): GameState {
   return s;
 }
 
+/** 태그 선택 턴(1·4번째): 후보 카드 대신 제시된 태그 3개 중 하나를 골라 그 태그로 후보를 채운다. */
+export function chooseCandidateTag(prev: GameState, content: Content, tag: Tag): GameState {
+  if (prev.phase !== "candidate" || !prev.tagChoices.includes(tag)) return prev;
+  const s = clone(prev);
+  s.tagChoices = [];
+  s.candidateTagFilter = tag;
+  const gen = generateCandidatesForTag(s, content, tag);
+  s.candidates = gen.candidates;
+  s.rngState = gen.rngState;
+  return s;
+}
+
 export function chooseCandidate(
   prev: GameState,
   content: Content,
   addId: string,
   removeId?: string
 ): GameState {
-  if (prev.phase !== "candidate") return prev;
+  if (prev.phase !== "candidate" || prev.tagChoices.length > 0) return prev;
   if (!prev.candidates.includes(addId) || !content.cards.has(addId)) return prev;
   const s = clone(prev);
   const slots = CAPS.marketSlots + extraMarketSlots(s, content);
@@ -422,6 +449,7 @@ export function chooseCandidate(
     s.market.push({ defId: addId, stock: CAPS.marketStock + s.evalIndex });
   }
   s.candidates = [];
+  s.candidateTagFilter = null;
   s.turn += 1;
   return startTurn(s, content);
 }
@@ -539,12 +567,20 @@ export function rerollRewardPolicies(prev: GameState, content: Content): GameSta
   return s;
 }
 
-/** 시장 진화 후보(카드보상)를 리롤권 1장으로 다시 뽑는다. */
+/** 시장 진화 후보(카드보상)를 리롤권 1장으로 다시 뽑는다. 태그 선택 단계라면 태그 3개를 다시 뽑는다. */
 export function rerollCandidates(prev: GameState, content: Content): GameState {
   if (prev.phase !== "candidate" || prev.rerollTickets <= 0) return prev;
   const s = clone(prev);
   s.rerollTickets -= 1;
-  const gen = generateCandidates(s, content);
+  if (s.tagChoices.length > 0) {
+    const tc = pickTagChoices(s, content);
+    s.tagChoices = tc.tags;
+    s.rngState = tc.rngState;
+    return s;
+  }
+  const gen = s.candidateTagFilter
+    ? generateCandidatesForTag(s, content, s.candidateTagFilter)
+    : generateCandidates(s, content);
   s.candidates = gen.candidates;
   s.rngState = gen.rngState;
   return s;

@@ -208,6 +208,11 @@ export interface GameState {
   marketSlots: number; // 기본 10
   candidates: string[]; // 턴 종료 시 제시되는 후보 defId 3장
 
+  // 주기당 1·4번째 턴 종료 시: 카드 후보 대신 태그 3개를 먼저 제시(택1). 비어있으면 평소대로 후보만 표시.
+  tagChoices: Tag[];
+  // tagChoices에서 고른 태그 — candidates가 해당 태그 카드로만 채워졌음을 표시(리롤 시에도 유지).
+  candidateTagFilter: Tag | null;
+
   relics: string[]; // relic defId
   policies: string[]; // policy defId
 

@@ -112,7 +112,7 @@ function autoCycle(s0: GameState, content: Content): GameState {
       s = greedyTurn(s, content);
       s = G.endTurn(s, content);
     } else if (s.phase === "candidate") {
-      s = chooseGreedy(s, content);
+      s = s.tagChoices.length > 0 ? G.chooseCandidateTag(s, content, s.tagChoices[0]) : chooseGreedy(s, content);
     } else if (s.phase === "evaluation") {
       break;
     } else {

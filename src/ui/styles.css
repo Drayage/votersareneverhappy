@@ -237,6 +237,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .choice-label span { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; color: #132019; background: var(--mint); }
 .choice-label.danger span { color: white; background: #b44f48; }
 .choice-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tag-choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tag-choice-item { --tone: #71817b; min-height: 90px; padding: 14px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--tone) 55%, var(--line)); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--tone) 22%, #101a17), #101a17); color: var(--tone); font-family: Georgia, "Noto Serif KR", serif; font-size: 18px; font-weight: 800; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+.tag-choice-item:hover { transform: translateY(-2px); box-shadow: 0 8px 20px #0004; }
 .compact-choices { grid-template-columns: repeat(5, minmax(130px, 1fr)); max-height: 330px; padding: 2px; overflow-y: auto; }
 .evaluation-modal, .end-modal { width: min(500px, 100%); text-align: center; }
 .result-mark { width: 58px; height: 58px; display: grid; place-items: center; margin: 0 auto 16px; border: 1px solid var(--mint); border-radius: 50%; color: #122018; background: var(--mint); box-shadow: 0 0 32px #63d7ad55; font-size: 26px; font-weight: 950; }

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Content, GameState } from "../engine/types";
+import type { Content, GameState, Tag } from "../engine/types";
 import { loadContent } from "../content/loader";
 import * as G from "../engine/game";
 
@@ -18,6 +18,7 @@ interface Store {
   buy: (defId: string) => void;
   endTurn: () => void;
   chooseCandidate: (addId: string, removeId?: string) => void;
+  chooseCandidateTag: (tag: Tag) => void;
   rerollCandidates: () => void;
   confirmEvaluation: () => void;
   pickRelic: (id: string) => void;
@@ -43,6 +44,7 @@ export const useGame = create<Store>((set) => ({
   endTurn: () => set((s) => ({ state: G.endTurn(s.state, s.content) })),
   chooseCandidate: (addId, removeId) =>
     set((s) => ({ state: G.chooseCandidate(s.state, s.content, addId, removeId) })),
+  chooseCandidateTag: (tag) => set((s) => ({ state: G.chooseCandidateTag(s.state, s.content, tag) })),
   rerollCandidates: () => set((s) => ({ state: G.rerollCandidates(s.state, s.content) })),
   confirmEvaluation: () => set((s) => ({ state: G.confirmEvaluation(s.state, s.content) })),
   pickRelic: (id) => set((s) => ({ state: G.pickRewardRelic(s.state, s.content, id) })),

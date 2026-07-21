@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { loadContent } from "../src/content/loader";
-import { newGame, endTurn, chooseCandidate } from "../src/engine/game";
+import { newGame, endTurn, chooseCandidate, chooseCandidateTag } from "../src/engine/game";
 import { CAPS } from "../src/engine/caps";
 
 const content = loadContent();
@@ -12,6 +12,8 @@ describe("턴 종료 시 예산 처리", () => {
     s = endTurn(s, content);
     expect(s.budget).toBe(0); // 턴 종료 즉시 소멸
 
+    // 1턴째 종료라 태그 선택 단계를 먼저 거친다
+    s = chooseCandidateTag(s, content, s.tagChoices[0]);
     // 시장 진화 후 다음 턴 시작 → 기초 세수로만 재충전(이월 0)
     s = chooseCandidate(s, content, s.candidates[0]);
     expect(s.phase).toBe("play");

@@ -1,7 +1,7 @@
 // 시장(Supply) 시스템 — 후보 3장 가중 생성 + 강제 추가/교체 (docs/01 §3)
 import type { CardDef, Content, GameState, Tag } from "./types";
 import { ALL_TAGS } from "./types";
-import { weightedPick } from "./rng";
+import { shuffle, weightedPick } from "./rng";
 
 /** 플레이어 빌드의 태그 빈도 (덱 + 현재 시장 기준) */
 function buildTagFrequency(state: GameState, content: Content): Record<string, number> {
@@ -25,7 +25,7 @@ function rankedTags(state: GameState, content: Content): Tag[] {
 /** 평가 차수에 따른 티어 가중치 — 후반일수록 고티어 등장↑.
  *  S는 초반 등장을 크게 올렸다(0.1→0.35): 엔진 덱이 2차 벽 전에 페이오프 카드를 "볼" 수 있어야 한다.
  *  균형은 가격(스케일 카드는 비쌈)·재고(3장)가 잡으므로, 등장률은 "접근/계획"만 담당한다. */
-function tierWeight(tier: CardDef["tier"], evalIndex: number): number {
+export function tierWeight(tier: CardDef["tier"], evalIndex: number): number {
   switch (tier) {
     case "B":
       return 1.0;
@@ -83,6 +83,41 @@ export function generateCandidates(
     const extra = pickWith(() => 1);
     if (!extra) break;
     chosen.push(extra);
+  }
+
+  return { candidates: chosen, rngState: rng };
+}
+
+/** 주기당 1·4번째 턴 종료 시 제시할 태그 3개 — 실제로 뽑을 카드가 있는 태그만 후보로 삼는다. */
+export function pickTagChoices(state: GameState, content: Content): { tags: Tag[]; rngState: number } {
+  const inMarket = new Set(state.market.map((m) => m.defId));
+  const pool = content.cardList.filter((c) => c.tier !== "start" && !inMarket.has(c.id));
+  const available = (ALL_TAGS as Tag[]).filter((t) => pool.some((c) => c.tags.includes(t)));
+  const pickFrom = available.length >= 3 ? available : (ALL_TAGS as Tag[]);
+  const sh = shuffle(pickFrom, state.rngState);
+  return { tags: sh.result.slice(0, 3), rngState: sh.state };
+}
+
+/** 태그 하나로 제한된 후보 3장 생성 (해당 태그가 없는 카드는 등장하지 않는다). */
+export function generateCandidatesForTag(
+  state: GameState,
+  content: Content,
+  tag: Tag
+): { candidates: string[]; rngState: number } {
+  const inMarket = new Set(state.market.map((m) => m.defId));
+  const pool = content.cardList.filter(
+    (c) => c.tier !== "start" && !inMarket.has(c.id) && c.tags.includes(tag)
+  );
+
+  const chosen: string[] = [];
+  let rng = state.rngState;
+  while (chosen.length < 3) {
+    const avail = pool.filter((c) => !chosen.includes(c.id));
+    if (avail.length === 0) break;
+    const weights = avail.map((c) => Math.max(0.0001, tierWeight(c.tier, state.evalIndex)));
+    const r = weightedPick(rng, weights);
+    rng = r.state;
+    chosen.push(avail[r.index].id);
   }
 
   return { candidates: chosen, rngState: rng };

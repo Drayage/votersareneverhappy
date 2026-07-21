@@ -37,6 +37,7 @@ describe("시장 재고 순환", () => {
     const candidateOnlyContent = { ...content, cardList: [card] };
     state = {
       ...state,
+      turn: 2, // 1·4번째 턴은 태그 선택 단계가 끼어들므로 피한다(이 테스트와 무관)
       market: state.market.filter((entry) => entry.defId !== defId),
     };
 

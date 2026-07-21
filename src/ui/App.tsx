@@ -317,16 +317,46 @@ function ChoiceModal() {
 }
 
 function CandidateModal() {
-  const { state, content, chooseCandidate, rerollCandidates } = useGame();
+  const { state, content, chooseCandidate, chooseCandidateTag, rerollCandidates } = useGame();
   const [pendingAdd, setPendingAdd] = useState<string | null>(null);
   const full = state.market.length >= state.marketSlots;
   const commit = (addId: string, removeId?: string) => { chooseCandidate(addId, removeId); setPendingAdd(null); };
+
+  if (state.tagChoices.length > 0) {
+    return (
+      <div className="modal-backdrop" role="presentation">
+        <section className="modal candidate-modal" role="dialog" aria-modal="true" aria-labelledby="candidate-title">
+          <span className="modal-kicker">MARKET EVOLUTION</span>
+          <h2 id="candidate-title">이번엔 어느 분야에 집중할까요?</h2>
+          <p>태그 하나를 고르면, 그 태그가 있는 카드 중에서만 후보가 나옵니다.</p>
+          <div className="reroll-row">
+            <span>🎟️ 리롤권 {state.rerollTickets}</span>
+            <button className="button button-secondary" disabled={state.rerollTickets <= 0} onClick={rerollCandidates}>태그 다시 뽑기</button>
+          </div>
+          <div className="choice-label"><span>1</span> 태그 선택</div>
+          <div className="tag-choice-grid">
+            {state.tagChoices.map((tag) => (
+              <button key={tag} className={`tag-choice-item tone-${tag}`} onClick={() => chooseCandidateTag(tag)}>
+                {TAG_LABELS[tag]}
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="modal-backdrop" role="presentation">
       <section className="modal candidate-modal" role="dialog" aria-modal="true" aria-labelledby="candidate-title">
         <span className="modal-kicker">MARKET EVOLUTION</span>
         <h2 id="candidate-title">도시에 새 정책이 들어옵니다</h2>
-        <p>{full ? "추가할 카드를 고른 뒤 시장에서 내보낼 카드를 선택하세요." : "세 후보 중 하나를 골라 시장의 방향을 결정하세요. 거부할 수는 없습니다."}</p>
+        <p>
+          {state.candidateTagFilter
+            ? `${TAG_LABELS[state.candidateTagFilter]} 태그 카드 중에서 골라 시장의 방향을 결정하세요.`
+            : "세 후보 중 하나를 골라 시장의 방향을 결정하세요. 거부할 수는 없습니다."}
+          {full && " 추가할 카드를 고른 뒤 시장에서 내보낼 카드를 선택하세요."}
+        </p>
         <div className="reroll-row">
           <span>🎟️ 리롤권 {state.rerollTickets}</span>
           <button className="button button-secondary" disabled={state.rerollTickets <= 0} onClick={rerollCandidates}>후보 다시 뽑기</button>

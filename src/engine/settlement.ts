@@ -36,6 +36,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   const multPerCardByTag: Record<string, number> = {};
   let pctOfTargetSum = 0; // 복지: 통과 목표 비례 안정 점수(과학 배수 미적용)
   let floorPct = 0; // 복지: 정산 최소 보장(최댓값 하나만 적용)
+  let playFloorPct = 0; // 복지: 플레이 점수 최소 보장(최댓값 하나만 적용)
 
   // 통과 목표(포퓰리즘 증가 포함)는 settlementPctOfTarget 계산에 필요 → 먼저 구한다.
   const targetBonusPctEarly = Math.min(CAPS.targetBonusMaxPct, Math.max(0, state.activeTargetBonusPct));
@@ -108,6 +109,10 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
           // 복지: 하한은 겹쳐도 커지지 않는다 — 최댓값 하나만
           floorPct = Math.max(floorPct, e.pct);
           break;
+        case "playScoreFloor":
+          // 복지: 플레이 점수 하한도 동일 원칙 — 최댓값 하나만
+          playFloorPct = Math.max(playFloorPct, e.pct);
+          break;
         default:
           break;
       }
@@ -152,7 +157,10 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   const cycleMult = passives
     .filter((e) => e.kind === "cycleScoreMult")
     .reduce((a, e) => a * (e as { mult: number }).mult, 1);
-  const baseCycleScore = Math.round(state.cycleScore * cycleMult);
+  // 복지 최소 보장(플레이 축): 카드를 낸 점수가 약할 때만 목표의 playFloorPct까지 보정.
+  // settlementFloor(정산 축)와 대칭 — 서로 다른 성분에 걸려 중복 안전망이 되지 않는다.
+  const playFloor = Math.round(target * Math.min(playFloorPct, CAPS.settlementFloorMaxPct));
+  const baseCycleScore = Math.max(Math.round(state.cycleScore * cycleMult), playFloor);
   const subtotal = baseCycleScore + settlementScore + pollutionPenalty;
 
   // globalScoreMult: 상위 2개만 발효 (CAPS.maxScoreMultipliers)

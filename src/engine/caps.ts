@@ -33,7 +33,8 @@ export const CAPS = {
   settlementMultCap: 10,
   /** 복지 '목표 비례 안정 세입' 총합 상한(목표 대비). 다수 적재로 자동 통과 방지 */
   stableIncomeMaxPct: 0.2,
-  /** 복지 '정산 최소 보장'(settlementFloor) 하한의 상한(목표 대비). 여러 소스는 최댓값만 적용 */
+  /** 복지 '정산 최소 보장'(settlementFloor·playScoreFloor) 하한의 상한(목표 대비).
+   *  두 효과(정산 축/플레이 축)가 공유하는 캡 — 여러 소스는 각 축에서 최댓값만 적용 */
   settlementFloorMaxPct: 0.3,
   /** 포퓰리즘으로 증가할 수 있는 평가 목표의 최대치 */
   targetBonusMaxPct: 80,

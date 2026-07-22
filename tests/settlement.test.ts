@@ -55,14 +55,17 @@ describe("정산 계산", () => {
     expect(r.settlementScore).toBe(15);
   });
 
-  it("복지: 통과 목표 비례 안정 세입(settlementPctOfTarget)", () => {
-    // welfare_net: 통과 목표의 20%. 1차 목표 70 → +14점 (과학 배수 미적용)
+  it("복지: 통과 목표 비례 안정 세입(settlementPctOfTarget) — 카드 1장당 +5%", () => {
+    // welfare_net: 통과 목표의 5%. 1차 목표 70 → 3.5 → 반올림 4점 (과학 배수 미적용)
     const s = withDeck(["welfare_net"]); // evalIndex 0 → 목표 70
-    expect(computeSettlement(s, content).settlementScore).toBe(14);
+    expect(computeSettlement(s, content).settlementScore).toBe(4);
   });
 
-  it("안정 세입은 상한(목표의 20%)으로 캡 — 복지는 안전망이지 승리 버튼이 아니다", () => {
-    // welfare_net 5장 = 20%×5 = 100% → 캡 20%로 제한 → 목표 70의 20% = 14점
+  it("안정 세입은 상한(목표의 20%)으로 캡 — 4장(20%)에서 이미 상한, 5장도 그대로", () => {
+    const four = withDeck(["welfare_net", "welfare_net", "welfare_net", "welfare_net"]);
+    expect(computeSettlement(four, content).settlementScore).toBe(14); // 5%×4=20% → 70×20%=14
+
+    // welfare_net 5장 = 5%×5 = 25% → 캡 20%로 제한 → 목표 70의 20% = 14점(4장과 동일)
     const five = withDeck(["welfare_net", "welfare_net", "welfare_net", "welfare_net", "welfare_net"]);
     const r = computeSettlement(five, content);
     expect(r.settlementScore).toBe(14); // 다수 적재해도 20% 상한
@@ -131,6 +134,23 @@ describe("정산 계산", () => {
     // 여러 장 겹쳐도 하한은 최댓값 하나만 — 2장이어도 18점 그대로
     const dup = withDeck(["basic_living", "basic_living"]);
     expect(computeSettlement(dup, content).settlementScore).toBe(18);
+  });
+
+  it("복지 최소 보장(playScoreFloor, 근로장려금): 플레이 점수가 약할 때만 목표의 25%까지 보정", () => {
+    // 이번 주기 카드 플레이로 얻은 점수(cycleScore)가 0이면 → 목표 70의 25% = 18로 보정
+    const weak = withDeck(["earned_income_credit"]);
+    expect(computeSettlement(weak, content).baseCycleScore).toBe(18);
+
+    // 이미 하한보다 크면 그대로 둔다 — 정산(settlementFloor)과는 서로 다른 성분이라 중복 안전망이 아니다
+    const strong = withDeck(["earned_income_credit"], { cycleScore: 50 });
+    expect(computeSettlement(strong, content).baseCycleScore).toBe(50);
+
+    // 두 하한(정산 축·플레이 축)은 서로 간섭하지 않고 각자 자기 성분만 보정한다
+    const both = withDeck(["basic_living", "earned_income_credit"]);
+    const r = computeSettlement(both, content);
+    expect(r.settlementScore).toBe(18);
+    expect(r.baseCycleScore).toBe(18);
+    expect(r.finalScore).toBe(36); // 18 + 18 + 페널티 없음
   });
 
   it("포퓰리즘 목표 증가와 부패 감산은 80%에서 멈춘다", () => {

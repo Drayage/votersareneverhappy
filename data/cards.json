@@ -104,5 +104,6 @@
   {"id": "culture_pledge", "name": "문화도시 공약", "type": "score", "tags": ["politics"], "cost": 4, "tier": "A", "text": "손패 사용 불가. 정산: 이번 주기 낸 문화 카드 5장 이상이면 +30점", "settlement": [{"kind": "settlementIfPlays", "tag": "culture", "count": 5, "points": 30}], "deadInHand": true},
   {"id": "science_pledge", "name": "과학입국 공약", "type": "score", "tags": ["politics"], "cost": 5, "tier": "S", "text": "손패 사용 불가. 정산: 이번 주기 낸 과학 카드 5장 이상이면 +40점", "settlement": [{"kind": "settlementIfPlays", "tag": "science", "count": 5, "points": 40}], "deadInHand": true},
   {"id": "backdoor_hire", "name": "청탁 인사", "type": "action", "tags": ["corruption", "admin"], "cost": 3, "tier": "A", "text": "+2액션, +1구매. 부패 +1", "onPlay": [{"kind": "gainAction", "amount": 2}, {"kind": "gainBuy", "amount": 1}, {"kind": "corruption", "amount": 1}]},
-  {"id": "special_sale", "name": "특혜 분양", "type": "score", "tags": ["corruption", "residential"], "cost": 4, "tier": "A", "text": "사용: +13점. 부패 +1", "onPlay": [{"kind": "gainScore", "amount": 13}, {"kind": "corruption", "amount": 1}]}
+  {"id": "special_sale", "name": "특혜 분양", "type": "score", "tags": ["corruption", "residential"], "cost": 4, "tier": "A", "text": "사용: +13점. 부패 +1", "onPlay": [{"kind": "gainScore", "amount": 13}, {"kind": "corruption", "amount": 1}]},
+  {"id": "basic_living", "name": "기초생활 보장", "type": "score", "tags": ["welfare"], "cost": 4, "tier": "A", "text": "손패 사용 불가. 정산: 정산 점수가 통과 목표의 25% 미만이면 25%까지 보정", "settlement": [{"kind": "settlementFloor", "pct": 0.25}], "deadInHand": true}
 ]

@@ -107,7 +107,10 @@ export type Effect =
   // 임계 배수: 해당 태그 보유 수가 count 이상이면 전체 정산 ×mult (docs/02 환경 로드맵)
   | { kind: "settlementThresholdMult"; tag: Tag; count: number; mult: number }
   // 조건형 공약: 이번 주기 낸 해당 태그 카드가 count장 이상이면 +points (docs/02 정치 로드맵)
-  | { kind: "settlementIfPlays"; tag: Tag; count: number; points: number };
+  | { kind: "settlementIfPlays"; tag: Tag; count: number; points: number }
+  // 복지 최소 보장: 정산 점수가 통과 목표의 pct 미만이면 pct까지 끌어올린다.
+  // 여러 소스는 합산이 아니라 최댓값 하나만 적용(하한은 겹쳐도 커지지 않는다).
+  | { kind: "settlementFloor"; pct: number };
 
 /** 카드 정의 (data/cards.json 한 항목) */
 export interface CardDef {

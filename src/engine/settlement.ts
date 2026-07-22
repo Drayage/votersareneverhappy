@@ -35,6 +35,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   // (보유 수 × 소스별 곱연산이던 구식은 잡식 덱이 과학을 곁다리로 삼켜도 폭발 → 전문덱 전용으로 재설계)
   const multPerCardByTag: Record<string, number> = {};
   let pctOfTargetSum = 0; // 복지: 통과 목표 비례 안정 점수(과학 배수 미적용)
+  let floorPct = 0; // 복지: 정산 최소 보장(최댓값 하나만 적용)
 
   // 통과 목표(포퓰리즘 증가 포함)는 settlementPctOfTarget 계산에 필요 → 먼저 구한다.
   const targetBonusPctEarly = Math.min(CAPS.targetBonusMaxPct, Math.max(0, state.activeTargetBonusPct));
@@ -103,6 +104,10 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
           // 정치 조건형 공약: 이번 주기 낸 해당 태그 카드가 count장 이상이면 약속한 점수 지급
           if ((state.cyclePlayedTagCounts[e.tag] ?? 0) >= e.count) general += e.points;
           break;
+        case "settlementFloor":
+          // 복지: 하한은 겹쳐도 커지지 않는다 — 최댓값 하나만
+          floorPct = Math.max(floorPct, e.pct);
+          break;
         default:
           break;
       }
@@ -135,7 +140,10 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   );
   // 복지 안정 세입(목표 비례)은 과학 배수와 별개로 더한다. 총합은 상한으로 캡(자동 통과 방지).
   const stableIncome = Math.round(target * Math.min(pctOfTargetSum, CAPS.stableIncomeMaxPct));
-  const settlementScore = Math.round(settlementBase * settlementMult) + stableIncome;
+  // 복지 최소 보장: 정산 점수가 목표의 floorPct 미만이면 거기까지 보정.
+  // 정산이 약한 플레이 중심 덱의 안전망 — 정산이 이미 크면 아무것도 하지 않는다.
+  const floor = Math.round(target * Math.min(floorPct, CAPS.settlementFloorMaxPct));
+  const settlementScore = Math.max(Math.round(settlementBase * settlementMult) + stableIncome, floor);
 
   const pollutionPenalty = -2 * Math.max(0, state.gauges.pollution);
 

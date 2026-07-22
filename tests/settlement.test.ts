@@ -119,6 +119,20 @@ describe("정산 계산", () => {
     expect(computeSettlement(kept, content).settlementScore).toBe(30);
   });
 
+  it("복지 최소 보장(settlementFloor): 정산이 약할 때만 목표의 25%까지 보정", () => {
+    // 기초생활 보장 단독: 정산 0 → 목표 70의 25% = 18점으로 보정
+    const weak = withDeck(["basic_living"]);
+    expect(computeSettlement(weak, content).settlementScore).toBe(18);
+
+    // 정산이 이미 하한보다 크면 아무것도 하지 않는다 (개혁 법안 +25 > 18)
+    const strong = withDeck(["basic_living", "reform_bill"]);
+    expect(computeSettlement(strong, content).settlementScore).toBe(25);
+
+    // 여러 장 겹쳐도 하한은 최댓값 하나만 — 2장이어도 18점 그대로
+    const dup = withDeck(["basic_living", "basic_living"]);
+    expect(computeSettlement(dup, content).settlementScore).toBe(18);
+  });
+
   it("포퓰리즘 목표 증가와 부패 감산은 80%에서 멈춘다", () => {
     const s = withDeck(["festival"], {
       cycleScore: 100,

@@ -110,6 +110,15 @@ describe("정산 계산", () => {
     expect(rShort.settlementScore).toBe(16);
   });
 
+  it("정치 조건형 공약(settlementIfPlays): 이번 주기 낸 태그 수가 조건을 넘어야만 지급", () => {
+    // 문화도시 공약: 이번 주기 문화 5장 이상 플레이 시 +30. 보유만으로는 발동하지 않는다.
+    const idle = withDeck(["culture_pledge"], { cyclePlayedTagCounts: { culture: 4 } });
+    expect(computeSettlement(idle, content).settlementScore).toBe(0);
+
+    const kept = withDeck(["culture_pledge"], { cyclePlayedTagCounts: { culture: 5 } });
+    expect(computeSettlement(kept, content).settlementScore).toBe(30);
+  });
+
   it("포퓰리즘 목표 증가와 부패 감산은 80%에서 멈춘다", () => {
     const s = withDeck(["festival"], {
       cycleScore: 100,

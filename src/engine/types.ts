@@ -105,7 +105,9 @@ export type Effect =
   | { kind: "triggerBonusTag"; tag: Tag; score: number }
   | { kind: "settlementMultTag"; tag: Tag; mult: number }
   // 임계 배수: 해당 태그 보유 수가 count 이상이면 전체 정산 ×mult (docs/02 환경 로드맵)
-  | { kind: "settlementThresholdMult"; tag: Tag; count: number; mult: number };
+  | { kind: "settlementThresholdMult"; tag: Tag; count: number; mult: number }
+  // 조건형 공약: 이번 주기 낸 해당 태그 카드가 count장 이상이면 +points (docs/02 정치 로드맵)
+  | { kind: "settlementIfPlays"; tag: Tag; count: number; points: number };
 
 /** 카드 정의 (data/cards.json 한 항목) */
 export interface CardDef {

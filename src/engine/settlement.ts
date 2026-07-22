@@ -99,6 +99,10 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
           general += Math.min(e.cap, plays * e.points);
           break;
         }
+        case "settlementIfPlays":
+          // 정치 조건형 공약: 이번 주기 낸 해당 태그 카드가 count장 이상이면 약속한 점수 지급
+          if ((state.cyclePlayedTagCounts[e.tag] ?? 0) >= e.count) general += e.points;
+          break;
         default:
           break;
       }

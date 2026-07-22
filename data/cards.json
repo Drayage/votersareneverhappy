@@ -68,7 +68,7 @@
   {"id": "town_hall_meeting", "name": "공청회", "type": "action", "tags": ["politics"], "cost": 2, "tier": "B", "text": "+1드로우. 연계: 먼저 낸 정치 카드당 +2점(최대 6)", "onPlay": [{"kind": "gainDraw", "amount": 1}, {"kind": "comboScore", "tag": "politics", "points": 2, "cap": 6}]},
   {"id": "reform_bill", "name": "개혁 법안", "type": "score", "tags": ["politics", "admin"], "cost": 5, "tier": "S", "text": "손패 사용 불가. 정산: +25점", "settlement": [{"kind": "gainScore", "amount": 25}], "deadInHand": true},
   {"id": "village_community", "name": "마을 공동체", "type": "action", "tags": ["residential", "welfare"], "cost": 3, "tier": "B", "text": "이번 턴, 재정 외 주거 카드를 낼 때마다 +2점", "trigger": [{"kind": "onPlayTag", "tag": "residential", "score": 2}]},
-  {"id": "redevelopment", "name": "재개발 조합", "type": "score", "tags": ["residential", "commerce"], "cost": 6, "tier": "A", "text": "손패 사용 불가. 정산: 주거 카드당 +3점", "settlement": [{"kind": "settlementPerTag", "tag": "residential", "points": 3}], "deadInHand": true},
+  {"id": "redevelopment", "name": "재개발 조합", "type": "score", "tags": ["residential", "commerce"], "cost": 5, "tier": "A", "text": "손패 사용 불가. 정산: 주거 카드당 +3점", "settlement": [{"kind": "settlementPerTag", "tag": "residential", "points": 3}], "deadInHand": true},
   {"id": "kindergarten", "name": "병설 유치원", "type": "score", "tags": ["education", "welfare"], "cost": 2, "tier": "B", "text": "사용: +2점. 정산: 학습 레벨 1당 +1점", "onPlay": [{"kind": "gainScore", "amount": 2}], "settlement": [{"kind": "settlementEduLevel", "points": 1}]},
   {"id": "scholarship", "name": "장학 재단", "type": "treasure", "tags": ["education"], "cost": 3, "tier": "A", "text": "+2예산. 정산: 학습 레벨 1당 +1점", "onPlay": [{"kind": "gainBudget", "amount": 2}], "settlement": [{"kind": "settlementEduLevel", "points": 1}]},
   {"id": "local_currency", "name": "지역화폐", "type": "treasure", "tags": ["commerce", "welfare"], "cost": 3, "tier": "A", "text": "+2예산, +1구매", "onPlay": [{"kind": "gainBudget", "amount": 2}, {"kind": "gainBuy", "amount": 1}]},
@@ -99,5 +99,10 @@
 
   {"id": "stream_restoration", "name": "하천 복원", "type": "score", "tags": ["environment"], "cost": 3, "tier": "B", "text": "사용: +3점. 환경 게이지 -2", "onPlay": [{"kind": "gainScore", "amount": 3}, {"kind": "pollution", "amount": -2}]},
   {"id": "recycling_center", "name": "자원순환 센터", "type": "action", "tags": ["environment", "admin"], "cost": 4, "tier": "A", "text": "+1액션, +1드로우. 환경 게이지 -1", "onPlay": [{"kind": "gainAction", "amount": 1}, {"kind": "gainDraw", "amount": 1}, {"kind": "pollution", "amount": -1}]},
-  {"id": "eco_expo", "name": "친환경 박람회", "type": "score", "tags": ["environment", "science"], "cost": 7, "tier": "S", "text": "손패 사용 불가. 정산: 환경 카드 5장 이상 보유 시 전체 정산 ×1.3", "settlement": [{"kind": "settlementThresholdMult", "tag": "environment", "count": 5, "mult": 1.3}], "deadInHand": true}
+  {"id": "eco_expo", "name": "친환경 박람회", "type": "score", "tags": ["environment", "science"], "cost": 7, "tier": "S", "text": "손패 사용 불가. 정산: 환경 카드 5장 이상 보유 시 전체 정산 ×1.3", "settlement": [{"kind": "settlementThresholdMult", "tag": "environment", "count": 5, "mult": 1.3}], "deadInHand": true},
+
+  {"id": "culture_pledge", "name": "문화도시 공약", "type": "score", "tags": ["politics"], "cost": 4, "tier": "A", "text": "손패 사용 불가. 정산: 이번 주기 낸 문화 카드 5장 이상이면 +30점", "settlement": [{"kind": "settlementIfPlays", "tag": "culture", "count": 5, "points": 30}], "deadInHand": true},
+  {"id": "science_pledge", "name": "과학입국 공약", "type": "score", "tags": ["politics"], "cost": 5, "tier": "S", "text": "손패 사용 불가. 정산: 이번 주기 낸 과학 카드 5장 이상이면 +40점", "settlement": [{"kind": "settlementIfPlays", "tag": "science", "count": 5, "points": 40}], "deadInHand": true},
+  {"id": "backdoor_hire", "name": "청탁 인사", "type": "action", "tags": ["corruption", "admin"], "cost": 3, "tier": "A", "text": "+2액션, +1구매. 부패 +1", "onPlay": [{"kind": "gainAction", "amount": 2}, {"kind": "gainBuy", "amount": 1}, {"kind": "corruption", "amount": 1}]},
+  {"id": "special_sale", "name": "특혜 분양", "type": "score", "tags": ["corruption", "residential"], "cost": 4, "tier": "A", "text": "사용: +13점. 부패 +1", "onPlay": [{"kind": "gainScore", "amount": 13}, {"kind": "corruption", "amount": 1}]}
 ]

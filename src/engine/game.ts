@@ -118,6 +118,8 @@ function startTurn(prev: GameState, content: Content): GameState {
       else if (e.resource === "research") s.research += e.amount;
     } else if (e.kind === "corruption") {
       s.gauges.corruption = Math.max(0, s.gauges.corruption + e.amount);
+    } else if (e.kind === "pollution") {
+      s.gauges.pollution = Math.max(0, s.gauges.pollution + e.amount);
     } else if (e.kind === "populismDebuff") {
       s.gauges.populismDebuff = Math.max(0, s.gauges.populismDebuff + e.amount);
     }

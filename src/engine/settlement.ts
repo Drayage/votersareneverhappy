@@ -29,7 +29,8 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   const bucket: Record<string, number> = {};
   for (const t of ALL_TAGS) bucket[t] = 0;
   let general = 0;
-  const tagMult: Record<string, number> = {};
+  const tagMultSources: Record<string, number[]> = {};
+  const thresholdMults: number[] = []; // 임계 배수(settlementThresholdMult): 조건 충족 시 전체 정산 ×
   // 과학: 정산 전체 배수 — 소스는 "가산" 합산하고, 이번 주기에 실제로 낸 해당 태그 카드 수를 곱한다.
   // (보유 수 × 소스별 곱연산이던 구식은 잡식 덱이 과학을 곁다리로 삼켜도 폭발 → 전문덱 전용으로 재설계)
   const multPerCardByTag: Record<string, number> = {};
@@ -69,7 +70,11 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
           general += e.amount;
           break;
         case "settlementMultTag":
-          tagMult[e.tag] = (tagMult[e.tag] ?? 1) * e.mult;
+          (tagMultSources[e.tag] ??= []).push(e.mult);
+          break;
+        case "settlementThresholdMult":
+          // 환경 임계 배수: 해당 태그 보유 수가 count 이상일 때만 전체 정산 배수 발효
+          if (counts[e.tag] >= e.count) thresholdMults.push(e.mult);
           break;
         case "settlementGlobalMultPerTag":
           multPerCardByTag[e.tag] = (multPerCardByTag[e.tag] ?? 0) + e.perCard;
@@ -100,20 +105,30 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     }
   }
 
-  // 태그별 배수 적용 → 정산 가산 기반
+  // 태그별 배수 적용 → 정산 가산 기반.
+  // 같은 태그에 배수 소스가 몰리면(유물+카드 등) 상위 CAPS.maxTagMultStack개만 곱연산,
+  // 그 밖은 (mult-1) 가산 — 문화 정산 뻥튀기 같은 기하급수 폭주 차단.
   const perTag: Record<string, number> = {};
   let settlementBase = general;
   for (const t of ALL_TAGS) {
-    const v = bucket[t] * (tagMult[t] ?? 1);
+    const sources = (tagMultSources[t] ?? []).slice().sort((a, b) => b - a);
+    const compounding = sources.slice(0, CAPS.maxTagMultStack);
+    const additive = sources.slice(CAPS.maxTagMultStack);
+    const mult = compounding.reduce((a, m) => a * m, 1) + additive.reduce((a, m) => a + (m - 1), 0);
+    const v = bucket[t] * mult;
     if (v !== 0) perTag[t] = Math.round(v);
     settlementBase += v;
   }
-  // 과학 정산 배수 (하드 캡 적용): 1 + Σ(태그별 perCard 합 × 이번 주기 낸 해당 태그 카드 수)
+  // 정산 배수 (하드 캡 적용): 과학 = 1 + Σ(태그별 perCard 합 × 이번 주기 낸 해당 태그 카드 수),
+  // 여기에 임계 배수(환경 등)를 곱연산으로 합류.
   let multBonus = 0;
   for (const [tag, perCard] of Object.entries(multPerCardByTag)) {
     multBonus += perCard * (state.cyclePlayedTagCounts[tag] ?? 0);
   }
-  const settlementMult = Math.min(CAPS.settlementMultCap, 1 + multBonus);
+  const settlementMult = Math.min(
+    CAPS.settlementMultCap,
+    thresholdMults.reduce((a, m) => a * m, 1 + multBonus)
+  );
   // 복지 안정 세입(목표 비례)은 과학 배수와 별개로 더한다. 총합은 상한으로 캡(자동 통과 방지).
   const stableIncome = Math.round(target * Math.min(pctOfTargetSum, CAPS.stableIncomeMaxPct));
   const settlementScore = Math.round(settlementBase * settlementMult) + stableIncome;

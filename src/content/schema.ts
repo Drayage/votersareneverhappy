@@ -49,6 +49,7 @@ const effectSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("removeScorePenalty") }),
   z.object({ kind: z.literal("triggerBonusTag"), tag: tagSchema, score: z.number() }),
   z.object({ kind: z.literal("settlementMultTag"), tag: tagSchema, mult: z.number() }),
+  z.object({ kind: z.literal("settlementThresholdMult"), tag: tagSchema, count: z.number().min(1), mult: z.number().min(1) }),
 ]);
 
 export const cardSchema = z.object({

@@ -18,12 +18,12 @@ function withDeck(defIds: string[], patch?: Partial<GameState>): GameState {
 }
 
 describe("정산 계산", () => {
-  it("settlementPerTag: 문화 카드당 +3 (국립박물관 보유)", () => {
+  it("settlementPerTag: 문화 카드당 +2 (국립박물관 보유)", () => {
     // 국립박물관(museum, [culture,tourism]) + 도시축제(festival,[culture]) + 공연장(concert_hall,[culture])
     const s = withDeck(["museum", "festival", "concert_hall"]);
     const r = computeSettlement(s, content);
-    // 문화 카드 3장 × 3점 = 9 (museum 의 settlementPerTag culture)
-    expect(r.settlementScore).toBe(9);
+    // 문화 카드 3장 × 2점 = 6 (museum 의 settlementPerTag culture)
+    expect(r.settlementScore).toBe(6);
   });
 
   it("과학 배수는 '이번 주기에 낸 과학 카드 수'로 계산된다 — 안 내면 배수 없음", () => {
@@ -37,7 +37,7 @@ describe("정산 계산", () => {
     });
     const r = computeSettlement(active, content);
     expect(r.settlementMult).toBeCloseTo(1.9, 5);
-    expect(r.settlementScore).toBe(6); // 문화 기반 3점 × 1.9 ≈ 6
+    expect(r.settlementScore).toBe(4); // 문화 기반 2점 × 1.9 ≈ 4
   });
 
   it("교육 학습 레벨(eduLevel)이 점수로 환산된다", () => {
@@ -83,6 +83,31 @@ describe("정산 계산", () => {
     });
     const r = computeSettlement(s, content);
     expect(r.globalMult).toBeCloseTo(1.8, 5);
+  });
+
+  it("settlementMultTag 스택 상한: 상위 2개만 곱연산, 나머지는 가산 (문화 뻥튀기 차단)", () => {
+    // 문화 4장(박물관·축제·공연장·비엔날레) + 유물 유네스코(×1.75)·문예 후원(×1.25) + 비엔날레(×1.5)
+    // 기반: 4장 × 2점(박물관) = 8
+    // 배수 소스 [1.75, 1.5, 1.25] → 상위 2개 곱(1.75×1.5=2.625) + 나머지 가산(+0.25) = 2.875
+    const s = withDeck(["museum", "festival", "concert_hall", "biennale"], {
+      relics: ["unesco", "culture_patron"],
+    });
+    const r = computeSettlement(s, content);
+    expect(r.settlementScore).toBe(23); // 8 × 2.875 = 23 (무제한 곱이면 8×3.28=26)
+  });
+
+  it("환경 임계 배수(settlementThresholdMult): 환경 5장 이상일 때만 전체 정산 ×1.3", () => {
+    // 탄소중립(환경당 +4) 포함 환경 5장 → 기반 20점, 임계 충족 → ×1.3 = 26
+    const met = withDeck(["eco_expo", "carbon_neutral", "small_park", "green_space", "stream_restoration"]);
+    const rMet = computeSettlement(met, content);
+    expect(rMet.settlementMult).toBeCloseTo(1.3, 5);
+    expect(rMet.settlementScore).toBe(26);
+
+    // 환경 4장(임계 미달) → 배수 없음: 기반 16점 그대로
+    const short = withDeck(["eco_expo", "carbon_neutral", "small_park", "green_space"]);
+    const rShort = computeSettlement(short, content);
+    expect(rShort.settlementMult).toBe(1);
+    expect(rShort.settlementScore).toBe(16);
   });
 
   it("포퓰리즘 목표 증가와 부패 감산은 80%에서 멈춘다", () => {

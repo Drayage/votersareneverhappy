@@ -4,7 +4,7 @@
   { "id": "science_award", "name": "과학 진흥상", "rarity": "common", "role": "태그강화", "price": 80, "text": "매 턴 +1연구", "passive": [{ "kind": "passivePerTurn", "resource": "research", "amount": 1 }] },
   { "id": "culture_patron", "name": "문예 후원", "rarity": "common", "role": "태그강화", "price": 80, "text": "정산: 문화 정산 점수 +25%", "settlement": [{ "kind": "settlementMultTag", "tag": "culture", "mult": 1.25 }] },
   { "id": "nobel", "name": "노벨상 유치", "rarity": "rare", "role": "태그강화", "price": 180, "text": "정산: 이번 주기 낸 과학 카드 1장당 전체 정산 +15%", "settlement": [{ "kind": "settlementGlobalMultPerTag", "tag": "science", "perCard": 0.15 }] },
-  { "id": "unesco", "name": "유네스코 등재", "rarity": "rare", "role": "태그강화", "price": 180, "text": "문화 정산 점수 ×2", "settlement": [{ "kind": "settlementMultTag", "tag": "culture", "mult": 2 }] },
+  { "id": "unesco", "name": "유네스코 등재", "rarity": "rare", "role": "태그강화", "price": 180, "text": "정산: 문화 정산 점수 +75%", "settlement": [{ "kind": "settlementMultTag", "tag": "culture", "mult": 1.75 }] },
   { "id": "transport_plan", "name": "교통 마스터플랜", "rarity": "rare", "role": "드로우", "price": 180, "text": "매 턴 +2드로우", "passive": [{ "kind": "passivePerTurn", "resource": "draw", "amount": 2 }] },
   { "id": "commerce_guild", "name": "상공회의소", "rarity": "rare", "role": "엔진", "price": 180, "text": "카드 구매 시마다 +1점", "trigger": [{ "kind": "onBuyScore", "score": 1 }] },
   { "id": "megacity", "name": "메가시티 선언", "rarity": "legendary", "role": "점수배수", "price": 350, "text": "최종 도시 발전 점수 ×1.5", "passive": [{ "kind": "globalScoreMult", "mult": 1.5 }] },

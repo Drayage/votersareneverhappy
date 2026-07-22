@@ -13,6 +13,10 @@ export const CAPS = {
   actionsPerTurn: 10,
   /** 동시 발효 가능한 곱연산(globalScoreMult) 유물 최대 개수 */
   maxScoreMultipliers: 2,
+  /** 같은 태그의 정산 배수(settlementMultTag)가 곱연산으로 발효되는 최대 소스 수.
+   *  상위 N개만 곱하고 나머지는 (mult-1) 가산 — 문화처럼 유물·카드 배수가 한 태그에
+   *  몰려도 기하급수 폭주를 막는다(§5.2 C5와 같은 안전장치를 태그 배수에도 적용). */
+  maxTagMultStack: 2,
   /** 시장 더미 종류당 재고 */
   marketStock: 3,
   /** 기본 시장 슬롯 */

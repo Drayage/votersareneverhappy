@@ -28,7 +28,7 @@
   {"id": "cruise_terminal", "name": "크루즈 터미널", "type": "score", "tags": ["tourism", "commerce"], "cost": 6, "tier": "S", "text": "이번 턴, 재정 외 관광/문화 카드를 낼 때마다 +2점", "trigger": [{"kind": "onPlayTag", "tag": "tourism", "score": 2}, {"kind": "onPlayTag", "tag": "culture", "score": 2}]},
   {"id": "world_expo", "name": "세계 박람회", "type": "score", "tags": ["tourism", "pr"], "cost": 8, "tier": "S", "text": "사용: +20점", "onPlay": [{"kind": "gainScore", "amount": 20}], "playCost": 1},
   {"id": "festival", "name": "도시 축제", "type": "score", "tags": ["culture"], "cost": 2, "tier": "B", "text": "사용: +5점", "onPlay": [{"kind": "gainScore", "amount": 5}]},
-  {"id": "museum", "name": "국립박물관", "type": "score", "tags": ["culture", "tourism"], "cost": 5, "tier": "B", "text": "손패 사용 불가. 정산: 문화 카드당 +3점", "settlement": [{"kind": "settlementPerTag", "tag": "culture", "points": 3}], "deadInHand": true},
+  {"id": "museum", "name": "국립박물관", "type": "score", "tags": ["culture", "tourism"], "cost": 5, "tier": "B", "text": "손패 사용 불가. 정산: 문화 카드당 +2점", "settlement": [{"kind": "settlementPerTag", "tag": "culture", "points": 2}], "deadInHand": true},
   {"id": "concert_hall", "name": "공연장", "type": "action", "tags": ["culture"], "cost": 3, "tier": "A", "text": "이번 턴, 재정 외 문화 카드를 낼 때마다 +2점", "trigger": [{"kind": "onPlayTag", "tag": "culture", "score": 2}]},
   {"id": "culture_street", "name": "문화의 거리", "type": "score", "tags": ["culture", "commerce"], "cost": 6, "tier": "A", "text": "손패 사용 불가. 정산: 문화 카드당 +2점, 관광 카드당 +2점", "settlement": [{"kind": "settlementPerTag", "tag": "culture", "points": 2}, {"kind": "settlementPerTag", "tag": "tourism", "points": 2}], "deadInHand": true},
   {"id": "biennale", "name": "비엔날레", "type": "score", "tags": ["culture", "education"], "cost": 8, "tier": "S", "text": "손패 사용 불가. 정산: 문화 정산 점수 +50%", "settlement": [{"kind": "settlementMultTag", "tag": "culture", "mult": 1.5}], "deadInHand": true},
@@ -95,5 +95,9 @@
   {"id": "audit", "name": "행정 감사", "type": "action", "tags": ["admin", "politics"], "cost": 3, "tier": "A", "text": "손패에서 최대 3장을 골라 폐기한다 (게임에서 영구 제거)", "onPlay": [{"kind": "trashFromHand", "count": 3}]},
   {"id": "double_stamp", "name": "이중 결재", "type": "action", "tags": ["admin"], "cost": 8, "tier": "S", "text": "손패의 카드 1장을 골라 두 번 사용한다", "onPlay": [{"kind": "playTwice"}]},
   {"id": "wharf", "name": "부두 정비", "type": "action", "tags": ["transport", "commerce"], "cost": 6, "tier": "A", "text": "+2드로우. (지속) 다음 턴에도 +2드로우", "onPlay": [{"kind": "gainDraw", "amount": 2}], "persistTurns": 2, "duration": [{"kind": "gainDraw", "amount": 2}]},
-  {"id": "trade_ship", "name": "무역선", "type": "action", "tags": ["commerce", "transport"], "cost": 5, "tier": "A", "text": "+2예산. (지속) 다음 턴에도 +2예산", "onPlay": [{"kind": "gainBudget", "amount": 2}], "persistTurns": 2, "duration": [{"kind": "gainBudget", "amount": 2}]}
+  {"id": "trade_ship", "name": "무역선", "type": "action", "tags": ["commerce", "transport"], "cost": 5, "tier": "A", "text": "+2예산. (지속) 다음 턴에도 +2예산", "onPlay": [{"kind": "gainBudget", "amount": 2}], "persistTurns": 2, "duration": [{"kind": "gainBudget", "amount": 2}]},
+
+  {"id": "stream_restoration", "name": "하천 복원", "type": "score", "tags": ["environment"], "cost": 3, "tier": "B", "text": "사용: +3점. 환경 게이지 -2", "onPlay": [{"kind": "gainScore", "amount": 3}, {"kind": "pollution", "amount": -2}]},
+  {"id": "recycling_center", "name": "자원순환 센터", "type": "action", "tags": ["environment", "admin"], "cost": 4, "tier": "A", "text": "+1액션, +1드로우. 환경 게이지 -1", "onPlay": [{"kind": "gainAction", "amount": 1}, {"kind": "gainDraw", "amount": 1}, {"kind": "pollution", "amount": -1}]},
+  {"id": "eco_expo", "name": "친환경 박람회", "type": "score", "tags": ["environment", "science"], "cost": 7, "tier": "S", "text": "손패 사용 불가. 정산: 환경 카드 5장 이상 보유 시 전체 정산 ×1.3", "settlement": [{"kind": "settlementThresholdMult", "tag": "environment", "count": 5, "mult": 1.3}], "deadInHand": true}
 ]

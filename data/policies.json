@@ -7,5 +7,6 @@
   { "id": "p_culture_city", "name": "문화도시 특별법", "text": "정산: 문화 카드당 +1점", "price": 180, "settlement": [{ "kind": "settlementPerTag", "tag": "culture", "points": 1 }] },
   { "id": "p_welfare_state", "name": "복지도시 조례", "text": "정산: 통과 목표의 10% 안정 세입", "price": 180, "settlement": [{ "kind": "settlementPctOfTarget", "pct": 0.1 }] },
   { "id": "p_broadcast", "name": "시정 방송국", "text": "트리거 소스 1개당 턴 발동 +1회", "price": 220, "passive": [{ "kind": "extraTriggerCap", "amount": 1 }] },
-  { "id": "p_night_ops", "name": "야간 행정 조례", "text": "매 턴 +1액션, +1드로우 (영구)", "price": 240, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }, { "kind": "passivePerTurn", "resource": "draw", "amount": 1 }] }
+  { "id": "p_night_ops", "name": "야간 행정 조례", "text": "매 턴 +1액션, +1드로우 (영구)", "price": 240, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }, { "kind": "passivePerTurn", "resource": "draw", "amount": 1 }] },
+  { "id": "p_green_belt", "name": "그린벨트 지정", "text": "매 턴 환경 게이지 -1", "price": 180, "passive": [{ "kind": "pollution", "amount": -1 }] }
 ]

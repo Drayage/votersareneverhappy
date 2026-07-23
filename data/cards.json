@@ -135,5 +135,14 @@
   {"id": "emergency_clearance", "name": "긴급 재고 정리", "type": "action", "tags": ["commerce"], "cost": 4, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 점수를 얻는다", "onPlay": [{"kind": "discardForScore", "max": 6}]},
   {"id": "inventory_cashout", "name": "재고 현금화", "type": "action", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 예산을 얻는다", "onPlay": [{"kind": "discardForBudget", "max": 6}]},
   {"id": "blind_pledge", "name": "묻지마 공약", "type": "score", "tags": ["populism"], "cost": 4, "tier": "S", "text": "사용: +16점. 낡은 공약 카드 1장을 버린 더미에 추가한다", "onPlay": [{"kind": "gainScore", "amount": 16}, {"kind": "gainCurse", "count": 1}]},
-  {"id": "blind_bet", "name": "묻지마 베팅", "type": "action", "tags": ["corruption"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 덱 맨 위로 되돌린다. 그 카드가 상업 카드면 즉시 +10점", "onPlay": [{"kind": "topDeckGamble", "tag": "commerce", "bonus": 10}]}
+  {"id": "blind_bet", "name": "묻지마 베팅", "type": "action", "tags": ["corruption"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 덱 맨 위로 되돌린다. 그 카드가 상업 카드면 즉시 +10점", "onPlay": [{"kind": "topDeckGamble", "tag": "commerce", "bonus": 10}]},
+
+  {"id": "real_estate_sale", "name": "부동산 매각", "type": "action", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 폐기하고, 그 카드의 비용만큼 예산을 얻는다", "onPlay": [{"kind": "trashForBudget"}]},
+  {"id": "national_bond_issue", "name": "국채 발행", "type": "treasure", "tags": ["admin", "commerce"], "cost": 6, "tier": "S", "text": "사용: +9예산", "onPlay": [{"kind": "gainBudget", "amount": 9}]},
+  {"id": "foreign_investment", "name": "외국인 투자 유치", "type": "treasure", "tags": ["commerce", "industry"], "cost": 8, "tier": "S", "text": "사용: +13예산. 부패 +1", "onPlay": [{"kind": "gainBudget", "amount": 13}, {"kind": "corruption", "amount": 1}]},
+  {"id": "rental_complex", "name": "임대주택 단지", "type": "action", "tags": ["residential"], "cost": 4, "tier": "A", "text": "+2예산. (지속) 다음 턴에도 +2예산", "onPlay": [{"kind": "gainBudget", "amount": 2}], "persistTurns": 2, "duration": [{"kind": "gainBudget", "amount": 2}]},
+  {"id": "tourist_info_center", "name": "관광안내소", "type": "action", "tags": ["tourism"], "cost": 4, "tier": "A", "text": "+2예산. (지속) 다음 턴에도 +2예산", "onPlay": [{"kind": "gainBudget", "amount": 2}], "persistTurns": 2, "duration": [{"kind": "gainBudget", "amount": 2}]},
+  {"id": "carbon_credit_sale", "name": "탄소배출권 판매", "type": "treasure", "tags": ["environment"], "cost": 3, "tier": "A", "text": "사용: +4예산. 환경 게이지 -1", "onPlay": [{"kind": "gainBudget", "amount": 4}, {"kind": "pollution", "amount": -1}]},
+  {"id": "special_subsidy", "name": "특별교부금", "type": "treasure", "tags": ["populism"], "cost": 4, "tier": "A", "text": "사용: +5예산. 다음 평가 목표 +3%", "onPlay": [{"kind": "gainBudget", "amount": 5}, {"kind": "populismDebuff", "amount": 3}]},
+  {"id": "emergency_livelihood_aid", "name": "긴급 생계비 지원", "type": "action", "tags": ["welfare"], "cost": 3, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 예산을 얻는다", "onPlay": [{"kind": "discardForBudget", "max": 5}]}
 ]

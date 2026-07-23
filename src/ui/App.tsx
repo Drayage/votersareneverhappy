@@ -319,6 +319,7 @@ const CHOICE_EFFECT_KINDS: string[] = [
   "discardForBudget",
   "trashForScore",
   "trashForDraw",
+  "trashForBudget",
   "topDeckGamble",
 ];
 
@@ -330,6 +331,7 @@ const CHOICE_META = {
   discardForBudget: { kicker: "FIRE SALE", title: "버릴 카드를 고르세요", desc: "고른 카드를 버리고(재드로우 없음), 버린 수만큼 예산을 얻습니다.", confirm: "버리고 예산 획득" },
   trashForScore: { kicker: "LIQUIDATION", title: "폐기할 카드 1장을 고르세요", desc: "고른 카드를 영구 제거하고, 그 카드의 비용만큼 점수를 얻습니다.", confirm: "폐기하고 점수 획득" },
   trashForDraw: { kicker: "ASSET SWAP", title: "폐기할 카드 1장을 고르세요", desc: "고른 카드를 영구 제거하고, 그 카드의 비용만큼 드로우합니다.", confirm: "폐기하고 드로우" },
+  trashForBudget: { kicker: "REAL ESTATE", title: "폐기할 카드 1장을 고르세요", desc: "고른 카드를 영구 제거하고, 그 카드의 비용만큼 예산을 얻습니다.", confirm: "폐기하고 예산 획득" },
   topDeckGamble: { kicker: "GAMBLE", title: "덱 위로 되돌릴 카드 1장을 고르세요", desc: "고른 카드를 덱 맨 위로 되돌립니다.", confirm: "베팅" },
 } as const;
 

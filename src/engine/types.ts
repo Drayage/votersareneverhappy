@@ -78,6 +78,8 @@ export type Effect =
   | { kind: "trashForScore" }
   // 선택형: 손패 카드 1장을 골라 완전히 폐기하고, 그 카드의 비용만큼 드로우
   | { kind: "trashForDraw" }
+  // 선택형: 손패 카드 1장을 골라 완전히 폐기하고, 그 카드의 비용만큼 +예산
+  | { kind: "trashForBudget" }
   // 선택형(도박): 손패 카드 1장을 골라 덱 맨 위로 되돌린다. 그 카드가 tag를 가지면 즉시 +bonus점(아니면 0)
   | { kind: "topDeckGamble"; tag: Tag; bonus: number }
   // 조건부 즉발 점수: 보유(덱 전체) 중인 tag 카드가 count장 이상이면 ifMet, 아니면 ifNot (하이리스크 조건형)
@@ -146,6 +148,7 @@ export type PendingChoice =
   | { kind: "discardForBudget"; max: number }
   | { kind: "trashForScore"; max: number }
   | { kind: "trashForDraw"; max: number }
+  | { kind: "trashForBudget"; max: number }
   | { kind: "topDeckGamble"; max: number; tag: Tag; bonus: number };
 
 /** 카드 정의 (data/cards.json 한 항목) */

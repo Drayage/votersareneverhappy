@@ -208,6 +208,7 @@ const CHOICE_KINDS = [
   "discardForBudget",
   "trashForScore",
   "trashForDraw",
+  "trashForBudget",
   "topDeckGamble",
 ] as const;
 
@@ -275,6 +276,9 @@ function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
         break;
       case "trashForDraw":
         s.pendingChoice = { kind: "trashForDraw", max: 1 };
+        break;
+      case "trashForBudget":
+        s.pendingChoice = { kind: "trashForBudget", max: 1 };
         break;
       case "topDeckGamble":
         s.pendingChoice = { kind: "topDeckGamble", max: 1, tag: e.tag, bonus: e.bonus };
@@ -420,6 +424,12 @@ export function resolveChoice(prev: GameState, content: Content, uids: number[])
     if (!def) return prev;
     s.hand.splice(i, 1);
     drawInto(s, content, def.cost);
+  } else if (pending.kind === "trashForBudget" && uids.length === 1) {
+    const i = s.hand.findIndex((c) => c.uid === uids[0]);
+    const def = content.cards.get(s.hand[i].defId);
+    if (!def) return prev;
+    s.hand.splice(i, 1);
+    s.budget += def.cost;
   } else if (pending.kind === "topDeckGamble" && uids.length === 1) {
     const i = s.hand.findIndex((c) => c.uid === uids[0]);
     const card = s.hand[i];

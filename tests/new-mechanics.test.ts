@@ -142,6 +142,28 @@ describe("폐기하고 값 획득 (trashForScore / trashForDraw)", () => {
     s = resolveChoice(s, content, [9871]);
     expect(s.hand.length).toBe(5); // subway 비용(5)만큼 드로우
   });
+
+  it("trashForBudget: 폐기한 카드의 비용만큼 예산, 완전 제거(버린 더미로도 안 감)", () => {
+    let s: GameState = newGame(content, 71);
+    s = {
+      ...s,
+      hand: [
+        { uid: 9910, defId: "real_estate_sale" },
+        { uid: 9911, defId: "subway" }, // cost 5
+      ],
+      deck: [],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+      budget: 0,
+    };
+    s = playCard(s, content, 9910);
+    expect(s.pendingChoice?.kind).toBe("trashForBudget");
+    s = resolveChoice(s, content, [9911]);
+    expect(s.budget).toBe(5); // subway 비용만큼
+    expect(s.discard.some((c) => c.uid === 9911)).toBe(false);
+    expect(s.hand.some((c) => c.uid === 9911)).toBe(false);
+  });
 });
 
 describe("도박(topDeckGamble)", () => {

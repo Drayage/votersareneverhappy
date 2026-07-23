@@ -31,10 +31,10 @@ describe("주기당 1·4번째 턴 — 태그 선택 후 후보 (docs/05 §1.4)"
     expect(s.candidates).toHaveLength(0);
   });
 
-  it("2턴째(태그 선택 턴 아님)를 끝내면 평소처럼 카드 후보 3장이 바로 나온다", () => {
+  it("2턴째(태그 선택 턴 아님)를 끝내면 평소처럼 카드 후보 5장이 바로 나온다", () => {
     const s = endTurn(atTurnEnd(2), content);
     expect(s.tagChoices).toHaveLength(0);
-    expect(s.candidates).toHaveLength(3);
+    expect(s.candidates).toHaveLength(5);
   });
 
   it("제시된 태그를 고르면 그 태그가 있는 카드로만 후보가 채워진다", () => {

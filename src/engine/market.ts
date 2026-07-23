@@ -1,4 +1,4 @@
-// 시장(Supply) 시스템 — 후보 3장 가중 생성 + 강제 추가/교체 (docs/01 §3)
+// 시장(Supply) 시스템 — 후보 5장 가중 생성 + 강제 추가/교체 (docs/01 §3)
 import type { CardDef, Content, GameState, Tag } from "./types";
 import { ALL_TAGS } from "./types";
 import { shuffle, weightedPick } from "./rng";
@@ -60,8 +60,9 @@ export function tierWeight(tier: CardDef["tier"], evalIndex: number): number {
 }
 
 /**
- * 후보 3장 생성.
- * 슬롯1=메인 태그 가중, 슬롯2=서브 태그 가중, 슬롯3=오프-컬러.
+ * 후보 5장 생성 (v0.11.2: 3→5 — 카드 풀이 138장까지 늘어나며 특정 태그/신규 카드가
+ * 3장짜리 후보에 좀처럼 안 걸리는 문제 완화. 카드를 더 추가하는 대신 "볼 수 있는 폭"을 넓힌다).
+ * 슬롯1·3=메인 태그 가중, 슬롯2=서브 태그 가중, 슬롯4=오프-컬러, 슬롯5=완전 무작위.
  */
 export function generateCandidates(
   state: GameState,
@@ -103,12 +104,18 @@ export function generateCandidates(
   // 슬롯2: 서브 태그 가중 (≈50/50)
   const s2 = pickWith((c) => (c.tags.includes(subTag) ? 2 : 1));
   if (s2) chosen.push(s2);
-  // 슬롯3: 오프-컬러 (메인/서브 태그가 전혀 없는 카드 우대)
-  const s3 = pickWith((c) => (c.tags.some((t) => offColor.has(t)) ? 0.2 : 3));
+  // 슬롯3: 메인 태그 가중 재적용 (빌드 방향을 더 확실히 밀어줌)
+  const s3 = pickWith((c) => (c.tags.includes(mainTag) ? 3 : 1));
   if (s3) chosen.push(s3);
+  // 슬롯4: 오프-컬러 (메인/서브 태그가 전혀 없는 카드 우대 — 방향 전환·희귀 카드 발견 창구)
+  const s4 = pickWith((c) => (c.tags.some((t) => offColor.has(t)) ? 0.2 : 3));
+  if (s4) chosen.push(s4);
+  // 슬롯5: 완전 무작위 (태그 가중 없이 전체 풀에서)
+  const s5 = pickWith(() => 1);
+  if (s5) chosen.push(s5);
 
   // 풀이 부족하면 남는 슬롯을 무작위 보충
-  while (chosen.length < 3) {
+  while (chosen.length < 5) {
     const extra = pickWith(() => 1);
     if (!extra) break;
     chosen.push(extra);
@@ -128,7 +135,7 @@ export function pickTagChoices(state: GameState, content: Content): { tags: Tag[
   return { tags: sh.result.slice(0, 3), rngState: sh.state };
 }
 
-/** 태그 하나로 제한된 후보 3장 생성 (해당 태그가 없는 카드는 등장하지 않는다). */
+/** 태그 하나로 제한된 후보 5장 생성 (해당 태그가 없는 카드는 등장하지 않는다). */
 export function generateCandidatesForTag(
   state: GameState,
   content: Content,
@@ -142,7 +149,7 @@ export function generateCandidatesForTag(
 
   const chosen: string[] = [];
   let rng = state.rngState;
-  while (chosen.length < 3) {
+  while (chosen.length < 5) {
     const avail = pool.filter((c) => !chosen.includes(c.id));
     if (avail.length === 0) break;
     const weights = avail.map((c) => Math.max(0.0001, tierWeight(c.tier, state.evalIndex)));

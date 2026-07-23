@@ -202,7 +202,7 @@ describe("리롤권 소비 (유물뽑기·정책뽑기·카드보상 후보 다�
     const tickets = s.rerollTickets;
     s = rerollCandidates(s, content);
     expect(s.rerollTickets).toBe(tickets - 1);
-    expect(s.candidates).toHaveLength(3);
+    expect(s.candidates).toHaveLength(5);
   });
 });
 

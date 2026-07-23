@@ -412,7 +412,7 @@ function CandidateModal() {
         <p>
           {state.candidateTagFilter
             ? `${TAG_LABELS[state.candidateTagFilter]} 태그 카드 중에서 골라 시장의 방향을 결정하세요.`
-            : "세 후보 중 하나를 골라 시장의 방향을 결정하세요. 거부할 수는 없습니다."}
+            : "다섯 후보 중 하나를 골라 시장의 방향을 결정하세요. 거부할 수는 없습니다."}
           {full && " 추가할 카드를 고른 뒤 시장에서 내보낼 카드를 선택하세요."}
         </p>
         <div className="reroll-row">

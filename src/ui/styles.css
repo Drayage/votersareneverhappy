@@ -242,7 +242,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .choice-label { display: flex; align-items: center; gap: 8px; margin: 17px 0 9px; color: var(--muted); font-size: 11px; font-weight: 800; }
 .choice-label span { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; color: #132019; background: var(--mint); }
 .choice-label.danger span { color: white; background: #b44f48; }
-.choice-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.choice-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 .tag-choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .tag-choice-item { --tone: #71817b; min-height: 90px; padding: 14px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--tone) 55%, var(--line)); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--tone) 22%, #101a17), #101a17); color: var(--tone); font-family: Georgia, "Noto Serif KR", serif; font-size: 18px; font-weight: 800; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
 .tag-choice-item:hover { transform: translateY(-2px); box-shadow: 0 8px 20px #0004; }

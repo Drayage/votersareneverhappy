@@ -37,6 +37,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   let pctOfTargetSum = 0; // 복지: 통과 목표 비례 안정 점수(과학 배수 미적용)
   let floorPct = 0; // 복지: 정산 최소 보장(최댓값 하나만 적용)
   let playFloorPct = 0; // 복지: 플레이 점수 최소 보장(최댓값 하나만 적용)
+  let settlementScoreMult = 1; // 정책 전용: 이번 주기 정산 점수 전체 곱연산(여러 소스는 곱해서 합류)
 
   // 통과 목표(포퓰리즘 증가 포함)는 settlementPctOfTarget 계산에 필요 → 먼저 구한다.
   const targetBonusPctEarly = Math.min(CAPS.targetBonusMaxPct, Math.max(0, state.activeTargetBonusPct));
@@ -113,6 +114,10 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
           // 복지: 플레이 점수 하한도 동일 원칙 — 최댓값 하나만
           playFloorPct = Math.max(playFloorPct, e.pct);
           break;
+        case "settlementScoreMult":
+          // 정책 전용: 이번 주기 정산 점수 전체 곱연산
+          settlementScoreMult *= e.mult;
+          break;
         default:
           break;
       }
@@ -148,7 +153,9 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
   // 복지 최소 보장: 정산 점수가 목표의 floorPct 미만이면 거기까지 보정.
   // 정산이 약한 플레이 중심 덱의 안전망 — 정산이 이미 크면 아무것도 하지 않는다.
   const floor = Math.round(target * Math.min(floorPct, CAPS.settlementFloorMaxPct));
-  const settlementScore = Math.max(Math.round(settlementBase * settlementMult) + stableIncome, floor);
+  const settlementScore = Math.round(
+    Math.max(Math.round(settlementBase * settlementMult) + stableIncome, floor) * settlementScoreMult
+  );
 
   const pollutionPenalty = -2 * Math.max(0, state.gauges.pollution);
 
@@ -215,6 +222,24 @@ export function computeRerollTickets(result: Pick<SettlementResult, "finalScore"
 /** 보유 교육 카드 수 (eduLevel 누적용) */
 export function educationCount(state: GameState, content: Content): number {
   return tagCounts(state, content).education;
+}
+
+/** 손패의 정산형(정산 전용) 카드 한 장이 "지금 이 순간" 정산에 기여하는 값 — 실제 제거 시 차액으로 계산(모든 배수·상한 반영). */
+export function previewHandCardSettlementValue(state: GameState, content: Content, uid: number): number {
+  const idx = state.hand.findIndex((c) => c.uid === uid);
+  if (idx === -1) return 0;
+  const def = content.cards.get(state.hand[idx].defId);
+  if (!def?.settlement?.length) return 0;
+  const without: GameState = { ...state, hand: state.hand.filter((_, i) => i !== idx) };
+  return computeSettlement(state, content).settlementScore - computeSettlement(without, content).settlementScore;
+}
+
+/** 시장의 정산형 카드 한 장을 "지금 산다면" 정산에 얼마나 보태는지 — 가상으로 덱에 추가한 차액. */
+export function previewMarketCardSettlementValue(state: GameState, content: Content, defId: string): number {
+  const def = content.cards.get(defId);
+  if (!def?.settlement?.length) return 0;
+  const withCard: GameState = { ...state, hand: [...state.hand, { uid: -1, defId }] };
+  return computeSettlement(withCard, content).settlementScore - computeSettlement(state, content).settlementScore;
 }
 
 export function tagLabelCounts(state: GameState, content: Content): Array<[Tag, number]> {

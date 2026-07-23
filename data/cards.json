@@ -110,5 +110,30 @@
 
   {"id": "opinion_poll", "name": "여론조사", "type": "action", "tags": ["admin"], "cost": 5, "tier": "A", "text": "+1드로우, +1리롤권", "onPlay": [{"kind": "gainDraw", "amount": 1}, {"kind": "gainRerollTicket", "amount": 1}]},
   {"id": "destroy_evidence", "name": "증거 인멸", "type": "action", "tags": ["corruption"], "cost": 3, "tier": "A", "text": "손패에서 최대 2장을 폐기한다 (게임에서 영구 제거). 부패 게이지 -1", "onPlay": [{"kind": "trashFromHand", "count": 2}, {"kind": "corruption", "amount": -1}]},
-  {"id": "express_transfer", "name": "쾌속 환승", "type": "action", "tags": ["transport"], "cost": 4, "tier": "A", "text": "이번 턴 낸 카드 1장을 덱 위로 되돌리고 +2드로우", "onPlay": [{"kind": "recycleInPlay", "count": 1}, {"kind": "gainDraw", "amount": 2}]}
+  {"id": "express_transfer", "name": "쾌속 환승", "type": "action", "tags": ["transport"], "cost": 4, "tier": "A", "text": "이번 턴 낸 카드 1장을 덱 위로 되돌리고 +2드로우", "onPlay": [{"kind": "recycleInPlay", "count": 1}, {"kind": "gainDraw", "amount": 2}]},
+
+  {"id": "industry_cluster_push", "name": "산업 클러스터 집중", "type": "score", "tags": ["industry"], "cost": 6, "tier": "S", "text": "사용: 산업 카드 5장 이상 보유 시 +28점, 아니면 +4점", "onPlay": [{"kind": "conditionalScore", "tag": "industry", "count": 5, "ifMet": 28, "ifNot": 4}]},
+  {"id": "tourism_belt_expand", "name": "관광 벨트 확장", "type": "score", "tags": ["tourism"], "cost": 6, "tier": "S", "text": "사용: 관광 카드 5장 이상 보유 시 +26점, 아니면 +4점", "onPlay": [{"kind": "conditionalScore", "tag": "tourism", "count": 5, "ifMet": 26, "ifNot": 4}]},
+  {"id": "edu_special_zone", "name": "교육 특구 지정", "type": "score", "tags": ["education"], "cost": 5, "tier": "A", "text": "사용: 교육 카드 4장 이상 보유 시 +20점, 아니면 +3점", "onPlay": [{"kind": "conditionalScore", "tag": "education", "count": 4, "ifMet": 20, "ifNot": 3}]},
+  {"id": "residential_overhaul", "name": "전면 재개발", "type": "score", "tags": ["residential"], "cost": 5, "tier": "A", "text": "사용: 주거 카드 4장 이상 보유 시 +18점, 아니면 +3점", "onPlay": [{"kind": "conditionalScore", "tag": "residential", "count": 4, "ifMet": 18, "ifNot": 3}]},
+  {"id": "culture_renaissance", "name": "문화 르네상스", "type": "score", "tags": ["culture"], "cost": 5, "tier": "A", "text": "사용: 문화 카드 4장 이상 보유 시 +20점, 아니면 +4점", "onPlay": [{"kind": "conditionalScore", "tag": "culture", "count": 4, "ifMet": 20, "ifNot": 4}]},
+  {"id": "commerce_all_in", "name": "상권 올인", "type": "score", "tags": ["commerce"], "cost": 5, "tier": "A", "text": "사용: 상업 카드 4장 이상 보유 시 +19점, 아니면 +3점", "onPlay": [{"kind": "conditionalScore", "tag": "commerce", "count": 4, "ifMet": 19, "ifNot": 3}]},
+  {"id": "campaign_hq", "name": "선거대책본부", "type": "score", "tags": ["pr"], "cost": 6, "tier": "S", "text": "사용: 홍보 카드 5장 이상 보유 시 +26점, 아니면 +4점", "onPlay": [{"kind": "conditionalScore", "tag": "pr", "count": 5, "ifMet": 26, "ifNot": 4}]},
+
+  {"id": "env_watch_corps", "name": "환경 감시단", "type": "action", "tags": ["environment"], "cost": 4, "tier": "A", "text": "+1드로우. 이번 턴, 재정 외 환경 카드를 낼 때마다 +2점", "onPlay": [{"kind": "gainDraw", "amount": 1}], "trigger": [{"kind": "onPlayTag", "tag": "environment", "score": 2}]},
+  {"id": "populism_propaganda", "name": "포퓰리즘 선전부", "type": "action", "tags": ["populism"], "cost": 4, "tier": "A", "text": "+1액션. 이번 턴, 재정 외 포퓰리즘 카드를 낼 때마다 +2점", "onPlay": [{"kind": "gainAction", "amount": 1}], "trigger": [{"kind": "onPlayTag", "tag": "populism", "score": 2}]},
+  {"id": "corruption_connections", "name": "부패 커넥션", "type": "action", "tags": ["corruption"], "cost": 4, "tier": "S", "text": "+1드로우. 이번 턴, 재정 외 부패 카드를 낼 때마다 +3점. 부패 +1", "onPlay": [{"kind": "gainDraw", "amount": 1}, {"kind": "corruption", "amount": 1}], "trigger": [{"kind": "onPlayTag", "tag": "corruption", "score": 3}]},
+  {"id": "welfare_network", "name": "복지 네트워크", "type": "action", "tags": ["welfare"], "cost": 5, "tier": "A", "text": "+1드로우. (지속 2턴) 재정 외 복지 카드를 낼 때마다 +2점", "onPlay": [{"kind": "gainDraw", "amount": 1}], "trigger": [{"kind": "onPlayTag", "tag": "welfare", "score": 2}], "persistTurns": 2},
+  {"id": "political_briefing_room", "name": "정치 브리핑룸", "type": "action", "tags": ["politics"], "cost": 5, "tier": "A", "text": "+1드로우. (지속 2턴) 재정 외 정치 카드를 낼 때마다 +2점", "onPlay": [{"kind": "gainDraw", "amount": 1}], "trigger": [{"kind": "onPlayTag", "tag": "politics", "score": 2}], "persistTurns": 2},
+
+  {"id": "presidential_summit", "name": "대통령 정상회담", "type": "score", "tags": ["pr", "politics"], "cost": 8, "tier": "S", "text": "사용: +22점", "onPlay": [{"kind": "gainScore", "amount": 22}]},
+  {"id": "national_restructuring", "name": "국가 개조 프로젝트", "type": "score", "tags": ["admin", "industry"], "cost": 9, "tier": "S", "text": "사용(액션 1 소모): +25점", "onPlay": [{"kind": "gainScore", "amount": 25}], "playCost": 1},
+  {"id": "project_of_century", "name": "세기의 프로젝트", "type": "score", "tags": ["industry", "admin"], "cost": 10, "tier": "S", "text": "사용(액션 2 소모): +40점", "onPlay": [{"kind": "gainScore", "amount": 40}], "playCost": 2},
+
+  {"id": "asset_liquidation", "name": "자산 매각", "type": "action", "tags": ["admin"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 폐기하고, 그 카드의 비용만큼 점수를 얻는다", "onPlay": [{"kind": "trashForScore"}]},
+  {"id": "admin_asset_swap", "name": "행정 자산 재배치", "type": "action", "tags": ["admin"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 폐기하고, 그 카드의 비용만큼 드로우한다", "onPlay": [{"kind": "trashForDraw"}]},
+  {"id": "emergency_clearance", "name": "긴급 재고 정리", "type": "action", "tags": ["commerce"], "cost": 4, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 점수를 얻는다", "onPlay": [{"kind": "discardForScore", "max": 6}]},
+  {"id": "inventory_cashout", "name": "재고 현금화", "type": "action", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 예산을 얻는다", "onPlay": [{"kind": "discardForBudget", "max": 6}]},
+  {"id": "blind_pledge", "name": "묻지마 공약", "type": "score", "tags": ["populism"], "cost": 4, "tier": "S", "text": "사용: +16점. 낡은 공약 카드 1장을 버린 더미에 추가한다", "onPlay": [{"kind": "gainScore", "amount": 16}, {"kind": "gainCurse", "count": 1}]},
+  {"id": "blind_bet", "name": "묻지마 베팅", "type": "action", "tags": ["corruption"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 덱 맨 위로 되돌린다. 그 카드가 상업 카드면 즉시 +10점", "onPlay": [{"kind": "topDeckGamble", "tag": "commerce", "bonus": 10}]}
 ]

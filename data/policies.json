@@ -9,5 +9,10 @@
   { "id": "p_broadcast", "name": "시정 방송국", "text": "이번 주기 동안 트리거 소스 1개당 턴 발동 +2회", "price": 220, "passive": [{ "kind": "extraTriggerCap", "amount": 2 }] },
   { "id": "p_night_ops", "name": "야간 행정 조례", "text": "이번 주기 동안 매 턴 +2액션, +2드로우", "price": 240, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 2 }, { "kind": "passivePerTurn", "resource": "draw", "amount": 2 }] },
   { "id": "p_green_belt", "name": "그린벨트 지정", "text": "이번 주기 동안 매 턴 환경 게이지 -3", "price": 180, "passive": [{ "kind": "pollution", "amount": -3 }] },
-  { "id": "p_emergency_fund", "name": "비상 재정명령", "text": "이번 주기 동안 매 턴 +4예산, +1구매", "price": 220, "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 4 }, { "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] }
+  { "id": "p_emergency_fund", "name": "비상 재정명령", "text": "이번 주기 동안 매 턴 +4예산, +1구매", "price": 220, "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 4 }, { "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] },
+
+  { "id": "p_settlement_allin", "name": "정산 총력전", "text": "이번 주기 정산 점수 전체 ×1.5", "price": 260, "settlement": [{ "kind": "settlementScoreMult", "mult": 1.5 }] },
+  { "id": "p_tag_focus", "name": "선택 태그 집중 육성", "text": "태그 하나를 선택. 이번 주기 동안 그 태그 점수 ×1.5", "price": 220, "needsTagChoice": true, "passive": [{ "kind": "activeTagScoreMult", "mult": 1.5 }] },
+  { "id": "p_tag_market_surge", "name": "선택 태그 시장 점령", "text": "태그 하나를 선택. 이번 주기 동안 시장 진화 후보에 그 태그가 압도적으로 자주 등장", "price": 220, "needsTagChoice": true, "passive": [{ "kind": "activeTagMarketBoost", "weight": 12 }] },
+  { "id": "p_tag_market_ban", "name": "선택 태그 시장 봉쇄", "text": "태그 하나를 선택. 이번 주기 동안 시장 진화 후보에 그 태그 카드가 전혀 등장하지 않음", "price": 200, "needsTagChoice": true, "passive": [{ "kind": "activeTagMarketBan" }] }
 ]

@@ -70,6 +70,26 @@ export type Effect =
   | { kind: "trashFromHand"; count: number }
   // 선택형: 손패의 카드 1장을 골라 액션 소모 없이 두 번 발동 (왕좌의 방)
   | { kind: "playTwice" }
+  // 선택형: 손패에서 최대 max장을 버리고(재드로우 없음), 버린 수만큼 +점수 (하이리스크 손패 소모)
+  | { kind: "discardForScore"; max: number }
+  // 선택형: 손패에서 최대 max장을 버리고(재드로우 없음), 버린 수만큼 +예산
+  | { kind: "discardForBudget"; max: number }
+  // 선택형: 손패 카드 1장을 골라 완전히 폐기하고, 그 카드의 비용만큼 +점수
+  | { kind: "trashForScore" }
+  // 선택형: 손패 카드 1장을 골라 완전히 폐기하고, 그 카드의 비용만큼 드로우
+  | { kind: "trashForDraw" }
+  // 선택형(도박): 손패 카드 1장을 골라 덱 맨 위로 되돌린다. 그 카드가 tag를 가지면 즉시 +bonus점(아니면 0)
+  | { kind: "topDeckGamble"; tag: Tag; bonus: number }
+  // 조건부 즉발 점수: 보유(덱 전체) 중인 tag 카드가 count장 이상이면 ifMet, 아니면 ifNot (하이리스크 조건형)
+  | { kind: "conditionalScore"; tag: Tag; count: number; ifMet: number; ifNot: number }
+  // 낡은 공약(정크) 카드를 count장 버린 더미에 추가 — 강력한 효과의 대가로 덱을 희석시키는 저주형 페널티
+  | { kind: "gainCurse"; count: number }
+  // 정책 전용: 이번 주기 정산 점수 전체에 곱연산(다른 정산 배수들과 별개로 최종 settlementScore에 적용)
+  | { kind: "settlementScoreMult"; mult: number }
+  // 정책 전용(needsTagChoice와 세트) — 태그 자체는 effect에 없고 GameState.activePolicyTag를 참조한다.
+  | { kind: "activeTagScoreMult"; mult: number } // 그 태그 점수 ×mult (매 턴, multiplyTagScore와 동일 적용부)
+  | { kind: "activeTagMarketBoost"; weight: number } // 시장 진화 후보에서 그 태그가 압도적으로 자주 등장
+  | { kind: "activeTagMarketBan" } // 시장 진화 후보에서 그 태그 카드가 아예 등장하지 않음
   // 정산: 이번 주기에 낸 카드 수 기반 (tag 지정 시 해당 태그 플레이만) — 회전 덱의 정산 경로
   | { kind: "settlementPerPlays"; tag?: Tag; points: number; cap: number }
   // passive: 주기 점수(플레이로 쌓은 점수)에만 곱해지는 배수 — 정산 배수(과학)와 대칭
@@ -116,6 +136,17 @@ export type Effect =
   // 복지 최소 보장(플레이 축): 이번 주기 카드 플레이로 얻은 점수(baseCycleScore)가
   // 통과 목표의 pct 미만이면 pct까지 끌어올린다. settlementFloor와 대상만 다른 자매 효과.
   | { kind: "playScoreFloor"; pct: number };
+
+/** 선택형 효과의 보류 상태 — 대상 지정이 필요한 onPlay 효과가 여기 담겼다가 resolveChoice로 해소된다. */
+export type PendingChoice =
+  | { kind: "discardThenDraw"; max: number }
+  | { kind: "trashFromHand"; max: number }
+  | { kind: "playTwice"; max: number }
+  | { kind: "discardForScore"; max: number }
+  | { kind: "discardForBudget"; max: number }
+  | { kind: "trashForScore"; max: number }
+  | { kind: "trashForDraw"; max: number }
+  | { kind: "topDeckGamble"; max: number; tag: Tag; bonus: number };
 
 /** 카드 정의 (data/cards.json 한 항목) */
 export interface CardDef {
@@ -168,6 +199,10 @@ export interface PolicyDef {
   passive?: Effect[];
   /** 정산 시 적용되는 효과 (유물과 동일하게 정산 소스로 집계) */
   settlement?: Effect[];
+  /** true면 이 정책을 고른 직후 태그 하나를 선택해야 한다(시장 태그 집중/봉쇄, 태그 배수 등).
+   *  선택된 태그는 effect의 고정 tag가 아니라 GameState.pendingPolicyTag/activePolicyTag로 전달되며,
+   *  이 정책 id를 아는 엔진 코드(market.ts/game.ts/settlement.ts)가 특별 취급한다. */
+  needsTagChoice?: boolean;
 }
 
 /** 덱 안의 카드 인스턴스 (같은 정의의 여러 장을 구분) */
@@ -234,6 +269,13 @@ export interface GameState {
   pendingPolicy: string | null;
   // 지금까지 활성화됐던 정책 id 기록(클리어 화면 표시용). 게임플레이 효과에는 관여하지 않는다.
   policyHistory: string[];
+  // needsTagChoice 정책을 고른 뒤 선택한 태그(대기) — pendingPolicy와 함께 다음 주기에 activePolicyTag로 편입.
+  pendingPolicyTag: Tag | null;
+  // 현재 주기에 활성화된 태그선택형 정책의 태그(없으면 null). market.ts/game.ts/settlement.ts가 특정 정책 id와
+  // 함께 참조해 "그 태그"에 적용할 효과를 계산한다.
+  activePolicyTag: Tag | null;
+  // needsTagChoice 정책을 방금 골라 태그 선택을 기다리는 중이면 true — 이 동안 카드 정비/다음 주기 진행이 막힌다.
+  rewardPolicyTagChoicePending: boolean;
 
   gauges: Gauges;
 
@@ -258,7 +300,7 @@ export interface GameState {
   cycleCardRerollTickets: number;
 
   // 선택형 효과의 보류 상태. 설정되어 있는 동안 다른 행동이 막히고, resolveChoice 로만 해소된다.
-  pendingChoice: { kind: "discardThenDraw" | "trashFromHand" | "playTwice"; max: number } | null;
+  pendingChoice: PendingChoice | null;
 
   // 포퓰리즘: 이번 평가의 "목표 점수 증가율(%)" (지난 주기 누적분이 이월되어 발효)
   activeTargetBonusPct: number;

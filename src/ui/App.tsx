@@ -3,19 +3,38 @@ import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
 import { PwaInstallButton } from "./PwaInstall";
 import type { CardDef, Content, GameState } from "../engine/types";
-import { TAG_LABELS } from "../engine/types";
+import { ALL_TAGS, TAG_LABELS } from "../engine/types";
 import { effectiveCost, playCostOf } from "../engine/effects";
 import { CAPS, CYCLE_TURNS, EVAL_TARGETS } from "../engine/caps";
-import { computeSettlement, computeRerollTickets, ownedCards, tagLabelCounts } from "../engine/settlement";
+import {
+  computeSettlement,
+  computeRerollTickets,
+  ownedCards,
+  tagCounts,
+  tagLabelCounts,
+  previewHandCardSettlementValue,
+  previewMarketCardSettlementValue,
+} from "../engine/settlement";
 
 function cardDef(content: Content, id: string): CardDef {
   return content.cards.get(id)!;
 }
 
-function comboPreview(card: CardDef, state: GameState): number | undefined {
-  const effects = (card.onPlay ?? []).filter((e) => e.kind === "comboScore");
-  if (effects.length === 0) return undefined;
-  return effects.reduce((sum, effect) => sum + Math.min(effect.cap, (state.playedTagCounts[effect.tag] ?? 0) * effect.points), 0);
+function comboPreview(card: CardDef, state: GameState, content: Content): number | undefined {
+  const effects = card.onPlay ?? [];
+  let total = 0;
+  let has = false;
+  for (const e of effects) {
+    if (e.kind === "comboScore") {
+      total += Math.min(e.cap, (state.playedTagCounts[e.tag] ?? 0) * e.points);
+      has = true;
+    } else if (e.kind === "conditionalScore") {
+      const owned = tagCounts(state, content)[e.tag] ?? 0;
+      total += owned >= e.count ? e.ifMet : e.ifNot;
+      has = true;
+    }
+  }
+  return has ? total : undefined;
 }
 
 // 손패 기본 정렬: 액션 → 재정 → 사업 순. 턴 중 새로 드로우된 카드는 정렬에 섞이지 않고
@@ -213,7 +232,7 @@ function PlayPhase() {
                 const card = cardDef(content, instance.defId);
                 const playCost = playCostOf(card);
                 const dead = card.deadInHand;
-                return <CardView key={instance.uid} card={card} onClick={() => play(instance.uid)} disabled={dead || state.actions < playCost} badge={dead ? "처리 불가" : state.actions < playCost ? "액션 부족" : "사용"} comboPreview={comboPreview(card, state)} />;
+                return <CardView key={instance.uid} card={card} onClick={() => play(instance.uid)} disabled={dead || state.actions < playCost} badge={dead ? "처리 불가" : state.actions < playCost ? "액션 부족" : "사용"} comboPreview={comboPreview(card, state, content)} settlementPreview={card.settlement?.length ? previewHandCardSettlementValue(state, content, instance.uid) : undefined} />;
               })}
               {state.hand.length === 0 && <EmptyState>처리할 안건이 없습니다. 시장에서 카드를 구매하거나 턴을 마감하세요.</EmptyState>}
             </div>
@@ -249,7 +268,7 @@ function PlayPhase() {
               const cost = effectiveCost(state, content, card);
               const payable = card.costResearch ? state.research >= card.costResearch : state.budget >= cost;
               const canBuy = state.buys > 0 && payable && entry.stock > 0;
-              return <CardView compact key={entry.defId} card={card} cost={cost} onClick={() => buy(entry.defId)} disabled={!canBuy} badge={entry.stock > 0 ? `재고 ${entry.stock}` : "품절"} />;
+              return <CardView compact key={entry.defId} card={card} cost={cost} onClick={() => buy(entry.defId)} disabled={!canBuy} badge={entry.stock > 0 ? `재고 ${entry.stock}` : "품절"} settlementPreview={card.settlement?.length ? previewMarketCardSettlementValue(state, content, entry.defId) : undefined} />;
             })}
           </div>
         </section>
@@ -292,10 +311,26 @@ function EmptyState({ children }: { children: React.ReactNode }) {
   return <div className="empty-state">{children}</div>;
 }
 
+const CHOICE_EFFECT_KINDS: string[] = [
+  "discardThenDraw",
+  "trashFromHand",
+  "playTwice",
+  "discardForScore",
+  "discardForBudget",
+  "trashForScore",
+  "trashForDraw",
+  "topDeckGamble",
+];
+
 const CHOICE_META = {
   discardThenDraw: { kicker: "FILTER", title: "버릴 카드를 고르세요", desc: "고른 카드를 버리고 그 수만큼 새로 뽑습니다.", confirm: "버리고 뽑기" },
   trashFromHand: { kicker: "URBAN RENEWAL", title: "폐기할 카드를 고르세요", desc: "고른 카드는 게임에서 영구히 제거됩니다 (덱 압축).", confirm: "폐기" },
   playTwice: { kicker: "DOUBLE STAMP", title: "두 번 사용할 카드를 고르세요", desc: "고른 카드 1장을 액션 소모 없이 두 번 발동합니다.", confirm: "두 번 사용" },
+  discardForScore: { kicker: "AUSTERITY", title: "버릴 카드를 고르세요", desc: "고른 카드를 버리고(재드로우 없음), 버린 수만큼 점수를 얻습니다.", confirm: "버리고 점수 획득" },
+  discardForBudget: { kicker: "FIRE SALE", title: "버릴 카드를 고르세요", desc: "고른 카드를 버리고(재드로우 없음), 버린 수만큼 예산을 얻습니다.", confirm: "버리고 예산 획득" },
+  trashForScore: { kicker: "LIQUIDATION", title: "폐기할 카드 1장을 고르세요", desc: "고른 카드를 영구 제거하고, 그 카드의 비용만큼 점수를 얻습니다.", confirm: "폐기하고 점수 획득" },
+  trashForDraw: { kicker: "ASSET SWAP", title: "폐기할 카드 1장을 고르세요", desc: "고른 카드를 영구 제거하고, 그 카드의 비용만큼 드로우합니다.", confirm: "폐기하고 드로우" },
+  topDeckGamble: { kicker: "GAMBLE", title: "덱 위로 되돌릴 카드 1장을 고르세요", desc: "고른 카드를 덱 맨 위로 되돌립니다.", confirm: "베팅" },
 } as const;
 
 function ChoiceModal() {
@@ -303,10 +338,11 @@ function ChoiceModal() {
   const [picked, setPicked] = useState<number[]>([]);
   const pending = state.pendingChoice!;
   const meta = CHOICE_META[pending.kind];
+  const desc = pending.kind === "topDeckGamble" ? `${meta.desc} 그 카드가 ${TAG_LABELS[pending.tag]} 태그면 즉시 +${pending.bonus}점(아니면 없음).` : meta.desc;
   const toggle = (uid: number) => {
     setPicked((prev) => {
       if (prev.includes(uid)) return prev.filter((u) => u !== uid);
-      if (pending.kind === "playTwice") return [uid]; // 단일 선택
+      if (pending.max === 1) return [uid]; // 단일 선택
       if (prev.length >= pending.max) return prev;
       return [...prev, uid];
     });
@@ -317,12 +353,12 @@ function ChoiceModal() {
       <section className="modal choice-modal" role="dialog" aria-modal="true" aria-labelledby="choice-title">
         <span className="modal-kicker">{meta.kicker}</span>
         <h2 id="choice-title">{meta.title}</h2>
-        <p>{meta.desc} {pending.kind !== "playTwice" && `(최대 ${Math.min(pending.max, state.hand.length)}장)`}</p>
+        <p>{desc} {pending.max > 1 && `(최대 ${Math.min(pending.max, state.hand.length)}장)`}</p>
         <div className="card-grid choice-grid">
           {state.hand.map((instance) => {
             const card = cardDef(content, instance.defId);
             // 두 번 사용: 사용 불가 카드·선택형 카드는 대상이 될 수 없다
-            const invalid = pending.kind === "playTwice" && (card.deadInHand || (card.onPlay ?? []).some((e) => ["discardThenDraw", "trashFromHand", "playTwice"].includes(e.kind)));
+            const invalid = pending.kind === "playTwice" && (card.deadInHand || (card.onPlay ?? []).some((e) => CHOICE_EFFECT_KINDS.includes(e.kind)));
             return <CardView compact key={instance.uid} card={card} highlight={picked.includes(instance.uid)} disabled={invalid} onClick={() => toggle(instance.uid)} badge={picked.includes(instance.uid) ? "선택됨" : undefined} />;
           })}
           {state.hand.length === 0 && <EmptyState>선택할 카드가 없습니다.</EmptyState>}
@@ -424,13 +460,14 @@ function ResultLine({ label, value, negative = false }: { label: string; value: 
 
 /** 평가 통과 후 보상 단계: 유물뽑기(3중1) → 정책뽑기(3중1) → 카드 정비(선택) → 다음 평가. 자금/구매 없음 — 전부 무료 선택. */
 function RewardPhase() {
-  const { state, content, pickRelic, pickPolicy, removeCard, skipRemoval, rerollRelics, rerollPolicies, nextCycle } = useGame();
+  const { state, content, pickRelic, pickPolicy, pickPolicyTag, removeCard, skipRemoval, rerollRelics, rerollPolicies, nextCycle } = useGame();
   const owned = ownedCards(state);
   const counts = useMemo(() => { const map = new Map<string, number>(); for (const card of owned) map.set(card.defId, (map.get(card.defId) ?? 0) + 1); return map; }, [owned]);
 
-  const step: "relic" | "policy" | "removal" | "done" =
+  const step: "relic" | "policy" | "policyTag" | "removal" | "done" =
     state.rewardRelicChoices.length > 0 ? "relic" :
     state.rewardPolicyChoices.length > 0 ? "policy" :
+    state.rewardPolicyTagChoicePending ? "policyTag" :
     !state.rewardRemovalDone ? "removal" : "done";
 
   const RerollRow = ({ onClick }: { onClick: () => void }) => (
@@ -444,9 +481,9 @@ function RewardPhase() {
     <div className="reward-layout">
       <section className="panel reward-main">
         <SectionTitle
-          kicker={`BETWEEN EVALUATIONS · STEP ${step === "relic" ? 1 : step === "policy" ? 2 : step === "removal" ? 3 : 4}/3`}
-          title={step === "relic" ? "유물을 선택하세요" : step === "policy" ? "정책을 선택하세요" : step === "removal" ? "카드를 정비하세요" : "준비 완료"}
-          note={step === "relic" || step === "policy" ? "3개 중 하나, 영구 효과 (거부 불가)" : step === "removal" ? "원하는 카드 한 장을 골라 덱에서 완전히 제거합니다 (선택 사항)" : undefined}
+          kicker={`BETWEEN EVALUATIONS · STEP ${step === "relic" ? 1 : step === "policy" ? 2 : step === "policyTag" ? 2 : step === "removal" ? 3 : 4}/3`}
+          title={step === "relic" ? "유물을 선택하세요" : step === "policy" ? "정책을 선택하세요" : step === "policyTag" ? "정책이 적용될 태그를 고르세요" : step === "removal" ? "카드를 정비하세요" : "준비 완료"}
+          note={step === "relic" || step === "policy" ? "3개 중 하나, 영구 효과 (거부 불가)" : step === "policyTag" ? "이번 주기 동안만 적용됩니다" : step === "removal" ? "원하는 카드 한 장을 골라 덱에서 완전히 제거합니다 (선택 사항)" : undefined}
         />
 
         {step === "relic" && <>
@@ -474,6 +511,16 @@ function RewardPhase() {
                 </button>
               );
             })}
+          </div>
+        </>}
+
+        {step === "policyTag" && <>
+          <div className="tag-choice-grid">
+            {ALL_TAGS.map((tag) => (
+              <button key={tag} className={`tag-choice-item tone-${tag}`} onClick={() => pickPolicyTag(tag)}>
+                {TAG_LABELS[tag]}
+              </button>
+            ))}
           </div>
         </>}
 

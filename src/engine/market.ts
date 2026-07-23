@@ -22,6 +22,27 @@ function rankedTags(state: GameState, content: Content): Tag[] {
   return (ALL_TAGS as Tag[]).slice().sort((a, b) => freq[b] - freq[a]);
 }
 
+/** 태그선택형 정책(needsTagChoice) 중 시장 봉쇄 효과가 활성 상태면 그 태그를 반환한다. */
+function activePolicyBan(state: GameState, content: Content): Tag | null {
+  if (!state.activePolicyTag) return null;
+  for (const id of state.policies) {
+    if (content.policies.get(id)?.passive?.some((e) => e.kind === "activeTagMarketBan")) {
+      return state.activePolicyTag;
+    }
+  }
+  return null;
+}
+
+/** 태그선택형 정책 중 시장 집중(가중치 폭증) 효과가 활성 상태면 그 태그·배율을 반환한다. */
+function activePolicyBoost(state: GameState, content: Content): { tag: Tag; weight: number } | null {
+  if (!state.activePolicyTag) return null;
+  for (const id of state.policies) {
+    const eff = content.policies.get(id)?.passive?.find((e) => e.kind === "activeTagMarketBoost");
+    if (eff) return { tag: state.activePolicyTag, weight: (eff as { weight: number }).weight };
+  }
+  return null;
+}
+
 /** 평가 차수에 따른 티어 가중치 — 후반일수록 고티어 등장↑.
  *  S는 초반 등장을 크게 올렸다(0.1→0.35): 엔진 덱이 2차 벽 전에 페이오프 카드를 "볼" 수 있어야 한다.
  *  균형은 가격(스케일 카드는 비쌈)·재고(3장)가 잡으므로, 등장률은 "접근/계획"만 담당한다. */
@@ -50,9 +71,13 @@ export function generateCandidates(
   const mainTag = ranked[0];
   const subTag = ranked[1];
   const offColor = new Set<Tag>([mainTag, subTag]);
+  const banned = activePolicyBan(state, content);
+  const boosted = activePolicyBoost(state, content);
 
   const inMarket = new Set(state.market.map((m) => m.defId));
-  const pool = content.cardList.filter((c) => c.tier !== "start" && !inMarket.has(c.id));
+  const pool = content.cardList.filter(
+    (c) => c.tier !== "start" && !inMarket.has(c.id) && !(banned && c.tags.includes(banned))
+  );
 
   const chosen: string[] = [];
   let rng = state.rngState;
@@ -62,7 +87,11 @@ export function generateCandidates(
   ): string | null => {
     const avail = pool.filter((c) => !chosen.includes(c.id));
     if (avail.length === 0) return null;
-    const weights = avail.map((c) => Math.max(0.0001, tierWeight(c.tier, state.evalIndex) * weightFn(c)));
+    const weights = avail.map((c) => {
+      let w = tierWeight(c.tier, state.evalIndex) * weightFn(c);
+      if (boosted && c.tags.includes(boosted.tag)) w *= boosted.weight;
+      return Math.max(0.0001, w);
+    });
     const r = weightedPick(rng, weights);
     rng = r.state;
     return avail[r.index].id;
@@ -90,10 +119,11 @@ export function generateCandidates(
 
 /** 주기당 1·4번째 턴 종료 시 제시할 태그 3개 — 실제로 뽑을 카드가 있는 태그만 후보로 삼는다. */
 export function pickTagChoices(state: GameState, content: Content): { tags: Tag[]; rngState: number } {
+  const banned = activePolicyBan(state, content);
   const inMarket = new Set(state.market.map((m) => m.defId));
   const pool = content.cardList.filter((c) => c.tier !== "start" && !inMarket.has(c.id));
-  const available = (ALL_TAGS as Tag[]).filter((t) => pool.some((c) => c.tags.includes(t)));
-  const pickFrom = available.length >= 3 ? available : (ALL_TAGS as Tag[]);
+  const available = (ALL_TAGS as Tag[]).filter((t) => t !== banned && pool.some((c) => c.tags.includes(t)));
+  const pickFrom = available.length >= 3 ? available : (ALL_TAGS as Tag[]).filter((t) => t !== banned);
   const sh = shuffle(pickFrom, state.rngState);
   return { tags: sh.result.slice(0, 3), rngState: sh.state };
 }
@@ -104,6 +134,7 @@ export function generateCandidatesForTag(
   content: Content,
   tag: Tag
 ): { candidates: string[]; rngState: number } {
+  if (activePolicyBan(state, content) === tag) return { candidates: [], rngState: state.rngState };
   const inMarket = new Set(state.market.map((m) => m.defId));
   const pool = content.cardList.filter(
     (c) => c.tier !== "start" && !inMarket.has(c.id) && c.tags.includes(tag)

@@ -13,7 +13,7 @@ import {
   playCostOf,
   tagMultiplier,
 } from "./effects";
-import { computeSettlement, computeRerollTickets, ownedCards, educationCount } from "./settlement";
+import { computeSettlement, computeRerollTickets, ownedCards, educationCount, tagCounts } from "./settlement";
 import { generateCandidates, generateCandidatesForTag, pickTagChoices } from "./market";
 
 /** 주기당 카드 후보 대신 태그 3개를 먼저 고르게 하는 턴 (docs/05 §1.4) */
@@ -60,6 +60,9 @@ export function newGame(content: Content, seed = 1): GameState {
     policies: [],
     pendingPolicy: null,
     policyHistory: [],
+    pendingPolicyTag: null,
+    activePolicyTag: null,
+    rewardPolicyTagChoicePending: false,
     gauges: { pollution: 0, corruption: 0, populismDebuff: 0 },
     eduLevel: 0,
     triggerFires: {},
@@ -88,6 +91,8 @@ function startCycle(prev: GameState, content: Content): GameState {
   s.policies = s.pendingPolicy ? [s.pendingPolicy] : [];
   if (s.pendingPolicy) s.policyHistory.push(s.pendingPolicy);
   s.pendingPolicy = null;
+  s.activePolicyTag = s.pendingPolicyTag;
+  s.pendingPolicyTag = null;
   const all = ownedCards(s);
   const sh = shuffle(all, s.rngState);
   s.deck = sh.result;
@@ -143,6 +148,10 @@ function startTurn(prev: GameState, content: Content): GameState {
   s.turnMult = {};
   for (const e of passives) {
     if (e.kind === "multiplyTagScore") s.turnMult[e.tag] = (s.turnMult[e.tag] ?? 1) * e.mult;
+    // 태그선택형 정책(activeTagScoreMult) — 고정 tag 대신 activePolicyTag를 참조
+    else if (e.kind === "activeTagScoreMult" && s.activePolicyTag) {
+      s.turnMult[s.activePolicyTag] = (s.turnMult[s.activePolicyTag] ?? 1) * e.mult;
+    }
   }
 
   // 드로우
@@ -191,7 +200,16 @@ function drawInto(s: GameState, content: Content, n: number): void {
 }
 
 /** 선택형 효과 kind — 대상 지정이 필요해 pendingChoice 로 보류된다 */
-const CHOICE_KINDS = ["discardThenDraw", "trashFromHand", "playTwice"] as const;
+const CHOICE_KINDS = [
+  "discardThenDraw",
+  "trashFromHand",
+  "playTwice",
+  "discardForScore",
+  "discardForBudget",
+  "trashForScore",
+  "trashForDraw",
+  "topDeckGamble",
+] as const;
 
 function hasChoiceEffect(def: CardDef): boolean {
   return (def.onPlay ?? []).some((e) => (CHOICE_KINDS as readonly string[]).includes(e.kind));
@@ -245,6 +263,29 @@ function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
         break;
       case "playTwice":
         s.pendingChoice = { kind: "playTwice", max: 1 };
+        break;
+      case "discardForScore":
+        s.pendingChoice = { kind: "discardForScore", max: e.max };
+        break;
+      case "discardForBudget":
+        s.pendingChoice = { kind: "discardForBudget", max: e.max };
+        break;
+      case "trashForScore":
+        s.pendingChoice = { kind: "trashForScore", max: 1 };
+        break;
+      case "trashForDraw":
+        s.pendingChoice = { kind: "trashForDraw", max: 1 };
+        break;
+      case "topDeckGamble":
+        s.pendingChoice = { kind: "topDeckGamble", max: 1, tag: e.tag, bonus: e.bonus };
+        break;
+      case "conditionalScore": {
+        const owned = tagCounts(s, content)[e.tag] ?? 0;
+        baseScore += owned >= e.count ? e.ifMet : e.ifNot;
+        break;
+      }
+      case "gainCurse":
+        for (let i = 0; i < e.count; i++) s.discard.push({ uid: s.uidCounter++, defId: "old_pledge" });
         break;
       case "comboScore":
         baseScore += Math.min(e.cap, (s.playedTagCounts[e.tag] ?? 0) * e.points);
@@ -355,6 +396,38 @@ export function resolveChoice(prev: GameState, content: Content, uids: number[])
     s.hand.splice(s.hand.findIndex((c) => c.uid === uids[0]), 1);
     if (def.persistTurns) card.persistLeft = def.persistTurns;
     s.inPlay.push(card);
+  } else if (pending.kind === "discardForScore") {
+    for (const u of uids) {
+      const i = s.hand.findIndex((c) => c.uid === u);
+      s.discard.push(s.hand.splice(i, 1)[0]);
+    }
+    s.cycleScore += uids.length;
+  } else if (pending.kind === "discardForBudget") {
+    for (const u of uids) {
+      const i = s.hand.findIndex((c) => c.uid === u);
+      s.discard.push(s.hand.splice(i, 1)[0]);
+    }
+    s.budget += uids.length;
+  } else if (pending.kind === "trashForScore" && uids.length === 1) {
+    const i = s.hand.findIndex((c) => c.uid === uids[0]);
+    const def = content.cards.get(s.hand[i].defId);
+    if (!def) return prev;
+    s.hand.splice(i, 1); // 어디에도 넣지 않음 = 영구 제거
+    s.cycleScore += def.cost;
+  } else if (pending.kind === "trashForDraw" && uids.length === 1) {
+    const i = s.hand.findIndex((c) => c.uid === uids[0]);
+    const def = content.cards.get(s.hand[i].defId);
+    if (!def) return prev;
+    s.hand.splice(i, 1);
+    drawInto(s, content, def.cost);
+  } else if (pending.kind === "topDeckGamble" && uids.length === 1) {
+    const i = s.hand.findIndex((c) => c.uid === uids[0]);
+    const card = s.hand[i];
+    const def = content.cards.get(card.defId);
+    if (!def) return prev;
+    s.hand.splice(i, 1);
+    s.deck.unshift(card);
+    if (def.tags.includes(pending.tag)) s.cycleScore += pending.bonus;
   }
   return s;
 }
@@ -531,19 +604,37 @@ export function pickRewardRelic(prev: GameState, _content: Content, id: string):
 /** 정책뽑기: 3개 중 1택, 1회. 유물뽑기가 끝난 뒤에만 가능.
  *  유물과 달리 즉시 발효되지 않는다 — 다음 주기 시작(startCycle) 때 policies로 편입되어
  *  "그 한 주기 동안만" 적용되고, 그다음 주기에는 사라진다. */
-export function pickRewardPolicy(prev: GameState, _content: Content, id: string): GameState {
+export function pickRewardPolicy(prev: GameState, content: Content, id: string): GameState {
   if (prev.phase !== "reward" || prev.rewardRelicChoices.length > 0) return prev;
   if (!prev.rewardPolicyChoices.includes(id)) return prev;
   const s = clone(prev);
   s.pendingPolicy = id;
   s.rewardPolicyChoices = [];
+  // 태그선택형 정책(needsTagChoice)이면 태그를 고를 때까지 카드 정비/다음 주기 진행을 막는다.
+  s.rewardPolicyTagChoicePending = content.policies.get(id)?.needsTagChoice === true;
+  return s;
+}
+
+/** 태그선택형 정책(needsTagChoice)의 적용 대상 태그를 고른다. 정책을 고른 직후에만 가능. */
+export function pickRewardPolicyTag(prev: GameState, _content: Content, tag: Tag): GameState {
+  if (prev.phase !== "reward" || !prev.rewardPolicyTagChoicePending) return prev;
+  const s = clone(prev);
+  s.pendingPolicyTag = tag;
+  s.rewardPolicyTagChoicePending = false;
   return s;
 }
 
 /** 카드 정비: 원하는 카드 1장을 골라 덱에서 완전히 제거(선택 사항). 앞 두 단계가 끝난 뒤에만 가능. */
 export function removeRewardCard(prev: GameState, _content: Content, uid: number): GameState {
   if (prev.phase !== "reward") return prev;
-  if (prev.rewardRelicChoices.length > 0 || prev.rewardPolicyChoices.length > 0 || prev.rewardRemovalDone) return prev;
+  if (
+    prev.rewardRelicChoices.length > 0 ||
+    prev.rewardPolicyChoices.length > 0 ||
+    prev.rewardPolicyTagChoicePending ||
+    prev.rewardRemovalDone
+  ) {
+    return prev;
+  }
   const s = clone(prev);
   const tryRemove = (arr: CardInstance[]) => {
     const i = arr.findIndex((c) => c.uid === uid);
@@ -563,7 +654,14 @@ export function removeRewardCard(prev: GameState, _content: Content, uid: number
 /** 카드 정비 단계를 건너뛴다(제거하지 않고 다음으로). */
 export function skipRewardRemoval(prev: GameState): GameState {
   if (prev.phase !== "reward") return prev;
-  if (prev.rewardRelicChoices.length > 0 || prev.rewardPolicyChoices.length > 0 || prev.rewardRemovalDone) return prev;
+  if (
+    prev.rewardRelicChoices.length > 0 ||
+    prev.rewardPolicyChoices.length > 0 ||
+    prev.rewardPolicyTagChoicePending ||
+    prev.rewardRemovalDone
+  ) {
+    return prev;
+  }
   const s = clone(prev);
   s.rewardRemovalDone = true;
   return s;
@@ -610,8 +708,15 @@ export function rerollCandidates(prev: GameState, content: Content): GameState {
 
 export function nextCycle(prev: GameState, content: Content): GameState {
   if (prev.phase !== "reward") return prev;
-  // 세 단계(유물뽑기·정책뽑기·카드 정비)가 모두 끝나야 다음 평가로 넘어간다.
-  if (prev.rewardRelicChoices.length > 0 || prev.rewardPolicyChoices.length > 0 || !prev.rewardRemovalDone) return prev;
+  // 유물뽑기·정책뽑기(+태그선택)·카드 정비가 모두 끝나야 다음 평가로 넘어간다.
+  if (
+    prev.rewardRelicChoices.length > 0 ||
+    prev.rewardPolicyChoices.length > 0 ||
+    prev.rewardPolicyTagChoicePending ||
+    !prev.rewardRemovalDone
+  ) {
+    return prev;
+  }
   const s = clone(prev);
   s.evalIndex += 1;
   return startCycle(s, content);

@@ -20,6 +20,17 @@ const effectSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("discardThenDraw"), count: z.number().min(1) }),
   z.object({ kind: z.literal("trashFromHand"), count: z.number().min(1) }),
   z.object({ kind: z.literal("playTwice") }),
+  z.object({ kind: z.literal("discardForScore"), max: z.number().min(1) }),
+  z.object({ kind: z.literal("discardForBudget"), max: z.number().min(1) }),
+  z.object({ kind: z.literal("trashForScore") }),
+  z.object({ kind: z.literal("trashForDraw") }),
+  z.object({ kind: z.literal("topDeckGamble"), tag: tagSchema, bonus: z.number().min(1) }),
+  z.object({ kind: z.literal("conditionalScore"), tag: tagSchema, count: z.number().min(1), ifMet: z.number(), ifNot: z.number() }),
+  z.object({ kind: z.literal("gainCurse"), count: z.number().min(1) }),
+  z.object({ kind: z.literal("settlementScoreMult"), mult: z.number().min(0) }),
+  z.object({ kind: z.literal("activeTagScoreMult"), mult: z.number().min(0) }),
+  z.object({ kind: z.literal("activeTagMarketBoost"), weight: z.number().min(1) }),
+  z.object({ kind: z.literal("activeTagMarketBan") }),
   z.object({ kind: z.literal("settlementPerPlays"), tag: tagSchema.optional(), points: z.number().min(0), cap: z.number().min(0) }),
   z.object({ kind: z.literal("cycleScoreMult"), mult: z.number().min(1) }),
   z.object({ kind: z.literal("extraTriggerCap"), amount: z.number().min(1) }),
@@ -93,6 +104,7 @@ export const policySchema = z.object({
   price: z.number().min(0),
   passive: z.array(effectSchema).optional(),
   settlement: z.array(effectSchema).optional(),
+  needsTagChoice: z.boolean().optional(),
 });
 
 export const cardsFileSchema = z.array(cardSchema);

@@ -158,11 +158,12 @@ describe("그리디 자동플레이 시뮬레이션", () => {
         break;
       }
       if (s.phase === "win") break;
-      // 보상 단계: 유물뽑기 → 정책뽑기 → 카드 정비(건너뛰기) → 다음 주기. 전부 무료 선택.
+      // 보상 단계: 유물뽑기 → 정책뽑기(태그선택형이면 태그도) → 카드 정비(건너뛰기) → 다음 주기. 전부 무료 선택.
       if (s.phase === "reward") {
         reachedReward = true;
         s = G.pickRewardRelic(s, content, s.rewardRelicChoices[0]);
         s = G.pickRewardPolicy(s, content, s.rewardPolicyChoices[0]);
+        if (s.rewardPolicyTagChoicePending) s = G.pickRewardPolicyTag(s, content, "commerce");
         s = G.skipRewardRemoval(s);
         s = G.nextCycle(s, content);
       }

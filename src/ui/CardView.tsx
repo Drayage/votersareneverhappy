@@ -34,6 +34,7 @@ export function CardView({
   badge,
   highlight,
   comboPreview,
+  settlementPreview,
   compact = false,
 }: {
   card: CardDef;
@@ -43,6 +44,7 @@ export function CardView({
   badge?: string;
   highlight?: boolean;
   comboPreview?: number;
+  settlementPreview?: number;
   compact?: boolean;
 }) {
   const meta = TYPE_META[card.type];
@@ -82,7 +84,8 @@ export function CardView({
       </div>
       <div className="card-rules"><span className="rules-mark" aria-hidden="true">◆</span><div className="card-text">{card.text}</div></div>
       <div className="card-footer">
-        {comboPreview !== undefined && comboPreview > 0 && <span className="combo-preview">연계 +{comboPreview}</span>}
+        {comboPreview !== undefined && comboPreview > 0 && <span className="combo-preview">현재 +{comboPreview}점</span>}
+        {settlementPreview !== undefined && settlementPreview !== 0 && <span className="settlement-preview">정산 시 +{settlementPreview}점</span>}
         {badge && <span className="card-badge">{badge}</span>}
       </div>
     </button>

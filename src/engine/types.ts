@@ -246,6 +246,10 @@ export interface GameState {
   cyclePlays: number;
   cyclePlayedTagCounts: Record<string, number>;
 
+  // 이번 주기에 카드(gainRerollTicket)로 획득한 리롤권 수 — CAPS.cardRerollTicketMaxPerCycle 상한 추적용.
+  // 평가 통과 보상(리롤권)은 이 카운터와 무관하다.
+  cycleCardRerollTickets: number;
+
   // 선택형 효과의 보류 상태. 설정되어 있는 동안 다른 행동이 막히고, resolveChoice 로만 해소된다.
   pendingChoice: { kind: "discardThenDraw" | "trashFromHand" | "playTwice"; max: number } | null;
 

@@ -108,7 +108,7 @@
   {"id": "basic_living", "name": "기초생활 보장", "type": "score", "tags": ["welfare"], "cost": 6, "tier": "A", "text": "손패 사용 불가. 정산: 정산 점수가 통과 목표의 25% 미만이면 25%까지 보정", "settlement": [{"kind": "settlementFloor", "pct": 0.25}], "deadInHand": true},
   {"id": "earned_income_credit", "name": "근로장려금", "type": "score", "tags": ["welfare"], "cost": 7, "tier": "S", "text": "손패 사용 불가. 정산: 이번 주기 카드 플레이로 얻은 점수가 통과 목표의 25% 미만이면 25%까지 보정", "settlement": [{"kind": "playScoreFloor", "pct": 0.25}], "deadInHand": true},
 
-  {"id": "opinion_poll", "name": "여론조사", "type": "action", "tags": ["admin"], "cost": 3, "tier": "A", "text": "+1드로우, +1리롤권", "onPlay": [{"kind": "gainDraw", "amount": 1}, {"kind": "gainRerollTicket", "amount": 1}]},
+  {"id": "opinion_poll", "name": "여론조사", "type": "action", "tags": ["admin"], "cost": 5, "tier": "A", "text": "+1드로우, +1리롤권", "onPlay": [{"kind": "gainDraw", "amount": 1}, {"kind": "gainRerollTicket", "amount": 1}]},
   {"id": "destroy_evidence", "name": "증거 인멸", "type": "action", "tags": ["corruption"], "cost": 3, "tier": "A", "text": "손패에서 최대 2장을 폐기한다 (게임에서 영구 제거). 부패 게이지 -1", "onPlay": [{"kind": "trashFromHand", "count": 2}, {"kind": "corruption", "amount": -1}]},
   {"id": "express_transfer", "name": "쾌속 환승", "type": "action", "tags": ["transport"], "cost": 4, "tier": "A", "text": "이번 턴 낸 카드 1장을 덱 위로 되돌리고 +2드로우", "onPlay": [{"kind": "recycleInPlay", "count": 1}, {"kind": "gainDraw", "amount": 2}]}
 ]

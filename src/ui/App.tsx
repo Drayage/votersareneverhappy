@@ -5,7 +5,7 @@ import { PwaInstallButton } from "./PwaInstall";
 import type { CardDef, Content, GameState } from "../engine/types";
 import { TAG_LABELS } from "../engine/types";
 import { effectiveCost, playCostOf } from "../engine/effects";
-import { CAPS, EVAL_TARGETS } from "../engine/caps";
+import { CAPS, CYCLE_TURNS, EVAL_TARGETS } from "../engine/caps";
 import { computeSettlement, computeRerollTickets, ownedCards, tagLabelCounts } from "../engine/settlement";
 
 function cardDef(content: Content, id: string): CardDef {
@@ -82,7 +82,7 @@ function EvaluationRail({ state }: { state: GameState }) {
 function Dashboard({ state, content }: { state: GameState; content: Content }) {
   const projection = computeSettlement(state, content);
   const scorePct = Math.min(100, (projection.finalScore / Math.max(1, projection.target)) * 100);
-  const turnsLeft = CAPS.turnsPerCycle - state.turn + 1;
+  const turnsLeft = CYCLE_TURNS[state.evalIndex] - state.turn + 1;
   return (
     <section className="dashboard">
       <div className="score-card">
@@ -265,7 +265,7 @@ function PlayPhase() {
         <div className="mobile-actionbar" role="toolbar" aria-label="빠른 조작">
           <div className="mab-stats">
             <span className={projection.finalScore >= projection.target ? "mint" : ""}>🎯 {projection.finalScore.toLocaleString()}<small>/{projection.target.toLocaleString()}</small></span>
-            <span>⏳ {CAPS.turnsPerCycle - state.turn + 1}턴</span>
+            <span>⏳ {CYCLE_TURNS[state.evalIndex] - state.turn + 1}턴</span>
             <span>★ {state.cycleScore.toLocaleString()}</span>
             <span className="gold">₩ {state.budget.toLocaleString()}</span>
             <span>⚡ {state.actions}</span>

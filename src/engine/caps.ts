@@ -27,8 +27,6 @@ export const CAPS = {
   baseBudget: 0,
   /** 턴당 기본 구매 수 */
   baseBuys: 2,
-  /** 평가 1주기당 턴 수 (기존 5에서 늘려 예산 램프를 보완) */
-  turnsPerCycle: 8,
   /** 정산 곱연산(과학) 총 배수 하드 캡 */
   settlementMultCap: 10,
   /** 복지 '목표 비례 안정 세입' 총합 상한(목표 대비). 다수 적재로 자동 통과 방지 */
@@ -42,7 +40,13 @@ export const CAPS = {
   corruptionPenaltyMaxPct: 80,
   /** 리롤권: 평가 통과 시 기본 2장 + 초과 달성률 25%마다 +1장, 이 값에서 상한 */
   rerollTicketsMaxPerCycle: 7,
+  /** 카드(gainRerollTicket)로 얻을 수 있는 리롤권의 주기당 상한.
+   *  평가 통과 보상(computeRerollTickets)과는 별도 — 클리어 보상 자체는 이 캡의 영향을 받지 않는다. */
+  cardRerollTicketMaxPerCycle: 5,
 } as const;
 
 /** 평가 차수별 목표 점수 — 2차는 플레이형 덱(트리거/러시)의 엔진 완성 전이라 완만하게 */
 export const EVAL_TARGETS = [70, 160, 420, 900, 1800];
+
+/** 평가 차수별 주기당 턴 수 — 후반으로 갈수록 짧아져 후반 압박을 강화한다 */
+export const CYCLE_TURNS = [9, 8, 7, 6, 5];

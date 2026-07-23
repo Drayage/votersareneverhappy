@@ -1,7 +1,7 @@
 // 상태머신 — 모든 게임 진행 액션. 각 액션은 새 GameState 를 반환(불변 스타일).
 import type { CardDef, CardInstance, Content, GameState, Tag } from "./types";
 import { ALL_TAGS } from "./types";
-import { CAPS, EVAL_TARGETS } from "./caps";
+import { CAPS, CYCLE_TURNS, EVAL_TARGETS } from "./caps";
 import { shuffle, nextInt } from "./rng";
 import {
   collectPassives,
@@ -65,6 +65,7 @@ export function newGame(content: Content, seed = 1): GameState {
     playedTagCounts: {},
     cyclePlays: 0,
     cyclePlayedTagCounts: {},
+    cycleCardRerollTickets: 0,
     pendingChoice: null,
     activeTargetBonusPct: 0,
     rewardRelicChoices: [],
@@ -91,6 +92,7 @@ function startCycle(prev: GameState, content: Content): GameState {
   s.turn = 1;
   s.cyclePlays = 0;
   s.cyclePlayedTagCounts = {};
+  s.cycleCardRerollTickets = 0;
   // 교육: 이번 주기 시작 시 보유 교육 카드 수만큼 학습 레벨 누적(복리)
   s.eduLevel += educationCount(s, content);
   // 지난 주기에 누적된 포퓰리즘 부담이 이번 평가의 "목표 증가"로 발효
@@ -215,9 +217,15 @@ function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
       case "gainResearch":
         s.research += e.amount;
         break;
-      case "gainRerollTicket":
-        s.rerollTickets += e.amount;
+      case "gainRerollTicket": {
+        // 카드로 얻는 리롤권은 주기당 상한(CAPS.cardRerollTicketMaxPerCycle) —
+        // 평가 통과 보상(computeRerollTickets)은 이 상한과 별개로 지급된다.
+        const remaining = Math.max(0, CAPS.cardRerollTicketMaxPerCycle - s.cycleCardRerollTickets);
+        const granted = Math.min(e.amount, remaining);
+        s.rerollTickets += granted;
+        s.cycleCardRerollTickets += granted;
         break;
+      }
       case "budgetPerAction":
         // playCost 차감 후 남아 있는 액션 수 기준 (액션을 소모하지는 않는다)
         s.budget += s.actions * e.amount;
@@ -398,7 +406,7 @@ export function endTurn(prev: GameState, content: Content): GameState {
   s.budget = 0;
   s.actions = 0;
   s.buys = 0;
-  if (s.turn < CAPS.turnsPerCycle) {
+  if (s.turn < CYCLE_TURNS[s.evalIndex]) {
     if (TAG_CHOICE_TURNS.has(s.turn)) {
       const tc = pickTagChoices(s, content);
       s.tagChoices = tc.tags;

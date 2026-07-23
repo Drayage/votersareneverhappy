@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { loadContent } from "../src/content/loader";
-import { chooseCandidate, chooseCandidateTag, endTurn, newGame, playCard, resolveChoice } from "../src/engine/game";
+import {
+  chooseCandidate,
+  chooseCandidateTag,
+  confirmEvaluation,
+  endTurn,
+  newGame,
+  nextCycle,
+  pickRewardPolicy,
+  pickRewardRelic,
+  playCard,
+  resolveChoice,
+  skipRewardRemoval,
+} from "../src/engine/game";
 import { ownedCards } from "../src/engine/settlement";
 import type { GameState } from "../src/engine/types";
 
@@ -134,6 +146,38 @@ describe("리롤권/압축/순환 신규 카드", () => {
     s = playCard(s, content, 9700);
     expect(s.rerollTickets).toBe(1);
     expect(s.hand.some((c) => c.uid === 9701)).toBe(true);
+  });
+
+  it("여론조사로 얻는 리롤권은 주기당 최대 5장 — 평가 통과 보상과는 별개 상한", () => {
+    let s: GameState = newGame(content, 60);
+    s = {
+      ...s,
+      hand: Array.from({ length: 6 }, (_, i) => ({ uid: 9730 + i, defId: "opinion_poll" })),
+      deck: Array.from({ length: 6 }, (_, i) => ({ uid: 9740 + i, defId: "banner" })),
+      discard: [],
+      inPlay: [],
+      actions: 6,
+      rerollTickets: 0,
+    };
+    for (const card of s.hand.slice()) {
+      s = playCard(s, content, card.uid);
+    }
+    expect(s.rerollTickets).toBe(5); // 6장을 냈어도 카드 출처 상한 5장에서 멈춤
+    expect(s.cycleCardRerollTickets).toBe(5);
+
+    // 평가를 통과해 보상 단계로 넘어가면, 카드 출처 상한과 무관하게 통과 보상(2장)이 그대로 더해진다
+    s = { ...s, phase: "evaluation", lastSettlement: { evalIndex: 0, target: 70, baseTarget: 70, baseCycleScore: 0, settlementScore: 0, settlementMult: 1, pollutionPenalty: 0, globalMult: 1, targetBonusPct: 0, corruptionPct: 0, finalScore: 70, passed: true, perTag: {} } };
+    s = confirmEvaluation(s, content);
+    expect(s.rerollTickets).toBe(7);
+    expect(s.cycleCardRerollTickets).toBe(5); // 아직 같은 주기 — 리셋은 다음 주기 시작 시점
+
+    // 유물뽑기 → 정책뽑기 → 카드 정비(건너뛰기) → 다음 주기로 넘어가면 카드 출처 카운터가 리셋된다
+    s = pickRewardRelic(s, content, s.rewardRelicChoices[0]);
+    s = pickRewardPolicy(s, content, s.rewardPolicyChoices[0]);
+    s = skipRewardRemoval(s);
+    s = nextCycle(s, content);
+    expect(s.evalIndex).toBe(1);
+    expect(s.cycleCardRerollTickets).toBe(0);
   });
 
   it("증거 인멸: 손패 최대 2장을 영구 제거하고 부패 게이지를 낮춘다", () => {

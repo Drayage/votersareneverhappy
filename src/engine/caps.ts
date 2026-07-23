@@ -48,5 +48,5 @@ export const CAPS = {
 /** 평가 차수별 목표 점수 — 2차는 플레이형 덱(트리거/러시)의 엔진 완성 전이라 완만하게 */
 export const EVAL_TARGETS = [70, 160, 420, 900, 1800];
 
-/** 평가 차수별 주기당 턴 수 — 후반으로 갈수록 짧아져 후반 압박을 강화한다 */
-export const CYCLE_TURNS = [9, 8, 7, 6, 5];
+/** 평가 차수별 주기당 턴 수 — 1차만 9턴, 2차부터는 8턴으로 고정 */
+export const CYCLE_TURNS = [9, 8, 8, 8, 8];

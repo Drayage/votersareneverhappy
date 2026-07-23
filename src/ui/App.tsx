@@ -5,7 +5,7 @@ import { PwaInstallButton } from "./PwaInstall";
 import type { CardDef, Content, GameState } from "../engine/types";
 import { ALL_TAGS, TAG_LABELS } from "../engine/types";
 import { effectiveCost, playCostOf } from "../engine/effects";
-import { CAPS, CYCLE_TURNS, EVAL_TARGETS } from "../engine/caps";
+import { CAPS, EVAL_TARGETS, targetFor, turnsFor } from "../engine/caps";
 import {
   computeSettlement,
   computeRerollTickets,
@@ -50,7 +50,7 @@ function sortHandForDisplay(hand: GameState["hand"], turnStartUids: Set<number>,
 }
 
 function Header() {
-  const { seedInput, setSeed, newGame } = useGame();
+  const { seedInput, setSeed, newGame, goTitle } = useGame();
   return (
     <header className="topbar">
       <div className="brand-lockup">
@@ -63,6 +63,7 @@ function Header() {
       </div>
       <div className="run-controls">
         <PwaInstallButton />
+        <button className="button button-secondary" onClick={goTitle} title="타이틀 화면으로">🏠 타이틀</button>
         <label htmlFor="seed-input">도시 코드</label>
         <input id="seed-input" type="number" value={seedInput} onChange={(e) => setSeed(Number(e.target.value))} />
         <button
@@ -83,6 +84,7 @@ function Header() {
 }
 
 function EvaluationRail({ state }: { state: GameState }) {
+  const endlessLevel = state.evalIndex - (EVAL_TARGETS.length - 1); // 무한 모드 레벨(>0이면 무한)
   return (
     <section className="evaluation-rail" aria-label="평가 진행도">
       {EVAL_TARGETS.map((target, index) => {
@@ -94,6 +96,12 @@ function EvaluationRail({ state }: { state: GameState }) {
           </div>
         );
       })}
+      {endlessLevel > 0 && (
+        <div className="rail-step current endless">
+          <span className="rail-dot">∞</span>
+          <div><strong>무한 Lv.{endlessLevel}</strong><small>목표 {targetFor(state.evalIndex).toLocaleString()}</small></div>
+        </div>
+      )}
     </section>
   );
 }
@@ -101,7 +109,7 @@ function EvaluationRail({ state }: { state: GameState }) {
 function Dashboard({ state, content }: { state: GameState; content: Content }) {
   const projection = computeSettlement(state, content);
   const scorePct = Math.min(100, (projection.finalScore / Math.max(1, projection.target)) * 100);
-  const turnsLeft = CYCLE_TURNS[state.evalIndex] - state.turn + 1;
+  const turnsLeft = turnsFor(state.evalIndex) - state.turn + 1;
   return (
     <section className="dashboard">
       <div className="score-card">
@@ -293,7 +301,7 @@ function PlayPhase() {
         <div className="mobile-actionbar" role="toolbar" aria-label="빠른 조작">
           <div className="mab-stats">
             <span className={projection.finalScore >= projection.target ? "mint" : ""}>🎯 {projection.finalScore.toLocaleString()}<small>/{projection.target.toLocaleString()}</small></span>
-            <span>⏳ {CYCLE_TURNS[state.evalIndex] - state.turn + 1}턴</span>
+            <span>⏳ {turnsFor(state.evalIndex) - state.turn + 1}턴</span>
             <span>★ {state.cycleScore.toLocaleString()}</span>
             <span className="gold">₩ {state.budget.toLocaleString()}</span>
             <span>⚡ {state.actions}</span>
@@ -550,11 +558,175 @@ function RewardPhase() {
 }
 
 function EndModal({ win }: { win: boolean }) {
-  const { state, newGame } = useGame();
-  return <div className="modal-backdrop"><section className={`modal end-modal ${win ? "passed" : "failed"}`} role="dialog" aria-modal="true"><div className="result-mark">{win ? "★" : "×"}</div><span className="modal-kicker">FINAL REPORT</span><h2>{win ? "도시는 전설이 되었습니다" : "새로운 시장을 기다립니다"}</h2><p>{state.evalIndex + 1}차 평가 도달 · 보유 유물 {state.relics.length} · 시행한 정책 {state.policyHistory.length}</p><button className="button button-primary button-wide" onClick={() => newGame()}>같은 코드로 다시 시작</button></section></div>;
+  const { state, startGame, startEndless, goTitle } = useGame();
+  const endlessLevel = state.evalIndex - (EVAL_TARGETS.length - 1);
+  const inEndless = endlessLevel > 0;
+  return (
+    <div className="modal-backdrop">
+      <section className={`modal end-modal ${win ? "passed" : "failed"}`} role="dialog" aria-modal="true">
+        <div className="result-mark">{win ? "★" : "×"}</div>
+        <span className="modal-kicker">FINAL REPORT</span>
+        <h2>
+          {win
+            ? inEndless
+              ? `무한 도전 · 레벨 ${endlessLevel} 도달`
+              : "도시는 전설이 되었습니다"
+            : "새로운 시장을 기다립니다"}
+        </h2>
+        <p>
+          {inEndless ? `무한 Lv.${endlessLevel}` : `${state.evalIndex + 1}차 평가`} 도달 · 보유 유물 {state.relics.length} · 시행한 정책 {state.policyHistory.length}
+        </p>
+        {/* 정규 5차 승리(무한 진입 전)에서만 무한 모드 도전 버튼 노출 */}
+        {win && !inEndless && (
+          <button className="button button-primary button-wide" onClick={startEndless}>
+            무한 모드 도전 ∞ →
+          </button>
+        )}
+        <div className="action-row">
+          <button className="button button-secondary" onClick={() => startGame(state.seed)}>같은 코드로 다시</button>
+          <button className="button button-secondary" onClick={goTitle}>타이틀로</button>
+        </div>
+      </section>
+    </div>
+  );
 }
 
-export default function App() {
+function TitleScreen() {
+  const { seedInput, setSeed, startGame, goCompendium, goRecords, discovered, records } = useGame();
+  const contentTotals = useGame((s) => ({
+    cards: s.content.cardList.length,
+    relics: s.content.relicList.length,
+    policies: s.content.policyList.length,
+  }));
+  const discoveredTotal = discovered.cards.length + discovered.relics.length + discovered.policies.length;
+  const grandTotal = contentTotals.cards + contentTotals.relics + contentTotals.policies;
+  const wins = records.filter((r) => r.won).length;
+  return (
+    <div className="title-screen">
+      <div className="title-hero">
+        <div className="city-seal title-seal" aria-hidden="true">市</div>
+        <div className="eyebrow">CITY HALL DECKBUILDER</div>
+        <h1>유권자가 너무해</h1>
+        <p>시장을 설계하고, 공약을 엮고, 다섯 번의 평가를 버텨라. 그리고 — 그 너머의 무한으로.</p>
+      </div>
+      <div className="title-menu">
+        <div className="title-seed">
+          <label htmlFor="title-seed-input">도시 코드</label>
+          <input id="title-seed-input" type="number" value={seedInput} onChange={(e) => setSeed(Number(e.target.value))} />
+          <button
+            className="button button-secondary"
+            title="무작위 도시 코드"
+            onClick={() => setSeed(Math.floor(Math.random() * 1_000_000) + 1)}
+          >
+            🎲
+          </button>
+        </div>
+        <button className="button button-primary button-wide" onClick={() => startGame()}>새 게임 시작 →</button>
+        <div className="title-links">
+          <button className="button button-secondary" onClick={goCompendium}>📖 도감 <small>{discoveredTotal}/{grandTotal}</small></button>
+          <button className="button button-secondary" onClick={goRecords}>📜 기록 <small>{records.length}판 · 승 {wins}</small></button>
+        </div>
+      </div>
+      <footer className="title-footer"><span>유권자가 너무해 · prototype v0.5</span></footer>
+    </div>
+  );
+}
+
+function CompendiumScreen() {
+  const { content, discovered, goTitle } = useGame();
+  const cardSet = useMemo(() => new Set(discovered.cards), [discovered.cards]);
+  const relicSet = useMemo(() => new Set(discovered.relics), [discovered.relics]);
+  const policySet = useMemo(() => new Set(discovered.policies), [discovered.policies]);
+
+  const cards = content.cardList;
+  const relics = content.relicList;
+  const policies = content.policyList;
+  const cDone = cards.filter((c) => cardSet.has(c.id)).length;
+  const rDone = relics.filter((r) => relicSet.has(r.id)).length;
+  const pDone = policies.filter((p) => policySet.has(p.id)).length;
+
+  return (
+    <div className="app-shell compendium-shell">
+      <div className="screen-head">
+        <button className="button button-secondary" onClick={goTitle}>← 타이틀</button>
+        <div><span className="eyebrow">COMPENDIUM</span><h1>도감</h1></div>
+        <p className="screen-sub">게임 중 시장에 등장시키거나 획득하면 채워집니다.</p>
+      </div>
+
+      <section className="panel">
+        <SectionTitle kicker={`CARDS · ${cDone}/${cards.length}`} title="카드" />
+        <div className="compendium-grid">
+          {cards.map((c) => cardSet.has(c.id)
+            ? <CardView key={c.id} card={c} cost={c.cost} compact />
+            : <LockedTile key={c.id} kind="card" />)}
+        </div>
+      </section>
+
+      <section className="panel">
+        <SectionTitle kicker={`RELICS · ${rDone}/${relics.length}`} title="유물" />
+        <div className="shop-grid">
+          {relics.map((r) => relicSet.has(r.id)
+            ? <div className={`shop-item ${r.rarity}`} key={r.id}><span className="shop-role">{r.role}</span><h4>{r.name}</h4><p>{r.text}</p></div>
+            : <LockedTile key={r.id} kind="relic" />)}
+        </div>
+      </section>
+
+      <section className="panel">
+        <SectionTitle kicker={`POLICIES · ${pDone}/${policies.length}`} title="정책" />
+        <div className="shop-grid">
+          {policies.map((p) => policySet.has(p.id)
+            ? <div className="shop-item policy" key={p.id}><span className="shop-role">정책</span><h4>{p.name}</h4><p>{p.text}</p></div>
+            : <LockedTile key={p.id} kind="policy" />)}
+        </div>
+      </section>
+      <footer><span>유권자가 너무해 · 도감</span><span>{cDone + rDone + pDone}/{cards.length + relics.length + policies.length} 발견</span></footer>
+    </div>
+  );
+}
+
+function LockedTile({ kind }: { kind: "card" | "relic" | "policy" }) {
+  const label = kind === "card" ? "미발견 카드" : kind === "relic" ? "미발견 유물" : "미발견 정책";
+  return <div className={`locked-tile locked-${kind}`} aria-label={label}><span className="locked-mark">?</span><small>{label}</small></div>;
+}
+
+function RecordsScreen() {
+  const { records, goTitle } = useGame();
+  return (
+    <div className="app-shell records-shell">
+      <div className="screen-head">
+        <button className="button button-secondary" onClick={goTitle}>← 타이틀</button>
+        <div><span className="eyebrow">RECORDS</span><h1>게임 기록</h1></div>
+        <p className="screen-sub">최근 플레이한 판의 결과입니다.</p>
+      </div>
+      <section className="panel">
+        {records.length === 0
+          ? <EmptyState>아직 완료한 게임이 없습니다. 첫 도시를 세워보세요.</EmptyState>
+          : (
+            <div className="records-list">
+              {records.map((r, i) => {
+                const d = new Date(r.date);
+                const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+                const reached = r.endlessLevel > 0 ? `무한 Lv.${r.endlessLevel}` : `${r.evalReached}차`;
+                return (
+                  <div className={`record-row ${r.won ? "won" : "lost"}`} key={`${r.date}-${i}`}>
+                    <span className="record-mark">{r.won ? "★" : "×"}</span>
+                    <div className="record-main">
+                      <strong>{r.won ? (r.endlessLevel > 0 ? "무한 도전" : "5차 클리어") : "실패"} · {reached}</strong>
+                      <small>코드 {r.seed} · 유물 {r.relics} · 정책 {r.policies} · {dateStr}</small>
+                    </div>
+                    <b className="record-score">{r.finalScore.toLocaleString()}</b>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+      </section>
+      <footer><span>유권자가 너무해 · 기록</span><span>{records.length}판</span></footer>
+    </div>
+  );
+}
+
+function GameScreen() {
   const { state, content } = useGame();
   return (
     <div className="app-shell">
@@ -573,4 +745,12 @@ export default function App() {
       <footer><span>유권자가 너무해 · playable prototype v0.5</span><span>시장 진화형 도시 덱빌더</span></footer>
     </div>
   );
+}
+
+export default function App() {
+  const screen = useGame((s) => s.screen);
+  if (screen === "title") return <TitleScreen />;
+  if (screen === "compendium") return <CompendiumScreen />;
+  if (screen === "records") return <RecordsScreen />;
+  return <GameScreen />;
 }

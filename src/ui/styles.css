@@ -42,7 +42,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .run-controls label { color: var(--muted); font-size: 11px; font-weight: 800; padding-left: 5px; }
 .run-controls input { width: 74px; padding: 8px 7px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: #07100d; }
 
-.evaluation-rail { display: grid; grid-template-columns: repeat(5, 1fr); margin-bottom: 12px; border: 1px solid var(--line); border-radius: 14px; background: #0d1714d9; overflow: hidden; }
+.evaluation-rail { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 14px; background: #0d1714d9; overflow: hidden; }
+.rail-step.endless { color: var(--gold-2); background: linear-gradient(90deg, #3a2c14aa, #241a0eaa); }
+.rail-step.endless .rail-dot { color: #1c1608; background: var(--gold-2); border-color: var(--gold-2); box-shadow: 0 0 18px #e8b95c66; }
 .rail-step { position: relative; display: flex; align-items: center; gap: 9px; min-width: 0; padding: 12px 15px; color: var(--faint); border-right: 1px solid var(--line-soft); }
 .rail-step:last-child { border-right: 0; }
 .rail-step.current { color: var(--ink); background: linear-gradient(90deg, #294234aa, #192a24aa); }
@@ -421,4 +423,46 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
+/* ── 타이틀 / 도감 / 기록 화면 (v0.12) ── */
+.title-screen { width: min(720px, calc(100% - 40px)); margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 34px; padding: 40px 0; text-align: center; }
+.title-hero { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.title-seal { width: 82px; height: 82px; font-size: 40px; margin-bottom: 6px; }
+.title-hero h1 { margin: 2px 0; font-family: Georgia, "Noto Serif KR", serif; font-size: clamp(38px, 8vw, 62px); letter-spacing: -.04em; }
+.title-hero p { max-width: 460px; margin: 4px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; word-break: keep-all; }
+.title-menu { width: min(420px, 100%); display: flex; flex-direction: column; gap: 14px; }
+.title-seed { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.title-seed label { color: var(--muted); font-size: 12px; font-weight: 800; }
+.title-seed input { width: 110px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: #07100d; text-align: center; }
+.title-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.title-links .button { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; }
+.title-links small { color: var(--muted); font-weight: 700; }
+.title-footer { color: var(--faint); font-size: 11px; }
+
+.screen-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.screen-head h1 { margin: 2px 0 0; font-family: Georgia, "Noto Serif KR", serif; font-size: clamp(26px, 4vw, 38px); letter-spacing: -.03em; }
+.screen-sub { margin: 0; margin-left: auto; color: var(--muted); font-size: 12px; }
+.compendium-shell section.panel, .records-shell section.panel { margin-bottom: 16px; }
+.compendium-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 10px; }
+.locked-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 150px; padding: 12px; border: 1px dashed var(--line); border-radius: 12px; background: repeating-linear-gradient(135deg, #0c1512 0 8px, #0a1210 8px 16px); color: var(--faint); }
+.locked-mark { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--faint); border-radius: 50%; font-size: 17px; font-weight: 900; }
+.locked-tile small { font-size: 10px; font-weight: 700; }
+.shop-item.locked-relic, .shop-item.locked-policy { min-height: 96px; }
+
+.records-list { display: flex; flex-direction: column; gap: 8px; }
+.record-row { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #0d1714cc; }
+.record-row.won { border-color: color-mix(in srgb, var(--mint) 40%, var(--line)); }
+.record-row.lost { border-color: color-mix(in srgb, #b44f48 35%, var(--line)); }
+.record-mark { width: 32px; height: 32px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; font-size: 16px; font-weight: 900; }
+.record-row.won .record-mark { color: #102019; background: var(--mint); }
+.record-row.lost .record-mark { color: #fff; background: #b44f48; }
+.record-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.record-main strong { font-size: 14px; }
+.record-main small { color: var(--muted); font-size: 11px; }
+.record-score { margin-left: auto; color: var(--gold-2); font-size: 18px; font-weight: 900; }
+
+@media (max-width: 640px) {
+  .screen-sub { margin-left: 0; width: 100%; }
+  .compendium-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
 }

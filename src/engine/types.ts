@@ -314,6 +314,10 @@ export interface GameState {
   rewardPolicyChoices: string[]; // 3개 중 1택
   rewardRemovalDone: boolean; // 카드 정비(선택) 단계 완료 여부
 
+  // 무한 모드: 5차 클리어 후 계속 진행 중이면 true. 이 동안엔 평가를 통과해도 "win"이 아니라
+  // 곧바로 보상 → 다음 주기로 이어지며, 목표 점수는 매 레벨 기하급수로 폭증한다(targetFor).
+  endless: boolean;
+
   // 직전 평가 결과 (EvaluationScreen 표시용)
   lastSettlement: SettlementResult | null;
 

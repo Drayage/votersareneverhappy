@@ -1,7 +1,7 @@
 // 상태머신 — 모든 게임 진행 액션. 각 액션은 새 GameState 를 반환(불변 스타일).
 import type { CardDef, CardInstance, Content, GameState, Tag } from "./types";
 import { ALL_TAGS } from "./types";
-import { CAPS, CYCLE_TURNS, EVAL_TARGETS } from "./caps";
+import { CAPS, EVAL_TARGETS, targetFor, turnsFor } from "./caps";
 import { shuffle, nextInt } from "./rng";
 import {
   collectPassives,
@@ -76,6 +76,7 @@ export function newGame(content: Content, seed = 1): GameState {
     rewardRelicChoices: [],
     rewardPolicyChoices: [],
     rewardRemovalDone: false,
+    endless: false,
     lastSettlement: null,
     uidCounter: uid,
     log: [],
@@ -496,7 +497,7 @@ export function endTurn(prev: GameState, content: Content): GameState {
   s.budget = 0;
   s.actions = 0;
   s.buys = 0;
-  if (s.turn < CYCLE_TURNS[s.evalIndex]) {
+  if (s.turn < turnsFor(s.evalIndex)) {
     if (TAG_CHOICE_TURNS.has(s.turn)) {
       const tc = pickTagChoices(s, content);
       s.tagChoices = tc.tags;
@@ -567,11 +568,25 @@ export function confirmEvaluation(prev: GameState, content: Content): GameState 
   }
   // 점수 보상: 달성률이 높을수록 리롤권을 더 받는다 (턱걸이 1장, 초과 25%마다 +1, 상한 있음)
   s.rerollTickets += computeRerollTickets(res);
-  if (s.evalIndex >= EVAL_TARGETS.length - 1) {
+  // 정규 5차를 처음 통과하면 승리 화면. 무한 모드(endless)에선 통과해도 곧바로 다음 주기로 이어간다.
+  if (s.evalIndex >= EVAL_TARGETS.length - 1 && !s.endless) {
     s.phase = "win";
     return s;
   }
   // 보상 단계 진입: 유물뽑기 → 정책뽑기 → 카드 정비(선택) → 다음 주기. 펀드/구매 없음.
+  generateRelicDraft(s, content);
+  generatePolicyDraft(s, content);
+  s.rewardRemovalDone = false;
+  s.phase = "reward";
+  return s;
+}
+
+/** 무한 모드 시작: 승리 화면에서 "계속 도전"을 누르면 endless를 켜고 곧바로 보상 단계로 진입한다.
+ *  이후로는 평가를 통과해도 다시 승리 화면이 뜨지 않고 주기가 무한히 이어진다(목표는 매 레벨 폭증). */
+export function startEndless(prev: GameState, content: Content): GameState {
+  if (prev.phase !== "win") return prev;
+  const s = clone(prev);
+  s.endless = true;
   generateRelicDraft(s, content);
   generatePolicyDraft(s, content);
   s.rewardRemovalDone = false;
@@ -734,7 +749,7 @@ export function nextCycle(prev: GameState, content: Content): GameState {
 
 // 편의: 현재 평가 목표
 export function currentTarget(state: GameState): number {
-  return EVAL_TARGETS[state.evalIndex];
+  return targetFor(state.evalIndex);
 }
 
 // 편의: 보유 카드 태그 카운트 (UI/AI용)

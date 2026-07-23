@@ -50,3 +50,23 @@ export const EVAL_TARGETS = [70, 160, 420, 900, 1800];
 
 /** 평가 차수별 주기당 턴 수 — 1차만 9턴, 2차부터는 8턴으로 고정 */
 export const CYCLE_TURNS = [9, 8, 8, 8, 8];
+
+/** 무한 모드(5차 클리어 후) 주기당 턴 수 — 5턴씩 짧게 몰아친다. */
+export const ENDLESS_TURNS = 5;
+
+/** 평가 차수의 목표 점수. 정규 5차까지는 고정, 그 이후(무한 모드)는 배율 자체가 매 레벨 커진다(증가폭 기하급수). */
+export function targetFor(evalIndex: number): number {
+  if (evalIndex < EVAL_TARGETS.length) return EVAL_TARGETS[evalIndex];
+  let t = EVAL_TARGETS[EVAL_TARGETS.length - 1];
+  for (let i = EVAL_TARGETS.length; i <= evalIndex; i++) {
+    // 무한 레벨이 깊어질수록 배율 자체가 커진다: 2.2 → 2.4 → 2.6 … (점수 증가폭이 기하급수적으로 폭발)
+    const mult = 2.2 + 0.2 * (i - EVAL_TARGETS.length);
+    t = Math.round(t * mult);
+  }
+  return t;
+}
+
+/** 평가 차수의 주기당 턴 수. 정규 구간은 CYCLE_TURNS, 무한 모드는 ENDLESS_TURNS(5턴). */
+export function turnsFor(evalIndex: number): number {
+  return evalIndex < CYCLE_TURNS.length ? CYCLE_TURNS[evalIndex] : ENDLESS_TURNS;
+}

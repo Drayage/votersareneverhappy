@@ -1,7 +1,7 @@
 // 정산 & 평가 계산 (docs/05_밸런스.md §1, §6 반영)
 import type { CardInstance, Content, GameState, SettlementResult, Tag } from "./types";
 import { ALL_TAGS } from "./types";
-import { CAPS, EVAL_TARGETS } from "./caps";
+import { CAPS, targetFor } from "./caps";
 import { collectPassives } from "./effects";
 
 /** 덱 전체 보유 카드 (정산 카운트 기준) */
@@ -41,7 +41,7 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
 
   // 통과 목표(포퓰리즘 증가 포함)는 settlementPctOfTarget 계산에 필요 → 먼저 구한다.
   const targetBonusPctEarly = Math.min(CAPS.targetBonusMaxPct, Math.max(0, state.activeTargetBonusPct));
-  const baseTarget = EVAL_TARGETS[state.evalIndex];
+  const baseTarget = targetFor(state.evalIndex);
   const target = Math.round(baseTarget * (1 + targetBonusPctEarly / 100));
 
   // settlement 효과원 = 보유 카드 각 인스턴스 + relic/policy settlement

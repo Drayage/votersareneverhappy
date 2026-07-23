@@ -58,6 +58,8 @@ export function newGame(content: Content, seed = 1): GameState {
     candidateTagFilter: null,
     relics: [],
     policies: [],
+    pendingPolicy: null,
+    policyHistory: [],
     gauges: { pollution: 0, corruption: 0, populismDebuff: 0 },
     eduLevel: 0,
     triggerFires: {},
@@ -81,6 +83,11 @@ export function newGame(content: Content, seed = 1): GameState {
 /** 평가 주기 시작: 덱 회수·셔플, 점수 리셋, 포퓰리즘 디버프 적용 */
 function startCycle(prev: GameState, content: Content): GameState {
   const s = clone(prev);
+  // 정책은 영구가 아니라 "뽑은 다음 한 주기 동안만" 적용된다 — 지난 주기 정책을 교체하고
+  // 새로 뽑아둔(pendingPolicy) 정책을 이번 주기 활성 정책으로 편입한다.
+  s.policies = s.pendingPolicy ? [s.pendingPolicy] : [];
+  if (s.pendingPolicy) s.policyHistory.push(s.pendingPolicy);
+  s.pendingPolicy = null;
   const all = ownedCards(s);
   const sh = shuffle(all, s.rngState);
   s.deck = sh.result;
@@ -521,12 +528,14 @@ export function pickRewardRelic(prev: GameState, _content: Content, id: string):
   return s;
 }
 
-/** 정책뽑기: 3개 중 1택, 1회. 유물뽑기가 끝난 뒤에만 가능. */
+/** 정책뽑기: 3개 중 1택, 1회. 유물뽑기가 끝난 뒤에만 가능.
+ *  유물과 달리 즉시 발효되지 않는다 — 다음 주기 시작(startCycle) 때 policies로 편입되어
+ *  "그 한 주기 동안만" 적용되고, 그다음 주기에는 사라진다. */
 export function pickRewardPolicy(prev: GameState, _content: Content, id: string): GameState {
   if (prev.phase !== "reward" || prev.rewardRelicChoices.length > 0) return prev;
   if (!prev.rewardPolicyChoices.includes(id)) return prev;
   const s = clone(prev);
-  s.policies.push(id);
+  s.pendingPolicy = id;
   s.rewardPolicyChoices = [];
   return s;
 }

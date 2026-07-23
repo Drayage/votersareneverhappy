@@ -1,12 +1,13 @@
 [
-  { "id": "p_extra_budget", "name": "예산 확충 조례", "text": "매 턴 +2예산 (영구)", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 2 }] },
-  { "id": "p_extra_action", "name": "행정 권한 강화", "text": "매 턴 +1액션 (영구)", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }] },
-  { "id": "p_no_penalty", "name": "공약 면책 특례", "text": "점수 카드 손패 패널티 철폐", "price": 150, "passive": [{ "kind": "removeScorePenalty" }] },
-  { "id": "p_market_slot", "name": "광역시 승격", "text": "시장 슬롯 +1", "price": 250, "passive": [{ "kind": "extraMarketSlot", "amount": 1 }] },
-  { "id": "p_citizen_budget", "name": "시민참여 예산제", "text": "재정 외 행정 카드를 낼 때마다 +1점", "price": 180, "passive": [{ "kind": "triggerBonusTag", "tag": "admin", "score": 1 }] },
-  { "id": "p_culture_city", "name": "문화도시 특별법", "text": "정산: 문화 카드당 +1점", "price": 180, "settlement": [{ "kind": "settlementPerTag", "tag": "culture", "points": 1 }] },
-  { "id": "p_welfare_state", "name": "복지도시 조례", "text": "정산: 통과 목표의 10% 안정 세입", "price": 180, "settlement": [{ "kind": "settlementPctOfTarget", "pct": 0.1 }] },
-  { "id": "p_broadcast", "name": "시정 방송국", "text": "트리거 소스 1개당 턴 발동 +1회", "price": 220, "passive": [{ "kind": "extraTriggerCap", "amount": 1 }] },
-  { "id": "p_night_ops", "name": "야간 행정 조례", "text": "매 턴 +1액션, +1드로우 (영구)", "price": 240, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }, { "kind": "passivePerTurn", "resource": "draw", "amount": 1 }] },
-  { "id": "p_green_belt", "name": "그린벨트 지정", "text": "매 턴 환경 게이지 -1", "price": 180, "passive": [{ "kind": "pollution", "amount": -1 }] }
+  { "id": "p_extra_budget", "name": "예산 확충 조례", "text": "이번 주기 동안 매 턴 +5예산", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 5 }] },
+  { "id": "p_extra_action", "name": "행정 권한 강화", "text": "이번 주기 동안 매 턴 +2액션", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 2 }] },
+  { "id": "p_no_penalty", "name": "공약 면책 특례", "text": "이번 주기 동안 점수 카드 손패 패널티 철폐", "price": 150, "passive": [{ "kind": "removeScorePenalty" }] },
+  { "id": "p_market_slot", "name": "광역시 승격", "text": "이번 주기 동안 시장 슬롯 +2", "price": 250, "passive": [{ "kind": "extraMarketSlot", "amount": 2 }] },
+  { "id": "p_citizen_budget", "name": "시민참여 예산제", "text": "이번 주기 동안 재정 외 행정 카드를 낼 때마다 +3점", "price": 180, "passive": [{ "kind": "triggerBonusTag", "tag": "admin", "score": 3 }] },
+  { "id": "p_culture_city", "name": "문화도시 특별법", "text": "이번 주기 정산: 문화 카드당 +3점", "price": 180, "settlement": [{ "kind": "settlementPerTag", "tag": "culture", "points": 3 }] },
+  { "id": "p_welfare_state", "name": "복지도시 조례", "text": "이번 주기 정산: 통과 목표의 25% 안정 세입", "price": 180, "settlement": [{ "kind": "settlementPctOfTarget", "pct": 0.25 }] },
+  { "id": "p_broadcast", "name": "시정 방송국", "text": "이번 주기 동안 트리거 소스 1개당 턴 발동 +2회", "price": 220, "passive": [{ "kind": "extraTriggerCap", "amount": 2 }] },
+  { "id": "p_night_ops", "name": "야간 행정 조례", "text": "이번 주기 동안 매 턴 +2액션, +2드로우", "price": 240, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 2 }, { "kind": "passivePerTurn", "resource": "draw", "amount": 2 }] },
+  { "id": "p_green_belt", "name": "그린벨트 지정", "text": "이번 주기 동안 매 턴 환경 게이지 -3", "price": 180, "passive": [{ "kind": "pollution", "amount": -3 }] },
+  { "id": "p_emergency_fund", "name": "비상 재정명령", "text": "이번 주기 동안 매 턴 +4예산, +1구매", "price": 220, "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 4 }, { "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] }
 ]

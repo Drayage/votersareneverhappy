@@ -145,11 +145,20 @@ function RiskStrip({ state }: { state: GameState }) {
 
 function RelicStrip({ state, content }: { state: GameState; content: Content }) {
   const items = [
-    ...state.relics.map((id) => ({ ...content.relics.get(id)! })),
-    ...state.policies.map((id) => ({ rarity: "policy" as const, role: "정책", ...content.policies.get(id)! })),
+    ...state.relics.map((id) => ({ ...content.relics.get(id)!, expiring: false })),
+    ...state.policies.map((id) => ({ rarity: "policy" as const, role: "정책", ...content.policies.get(id)!, expiring: true })),
   ];
   if (items.length === 0) return null;
-  return <div className="relic-strip">{items.map((item) => <div className={`relic-token ${item.rarity}`} key={item.id}><span>{item.name}</span><small>{item.text}</small></div>)}</div>;
+  return (
+    <div className="relic-strip">
+      {items.map((item) => (
+        <div className={`relic-token ${item.rarity}`} key={item.id}>
+          <span>{item.name}{item.expiring && <em className="policy-badge">이번 주기 한정</em>}</span>
+          <small>{item.text}</small>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function SectionTitle({ kicker, title, note }: { kicker: string; title: string; note?: string }) {
@@ -493,7 +502,7 @@ function RewardPhase() {
 
 function EndModal({ win }: { win: boolean }) {
   const { state, newGame } = useGame();
-  return <div className="modal-backdrop"><section className={`modal end-modal ${win ? "passed" : "failed"}`} role="dialog" aria-modal="true"><div className="result-mark">{win ? "★" : "×"}</div><span className="modal-kicker">FINAL REPORT</span><h2>{win ? "도시는 전설이 되었습니다" : "새로운 시장을 기다립니다"}</h2><p>{state.evalIndex + 1}차 평가 도달 · 보유 유물 {state.relics.length} · 정책 {state.policies.length}</p><button className="button button-primary button-wide" onClick={() => newGame()}>같은 코드로 다시 시작</button></section></div>;
+  return <div className="modal-backdrop"><section className={`modal end-modal ${win ? "passed" : "failed"}`} role="dialog" aria-modal="true"><div className="result-mark">{win ? "★" : "×"}</div><span className="modal-kicker">FINAL REPORT</span><h2>{win ? "도시는 전설이 되었습니다" : "새로운 시장을 기다립니다"}</h2><p>{state.evalIndex + 1}차 평가 도달 · 보유 유물 {state.relics.length} · 시행한 정책 {state.policyHistory.length}</p><button className="button button-primary button-wide" onClick={() => newGame()}>같은 코드로 다시 시작</button></section></div>;
 }
 
 export default function App() {

@@ -44,7 +44,7 @@ describe("무한콤보 안전장치", () => {
     const s: GameState = newGame(content, 2);
     s.policies = ["p_citizen_budget"];
     const r = computeTriggerScore(s, content, ["admin"], "action");
-    expect(r.score).toBe(1);
+    expect(r.score).toBe(3); // 이번 주기 한정 정책으로 강화된 값(+1 → +3)
     // 이미 상한까지 발동했다면 무반응
     s.triggerFires = { "policy:p_citizen_budget": CAPS.triggerPerSource };
     expect(computeTriggerScore(s, content, ["admin"], "action").score).toBe(0);

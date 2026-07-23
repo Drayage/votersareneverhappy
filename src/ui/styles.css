@@ -83,10 +83,15 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .relic-token span, .relic-token small { display: block; }
 .relic-token span { color: #bcd4fa; font-size: 11px; font-weight: 800; }
 .relic-token small { margin-top: 2px; color: var(--muted); font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.relic-token.legendary { border-color: #8a672b; }
-.relic-token.legendary span { color: var(--gold-2); }
+.relic-token.bronze { border-color: #8a5a3a; }
+.relic-token.silver { border-color: #8b98a5; }
+.relic-token.gold { border-color: #8a672b; }
+.relic-token.gold span { color: var(--gold-2); }
+.relic-token.diamond { border-color: #6fd0e0; }
+.relic-token.diamond span { color: #7fe0ee; }
 .relic-token.policy { border-color: #356251; }
 .relic-token.policy span { color: var(--mint); }
+.policy-badge { display: inline-block; margin-left: 6px; padding: 1px 5px; border-radius: 4px; color: #0f1a17; background: var(--mint); font-size: 7px; font-weight: 900; font-style: normal; vertical-align: middle; }
 
 .game-grid { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 12px; align-items: start; }
 .game-main { min-width: 0; }
@@ -262,11 +267,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .shop-item { position: relative; min-height: 145px; padding: 13px; border: 1px solid #3c4e60; border-radius: 10px; background: linear-gradient(145deg, #1b272c, #111b1e); }
 .shop-item.is-pickable { width: 100%; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform .12s ease, border-color .12s ease; }
 .shop-item.is-pickable:hover { transform: translateY(-2px); border-color: var(--mint); box-shadow: 0 8px 20px #0004; }
-.shop-item.rare { border-color: #5975a0; }
-.shop-item.legendary { border-color: #987137; background: linear-gradient(145deg, #2b251a, #171813); }
+.shop-item.bronze { border-color: #8a5a3a; }
+.shop-item.silver { border-color: #8b98a5; background: linear-gradient(145deg, #232b30, #171b1d); }
+.shop-item.gold { border-color: #987137; background: linear-gradient(145deg, #2b251a, #171813); }
+.shop-item.diamond { border-color: #6fd0e0; background: linear-gradient(145deg, #16282b, #0d1719); }
 .shop-item.policy { border-color: #3a6a59; background: linear-gradient(145deg, #183028, #111c18); }
 .shop-role { color: var(--blue); font-size: 8px; font-weight: 900; letter-spacing: .12em; }
-.shop-item.legendary .shop-role { color: var(--gold-2); }
+.shop-item.gold .shop-role { color: var(--gold-2); }
+.shop-item.diamond .shop-role { color: #7fe0ee; }
 .shop-item.policy .shop-role { color: var(--mint); }
 .shop-item h4 { margin: 5px 0; font-family: Georgia, "Noto Serif KR", serif; font-size: 15px; }
 .shop-item p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }

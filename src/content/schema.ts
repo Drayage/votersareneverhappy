@@ -77,7 +77,7 @@ export const cardSchema = z.object({
 export const relicSchema = z.object({
   id: z.string(),
   name: z.string(),
-  rarity: z.enum(["common", "rare", "legendary"]),
+  rarity: z.enum(["bronze", "silver", "gold", "diamond"]),
   role: z.string(),
   text: z.string(),
   price: z.number().min(0),

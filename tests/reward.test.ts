@@ -88,12 +88,13 @@ describe("유물뽑기·정책뽑기 (3개 중 1택, 순서 강제)", () => {
     expect(pickRewardPolicy(s, content, s.rewardPolicyChoices[0])).toBe(s);
   });
 
-  it("유물 선택 후에는 정책을 고를 수 있다", () => {
+  it("유물 선택 후에는 정책을 고를 수 있다 — 단, 정책은 즉시 발효되지 않고 다음 주기에 편입 대기한다", () => {
     let s = confirmEvaluation(passedEval(70), content);
     s = pickRewardRelic(s, content, s.rewardRelicChoices[0]);
     const chosen = s.rewardPolicyChoices[0];
     s = pickRewardPolicy(s, content, chosen);
-    expect(s.policies).toContain(chosen);
+    expect(s.pendingPolicy).toBe(chosen);
+    expect(s.policies).toEqual([]); // 아직 이번 주기엔 미적용
     expect(s.rewardPolicyChoices).toHaveLength(0);
   });
 });
@@ -143,16 +144,20 @@ describe("다음 평가로 진행(nextCycle) — 세 단계 완료 강제", () =
     expect(nextCycle(s, content)).toBe(s); // 카드 정비 남음
   });
 
-  it("세 단계를 모두 마치면 다음 주기로 넘어간다(evalIndex 증가, 새 손패)", () => {
+  it("세 단계를 모두 마치면 다음 주기로 넘어간다(evalIndex 증가, 새 손패) — 대기 중이던 정책이 이번 주기 정책으로 편입된다", () => {
     let s = confirmEvaluation(passedEval(70), content);
     s = pickRewardRelic(s, content, s.rewardRelicChoices[0]);
-    s = pickRewardPolicy(s, content, s.rewardPolicyChoices[0]);
+    const chosenPolicy = s.rewardPolicyChoices[0];
+    s = pickRewardPolicy(s, content, chosenPolicy);
     s = skipRewardRemoval(s);
     s = nextCycle(s, content);
     expect(s.evalIndex).toBe(1);
     expect(s.phase).toBe("play");
     expect(s.turn).toBe(1);
     expect(s.hand.length).toBeGreaterThan(0);
+    expect(s.policies).toEqual([chosenPolicy]);
+    expect(s.pendingPolicy).toBeNull();
+    expect(s.policyHistory).toContain(chosenPolicy);
   });
 });
 
@@ -205,5 +210,51 @@ describe("리롤권 상한", () => {
   it("아무리 오버킬해도 CAPS.rerollTicketsMaxPerCycle을 넘지 않는다", () => {
     const s = confirmEvaluation(passedEval(10000), content);
     expect(s.rerollTickets).toBe(CAPS.rerollTicketsMaxPerCycle);
+  });
+});
+
+describe("정책은 유물과 달리 영구가 아니라 '다음 한 주기만' 적용된다", () => {
+  it("1주기차 정책은 2주기가 시작되면 사라지고, 2주기차에 새로 고른 정책으로 교체된다", () => {
+    let s = confirmEvaluation(passedEval(70), content);
+    s = pickRewardRelic(s, content, s.rewardRelicChoices[0]);
+    const policyA = s.rewardPolicyChoices[0];
+    s = pickRewardPolicy(s, content, policyA);
+    s = skipRewardRemoval(s);
+    s = nextCycle(s, content); // 2주기 시작 — policyA가 이번 주기 정책으로 편입
+    expect(s.policies).toEqual([policyA]);
+
+    // 2주기차 평가를 통과했다고 가정하고 보상 단계로 다시 진입
+    s = {
+      ...s,
+      phase: "evaluation",
+      lastSettlement: {
+        evalIndex: 1,
+        target: 160,
+        baseTarget: 160,
+        baseCycleScore: 160,
+        settlementScore: 0,
+        settlementMult: 1,
+        pollutionPenalty: 0,
+        globalMult: 1,
+        targetBonusPct: 0,
+        corruptionPct: 0,
+        finalScore: 160,
+        passed: true,
+        perTag: {},
+      },
+    };
+    s = confirmEvaluation(s, content);
+    // policyA는 여전히 활성(3주기 시작 전까지) — 아직 만료 전
+    expect(s.policies).toEqual([policyA]);
+    s = pickRewardRelic(s, content, s.rewardRelicChoices[0]);
+    const policyB = s.rewardPolicyChoices[0];
+    expect(policyB).not.toBe(policyA); // 방금 활성 정책은 재추첨 후보에서 제외됨
+    s = pickRewardPolicy(s, content, policyB);
+    s = skipRewardRemoval(s);
+    s = nextCycle(s, content); // 3주기 시작 — policyA는 사라지고 policyB로 교체
+
+    expect(s.policies).toEqual([policyB]);
+    expect(s.policies).not.toContain(policyA);
+    expect(s.policyHistory).toEqual([policyA, policyB]); // 이력에는 둘 다 남는다
   });
 });

@@ -142,7 +142,7 @@ export interface CardDef {
   costResearch?: number;
 }
 
-export type RelicRarity = "common" | "rare" | "legendary";
+export type RelicRarity = "bronze" | "silver" | "gold" | "diamond";
 
 /** 유물 정의 (data/relics.json 한 항목) */
 export interface RelicDef {
@@ -159,7 +159,7 @@ export interface RelicDef {
   settlement?: Effect[];
 }
 
-/** 특수 정책 (data/policies.json) — 런 전체에 적용되는 글로벌 효과 */
+/** 특수 정책 (data/policies.json) — 뽑은 "다음 한 주기 동안만" 적용되는 강한 임시 효과 (유물과 달리 영구 아님) */
 export interface PolicyDef {
   id: string;
   name: string;
@@ -225,8 +225,15 @@ export interface GameState {
   // tagChoices에서 고른 태그 — candidates가 해당 태그 카드로만 채워졌음을 표시(리롤 시에도 유지).
   candidateTagFilter: Tag | null;
 
-  relics: string[]; // relic defId
-  policies: string[]; // policy defId
+  relics: string[]; // relic defId — 영구 보유
+
+  // 정책: 유물과 달리 영구가 아니라 "뽑은 다음 한 주기 동안만" 적용된다.
+  // policies는 항상 0~1개(현재 주기에 활성화된 정책)만 담기고, 주기 시작마다 교체된다.
+  policies: string[];
+  // 보상 단계에서 정책을 고르면 여기에 대기하다가, 다음 주기 시작(startCycle) 때 policies로 교체 편입된다.
+  pendingPolicy: string | null;
+  // 지금까지 활성화됐던 정책 id 기록(클리어 화면 표시용). 게임플레이 효과에는 관여하지 않는다.
+  policyHistory: string[];
 
   gauges: Gauges;
 

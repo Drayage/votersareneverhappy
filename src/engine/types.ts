@@ -60,6 +60,8 @@ export type Effect =
   | { kind: "recycleInPlay"; count: number }
   // 연구지수 획득 (과학 태그 전용 누적 재화 — 턴/주기가 지나도 유지)
   | { kind: "gainResearch"; amount: number }
+  // 리롤권 획득 (카드 후보/유물뽑기/정책뽑기 재추첨용 — 턴/주기가 지나도 유지)
+  | { kind: "gainRerollTicket"; amount: number }
   // 남은 액션 1개당 +N예산 (액션 비축의 환금 — playCost 차감 후의 액션 수 기준)
   | { kind: "budgetPerAction"; amount: number }
   // 선택형(pendingChoice 보류): 손패에서 최대 count장을 버리고 그 수만큼 드로우 (필터)

@@ -215,6 +215,9 @@ function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
       case "gainResearch":
         s.research += e.amount;
         break;
+      case "gainRerollTicket":
+        s.rerollTickets += e.amount;
+        break;
       case "budgetPerAction":
         // playCost 차감 후 남아 있는 액션 수 기준 (액션을 소모하지는 않는다)
         s.budget += s.actions * e.amount;

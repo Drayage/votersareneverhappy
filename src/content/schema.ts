@@ -15,6 +15,7 @@ const effectSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("comboScore"), tag: tagSchema, points: z.number().min(0), cap: z.number().min(0) }),
   z.object({ kind: z.literal("recycleInPlay"), count: z.number().min(1) }),
   z.object({ kind: z.literal("gainResearch"), amount: z.number().min(1) }),
+  z.object({ kind: z.literal("gainRerollTicket"), amount: z.number().min(1) }),
   z.object({ kind: z.literal("budgetPerAction"), amount: z.number().min(1) }),
   z.object({ kind: z.literal("discardThenDraw"), count: z.number().min(1) }),
   z.object({ kind: z.literal("trashFromHand"), count: z.number().min(1) }),

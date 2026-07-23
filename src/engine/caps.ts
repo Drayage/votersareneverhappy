@@ -40,8 +40,8 @@ export const CAPS = {
   targetBonusMaxPct: 80,
   /** 부패로 깎일 수 있는 최종 점수의 최대치 — 완전 봉쇄 대신 회복 여지를 남긴다. */
   corruptionPenaltyMaxPct: 80,
-  /** 리롤권: 평가 통과 시 기본 1장 + 초과 달성률 25%마다 +1장, 이 값에서 상한 */
-  rerollTicketsMaxPerCycle: 6,
+  /** 리롤권: 평가 통과 시 기본 2장 + 초과 달성률 25%마다 +1장, 이 값에서 상한 */
+  rerollTicketsMaxPerCycle: 7,
 } as const;
 
 /** 평가 차수별 목표 점수 — 2차는 플레이형 덱(트리거/러시)의 엔진 완성 전이라 완만하게 */

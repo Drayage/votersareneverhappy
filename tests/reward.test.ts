@@ -50,7 +50,7 @@ describe("보상 단계 진입(confirmEvaluation)", () => {
     expect(s.rewardRelicChoices).toHaveLength(3);
     expect(s.rewardPolicyChoices).toHaveLength(3);
     expect(s.rewardRemovalDone).toBe(false);
-    expect(s.rerollTickets).toBe(1); // 턱걸이 통과 → 1장
+    expect(s.rerollTickets).toBe(2); // 턱걸이 통과 → 2장
   });
 
   it("실패 시 gameover로 전환되고 보상 단계에 진입하지 않는다", () => {
@@ -65,7 +65,7 @@ describe("보상 단계 진입(confirmEvaluation)", () => {
     let s = passedEval(1800, { evalIndex: 4, lastSettlement: { ...passedEval(1800).lastSettlement!, evalIndex: 4, target: 1800, baseTarget: 1800, finalScore: 1800, passed: true } });
     s = confirmEvaluation(s, content);
     expect(s.phase).toBe("win");
-    expect(s.rerollTickets).toBe(1); // 점수 보상 자체는 지급됨(승리 후 의미는 없지만 일관성 유지)
+    expect(s.rerollTickets).toBe(2); // 점수 보상 자체는 지급됨(승리 후 의미는 없지만 일관성 유지)
   });
 });
 
@@ -170,8 +170,9 @@ describe("리롤권 소비 (유물뽑기·정책뽑기·카드보상 후보 다�
   });
 
   it("리롤권이 0장이면 리롤할 수 없다", () => {
-    let s = confirmEvaluation(passedEval(70), content); // 턱걸이 → 1장
-    s = rerollRewardRelics(s, content); // 1장 소모 → 0장
+    let s = confirmEvaluation(passedEval(70), content); // 턱걸이 → 2장
+    s = rerollRewardRelics(s, content); // 2장 → 1장
+    s = rerollRewardRelics(s, content); // 1장 → 0장
     expect(s.rerollTickets).toBe(0);
     const before = s.rewardRelicChoices.slice();
     s = rerollRewardRelics(s, content); // 더 이상 불가

@@ -22,9 +22,9 @@
   { "id": "smart_admin", "name": "스마트 행정망", "rarity": "rare", "role": "엔진", "price": 180, "text": "매 턴 +1액션", "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }] },
   { "id": "bigdata", "name": "빅데이터 센터", "rarity": "legendary", "role": "드로우", "price": 350, "text": "매 턴 +2드로우, +1액션", "passive": [{ "kind": "passivePerTurn", "resource": "draw", "amount": 2 }, { "kind": "passivePerTurn", "resource": "action", "amount": 1 }] },
 
-  { "id": "double_entry", "name": "복식부기", "rarity": "common", "role": "엔진", "price": 80, "text": "매 턴 +1구매", "passive": [{ "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] },
+  { "id": "double_entry", "name": "복식부기", "rarity": "common", "role": "엔진", "price": 80, "text": "매 턴 +1예산", "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 1 }] },
   { "id": "supp_budget", "name": "추경 편성", "rarity": "rare", "role": "엔진", "price": 180, "text": "매 턴 +3예산", "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 3 }] },
-  { "id": "mayor_tf", "name": "시장 직속 TF", "rarity": "legendary", "role": "엔진", "price": 350, "text": "매 턴 +1액션, +1구매", "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }, { "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] },
+  { "id": "mayor_tf", "name": "시장 직속 TF", "rarity": "legendary", "role": "엔진", "price": 350, "text": "매 턴 +1액션, +1예산", "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }, { "kind": "passivePerTurn", "resource": "budget", "amount": 1 }] },
 
   { "id": "metro_merge", "name": "광역 통합", "rarity": "rare", "role": "규칙변형", "price": 180, "text": "시장 슬롯 +1 (최대 11칸)", "passive": [{ "kind": "extraMarketSlot", "amount": 1 }] },
   { "id": "immunity", "name": "책임 면제", "rarity": "rare", "role": "규칙변형", "price": 180, "text": "매 턴 부패 게이지 -1", "passive": [{ "kind": "corruption", "amount": -1 }] },

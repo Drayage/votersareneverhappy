@@ -203,13 +203,13 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
 
 /**
  * 평가 통과 시 지급되는 리롤권 수. 점수 보상 개념 — 달성률이 높을수록 많이 받는다.
- * 턱걸이 통과 시 기본 1장, 목표 초과 25%마다 +1장, CAPS.rerollTicketsMaxPerCycle 에서 상한.
+ * 턱걸이 통과 시 기본 2장, 목표 초과 25%마다 +1장, CAPS.rerollTicketsMaxPerCycle 에서 상한.
  * 실패 시(미통과) 0장.
  */
 export function computeRerollTickets(result: Pick<SettlementResult, "finalScore" | "target" | "passed">): number {
   if (!result.passed || result.target <= 0) return 0;
   const overPct = Math.max(0, result.finalScore / result.target - 1);
-  return Math.min(CAPS.rerollTicketsMaxPerCycle, 1 + Math.floor(overPct / 0.25));
+  return Math.min(CAPS.rerollTicketsMaxPerCycle, 2 + Math.floor(overPct / 0.25));
 }
 
 /** 보유 교육 카드 수 (eduLevel 누적용) */

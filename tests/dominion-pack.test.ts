@@ -17,12 +17,12 @@ describe("액션·드로우 확장 팩 (도미니언 이식)", () => {
 
   it("총동원령: 액션 3을 모아야 낼 수 있다", () => {
     let s: GameState = newGame(content, 54);
-    s = { ...s, hand: [{ uid: 9640, defId: "full_mobilization" }], deck: Array.from({ length: 6 }, (_, i) => ({ uid: 9650 + i, defId: "banner" })), discard: [], inPlay: [], actions: 2, buys: 2 };
+    s = { ...s, hand: [{ uid: 9640, defId: "full_mobilization" }], deck: Array.from({ length: 6 }, (_, i) => ({ uid: 9650 + i, defId: "banner" })), discard: [], inPlay: [], actions: 2, budget: 0 };
     expect(playCard(s, content, 9640)).toBe(s); // 액션 부족 → 불가
     s = { ...s, actions: 3 };
     s = playCard(s, content, 9640);
     expect(s.hand.length).toBe(5); // +5드로우
-    expect(s.buys).toBe(4);
+    expect(s.budget).toBe(3);
     expect(s.actions).toBe(0);
   });
 });
@@ -124,5 +124,59 @@ describe("선택 시스템(pendingChoice)", () => {
     s = chooseCandidateTag(s, content, s.tagChoices[0]); // 1턴째 종료 → 태그 선택 단계
     s = chooseCandidate(s, content, s.candidates[0]); // 다음 턴 시작
     expect(s.hand.length).toBe(8); // 기본 6 + duration 2
+  });
+});
+
+describe("리롤권/압축/순환 신규 카드", () => {
+  it("여론조사: +1드로우와 함께 리롤권을 1장 직접 획득한다", () => {
+    let s: GameState = newGame(content, 57);
+    s = { ...s, hand: [{ uid: 9700, defId: "opinion_poll" }], deck: [{ uid: 9701, defId: "banner" }], discard: [], inPlay: [], actions: 1, rerollTickets: 0 };
+    s = playCard(s, content, 9700);
+    expect(s.rerollTickets).toBe(1);
+    expect(s.hand.some((c) => c.uid === 9701)).toBe(true);
+  });
+
+  it("증거 인멸: 손패 최대 2장을 영구 제거하고 부패 게이지를 낮춘다", () => {
+    let s: GameState = newGame(content, 58);
+    s = {
+      ...s,
+      hand: [
+        { uid: 9710, defId: "destroy_evidence" },
+        { uid: 9711, defId: "basic_tax" },
+        { uid: 9712, defId: "old_pledge" },
+      ],
+      deck: [],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+      gauges: { pollution: 0, corruption: 2, populismDebuff: 0 },
+    };
+    s = playCard(s, content, 9710);
+    expect(s.pendingChoice?.kind).toBe("trashFromHand");
+    const before = ownedCards(s).length;
+    s = resolveChoice(s, content, [9711, 9712]);
+    expect(ownedCards(s).length).toBe(before - 2);
+    expect(s.discard.length).toBe(0); // 폐기는 버린 더미로도 안 감
+    expect(s.gauges.corruption).toBe(1); // 부패 게이지 -1
+  });
+
+  it("쾌속 환승: 낸 카드 1장을 덱 위로 되돌리고 +2드로우", () => {
+    let s: GameState = newGame(content, 59);
+    s = {
+      ...s,
+      hand: [
+        { uid: 9720, defId: "tax_collect" },
+        { uid: 9721, defId: "express_transfer" },
+      ],
+      deck: [],
+      discard: [],
+      inPlay: [],
+      actions: 2,
+      budget: 0,
+    };
+    s = playCard(s, content, 9720); // 세금 징수 → inPlay
+    s = playCard(s, content, 9721); // 세금 징수를 덱 위로 되돌리고 +2드로우 → 즉시 회수
+    expect(s.hand.some((c) => c.uid === 9720)).toBe(true);
+    expect(s.inPlay.some((c) => c.uid === 9720)).toBe(false);
   });
 });

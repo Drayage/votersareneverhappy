@@ -81,16 +81,16 @@ describe("리롤권 보상(점수 달성률 기반)", () => {
     return { ...s, cycleScore }; // 시작 덱에는 정산 효과가 없어 finalScore = cycleScore
   };
 
-  it("턱걸이 통과는 리롤권 1장", () => {
+  it("턱걸이 통과는 리롤권 2장", () => {
     const r = computeSettlement(withScore(70), content);
     expect(r.passed).toBe(true);
-    expect(computeRerollTickets(r)).toBe(1);
+    expect(computeRerollTickets(r)).toBe(2);
   });
 
   it("목표 초과 25%마다 리롤권 +1장", () => {
-    expect(computeRerollTickets(computeSettlement(withScore(84), content))).toBe(1); // 달성률 120% → 초과 20% < 25% → 기본 1장
-    expect(computeRerollTickets(computeSettlement(withScore(90), content))).toBe(2); // 달성률 ~129% → 초과 25%↑ → 1+1
-    expect(computeRerollTickets(computeSettlement(withScore(105), content))).toBe(3); // 달성률 150% → 초과 50% → 1+2
+    expect(computeRerollTickets(computeSettlement(withScore(84), content))).toBe(2); // 달성률 120% → 초과 20% < 25% → 기본 2장
+    expect(computeRerollTickets(computeSettlement(withScore(90), content))).toBe(3); // 달성률 ~129% → 초과 25%↑ → 2+1
+    expect(computeRerollTickets(computeSettlement(withScore(105), content))).toBe(4); // 달성률 150% → 초과 50% → 2+2
   });
 
   it("오버킬해도 상한(CAPS.rerollTicketsMaxPerCycle)에서 멈춘다", () => {

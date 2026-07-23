@@ -136,6 +136,69 @@ function Resource({ icon, label, value, tone = "" }: { icon: string; label: stri
   return <div className={`resource ${tone}`}><span className="resource-icon">{icon}</span><div><small>{label}</small><strong>{value.toLocaleString()}</strong></div></div>;
 }
 
+/** 카드 인스턴스 목록을 defId별로 묶어 [defId, 개수] 배열로. 태그·이름순 정렬. */
+function groupByDef(instances: GameState["deck"], content: Content): Array<[string, number]> {
+  const map = new Map<string, number>();
+  for (const c of instances) map.set(c.defId, (map.get(c.defId) ?? 0) + 1);
+  return [...map.entries()].sort((a, b) => {
+    const ca = cardDef(content, a[0]);
+    const cb = cardDef(content, b[0]);
+    return ca.tags[0].localeCompare(cb.tags[0]) || ca.name.localeCompare(cb.name);
+  });
+}
+
+function DeckPile({ title, count, instances, content }: { title: string; count: number; instances: GameState["deck"]; content: Content }) {
+  const groups = groupByDef(instances, content);
+  return (
+    <div className="deck-pile">
+      <div className="deck-pile-head"><strong>{title}</strong><b>{count}장</b></div>
+      {groups.length === 0
+        ? <p className="deck-pile-empty">비어 있음</p>
+        : (
+          <div className="deck-list">
+            {groups.map(([id, n]) => {
+              const card = cardDef(content, id);
+              return (
+                <div key={id} className="deck-list-row">
+                  <span className={`deck-dot tone-${card.tags[0]}`} />
+                  <span><strong>{card.name}</strong><small>{card.tags.map((t) => TAG_LABELS[t]).join(" · ")}</small></span>
+                  <b>×{n}</b>
+                </div>
+              );
+            })}
+          </div>
+        )}
+    </div>
+  );
+}
+
+function DeckInspector({ state, content }: { state: GameState; content: Content }) {
+  const [open, setOpen] = useState(false);
+  const owned = ownedCards(state);
+  return (
+    <>
+      <button className="button button-secondary deck-inspect-btn" onClick={() => setOpen(true)} data-section="status">
+        🂠 덱 확인 <small>전체 {owned.length} · 뽑을 {state.deck.length} · 버린 {state.discard.length}</small>
+      </button>
+      {open && (
+        <div className="modal-backdrop" role="presentation" onClick={() => setOpen(false)}>
+          <section className="modal deck-modal" role="dialog" aria-modal="true" aria-labelledby="deck-inspect-title" onClick={(e) => e.stopPropagation()}>
+            <span className="modal-kicker">DECK INSPECTOR</span>
+            <h2 id="deck-inspect-title">덱 구성 확인</h2>
+            <p>전체 덱과 지금 뽑을 더미·버린 더미에 든 카드입니다. (뽑을 더미는 종류만 표시 — 순서는 감춰집니다)</p>
+            <div className="deck-piles">
+              <DeckPile title="전체 덱" count={owned.length} instances={owned} content={content} />
+              <DeckPile title="뽑을 더미" count={state.deck.length} instances={state.deck} content={content} />
+              <DeckPile title="버린 더미" count={state.discard.length} instances={state.discard} content={content} />
+            </div>
+            <div className="action-row"><button className="button button-primary button-wide" onClick={() => setOpen(false)}>닫기</button></div>
+          </section>
+        </div>
+      )}
+    </>
+  );
+}
+
 function CityProfile({ state, content }: { state: GameState; content: Content }) {
   const topTags = tagLabelCounts(state, content).slice(0, 4);
   const projection = computeSettlement(state, content);
@@ -285,6 +348,7 @@ function PlayPhase() {
         <Dashboard state={state} content={content} />
       </div>
       <CityProfile state={state} content={content} />
+      <DeckInspector state={state} content={content} />
 
       <div className="mobile-bottombar">
         <nav className="mobile-tabbar" role="tablist" aria-label="화면 전환">
@@ -348,7 +412,12 @@ function ChoiceModal() {
   const [picked, setPicked] = useState<number[]>([]);
   const pending = state.pendingChoice!;
   const meta = CHOICE_META[pending.kind];
-  const desc = pending.kind === "topDeckGamble" ? `${meta.desc} 그 카드가 ${TAG_LABELS[pending.tag]} 태그면 즉시 +${pending.bonus}점(아니면 없음).` : meta.desc;
+  const desc =
+    pending.kind === "topDeckGamble"
+      ? `${meta.desc} 그 카드가 ${TAG_LABELS[pending.tag]} 태그면 즉시 +${pending.bonus}점(아니면 없음).`
+      : pending.kind === "discardForBudget" && pending.tag
+        ? `고른 카드를 버리고(재드로우 없음), 버린 ${TAG_LABELS[pending.tag]} 카드 1장당 +${pending.per ?? 1}예산.`
+        : meta.desc;
   const toggle = (uid: number) => {
     setPicked((prev) => {
       if (prev.includes(uid)) return prev.filter((u) => u !== uid);

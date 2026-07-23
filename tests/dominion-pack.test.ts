@@ -113,10 +113,11 @@ describe("선택 시스템(pendingChoice)", () => {
     s = playCard(s, content, 9660);
     expect(s.pendingChoice?.kind).toBe("playTwice");
     s = resolveChoice(s, content, [9661]);
-    expect(s.budget).toBe(4); // +2예산 × 2
+    expect(s.budget).toBe(4); // +2예산 × 2 (두 번 발동 증명)
     expect(s.actions).toBe(0); // 이중 결재 1액션 외 추가 소모 없음
     expect(s.inPlay.some((c) => c.uid === 9661)).toBe(true);
-    expect(s.cyclePlayedTagCounts.commerce).toBe(2); // 두 번 발동 = 두 번 낸 것으로 집계
+    // 세금 징수는 재정(treasure) 카드 → 두 번 발동해도 주기 낸 카드 수엔 세지 않는다(재정 제외 규칙)
+    expect(s.cyclePlayedTagCounts.commerce ?? 0).toBe(0);
   });
 
   it("부두 정비: (지속) 다음 턴 시작 시에도 +2드로우가 발동한다", () => {

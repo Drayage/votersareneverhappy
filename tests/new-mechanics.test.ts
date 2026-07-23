@@ -73,13 +73,14 @@ describe("버리고 값 획득 (discardForScore / discardForBudget)", () => {
     expect(s.discard.some((c) => c.uid === 9831)).toBe(true);
   });
 
-  it("discardForBudget: 버린 수만큼 예산", () => {
+  it("discardForBudget(복지): 버린 수만큼 예산", () => {
     let s: GameState = newGame(content, 65);
     s = {
       ...s,
       hand: [
-        { uid: 9840, defId: "inventory_cashout" },
+        { uid: 9840, defId: "emergency_livelihood_aid" },
         { uid: 9841, defId: "basic_tax" },
+        { uid: 9842, defId: "old_pledge" },
       ],
       deck: [],
       discard: [],
@@ -88,8 +89,54 @@ describe("버리고 값 획득 (discardForScore / discardForBudget)", () => {
       budget: 0,
     };
     s = playCard(s, content, 9840);
-    s = resolveChoice(s, content, [9841]);
-    expect(s.budget).toBe(1);
+    s = resolveChoice(s, content, [9841, 9842]);
+    expect(s.budget).toBe(2); // 버린 2장 × 1
+  });
+
+  it("discardForBudget(상업, tag×per): 버린 상업 카드 1장당 +3예산, 비상업 카드는 0", () => {
+    let s: GameState = newGame(content, 65);
+    s = {
+      ...s,
+      hand: [
+        { uid: 9840, defId: "inventory_cashout" },
+        { uid: 9841, defId: "tax_collect" }, // commerce
+        { uid: 9842, defId: "municipal_bond" }, // commerce
+        { uid: 9843, defId: "basic_tax" }, // admin (비상업)
+      ],
+      deck: [],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+      budget: 0,
+    };
+    s = playCard(s, content, 9840);
+    expect(s.pendingChoice?.kind).toBe("discardForBudget");
+    s = resolveChoice(s, content, [9841, 9842, 9843]);
+    expect(s.budget).toBe(6); // 상업 2장 × 3 = 6 (basic_tax는 버려도 0)
+    expect(s.hand.length).toBe(0); // 셋 다 버려짐
+  });
+
+  it("재정(treasure) 카드는 이번 주기 낸 카드 수(cyclePlays)에 세지 않는다", () => {
+    let s: GameState = newGame(content, 80);
+    s = {
+      ...s,
+      hand: [
+        { uid: 9700, defId: "tax_collect" }, // commerce treasure
+        { uid: 9701, defId: "banner" }, // pr action(비재정)
+      ],
+      deck: [],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+      cyclePlays: 0,
+      cyclePlayedTagCounts: {},
+    };
+    s = playCard(s, content, 9700); // 재정 → 카운트 안 됨
+    expect(s.cyclePlays).toBe(0);
+    expect(s.cyclePlayedTagCounts.commerce ?? 0).toBe(0);
+    s = playCard(s, content, 9701); // 비재정 → 카운트
+    expect(s.cyclePlays).toBe(1);
+    expect(s.cyclePlayedTagCounts.pr).toBe(1);
   });
 
   it("선택 안 함(빈 배열)도 가능 — 아무것도 얻지 않는다", () => {

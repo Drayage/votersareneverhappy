@@ -270,7 +270,7 @@ function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
         s.pendingChoice = { kind: "discardForScore", max: e.max };
         break;
       case "discardForBudget":
-        s.pendingChoice = { kind: "discardForBudget", max: e.max };
+        s.pendingChoice = { kind: "discardForBudget", max: e.max, tag: e.tag, per: e.per };
         break;
       case "trashForScore":
         s.pendingChoice = { kind: "trashForScore", max: 1 };
@@ -333,11 +333,19 @@ function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
   const mult = tagMultiplier(s, def.tags as Tag[]);
   s.cycleScore += Math.round((baseScore + trig.score) * mult);
 
-  // 4) 플레이 카운트 (연계/회전 정산용)
-  s.cyclePlays += 1;
+  // 4) 플레이 카운트
+  //  - playedTagCounts: 이번 "턴" 연계(comboScore)용 — 재정 포함(턴 내 손패 순서 판단).
+  //  - cyclePlays / cyclePlayedTagCounts: 이번 "주기" 정산(회전·조건형·과학 배수)용 —
+  //    onPlayTag 트리거의 "재정 외" 규칙과 통일해 재정(treasure) 카드는 세지 않는다.
+  //    (시정 활동 보고서 등 "낸 카드 1장당 +N"이 재정 스팸으로 부풀지 않게)
   for (const tag of def.tags) {
     s.playedTagCounts[tag] = (s.playedTagCounts[tag] ?? 0) + 1;
-    s.cyclePlayedTagCounts[tag] = (s.cyclePlayedTagCounts[tag] ?? 0) + 1;
+  }
+  if (def.type !== "treasure") {
+    s.cyclePlays += 1;
+    for (const tag of def.tags) {
+      s.cyclePlayedTagCounts[tag] = (s.cyclePlayedTagCounts[tag] ?? 0) + 1;
+    }
   }
 }
 
@@ -408,11 +416,16 @@ export function resolveChoice(prev: GameState, content: Content, uids: number[])
     }
     s.cycleScore += uids.length;
   } else if (pending.kind === "discardForBudget") {
+    const per = pending.per ?? 1;
+    let gained = 0;
     for (const u of uids) {
       const i = s.hand.findIndex((c) => c.uid === u);
-      s.discard.push(s.hand.splice(i, 1)[0]);
+      const card = s.hand.splice(i, 1)[0];
+      s.discard.push(card);
+      // tag 지정 시 그 태그 카드만 예산 산정(상업 "처분": 버린 상업 카드 1장당 +3), 미지정 시 버린 수 전부
+      if (!pending.tag || content.cards.get(card.defId)?.tags.includes(pending.tag)) gained += per;
     }
-    s.budget += uids.length;
+    s.budget += gained;
   } else if (pending.kind === "trashForScore" && uids.length === 1) {
     const i = s.hand.findIndex((c) => c.uid === uids[0]);
     const def = content.cards.get(s.hand[i].defId);

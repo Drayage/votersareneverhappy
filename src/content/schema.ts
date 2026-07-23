@@ -21,7 +21,7 @@ const effectSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("trashFromHand"), count: z.number().min(1) }),
   z.object({ kind: z.literal("playTwice") }),
   z.object({ kind: z.literal("discardForScore"), max: z.number().min(1) }),
-  z.object({ kind: z.literal("discardForBudget"), max: z.number().min(1) }),
+  z.object({ kind: z.literal("discardForBudget"), max: z.number().min(1), tag: tagSchema.optional(), per: z.number().optional() }),
   z.object({ kind: z.literal("trashForScore") }),
   z.object({ kind: z.literal("trashForDraw") }),
   z.object({ kind: z.literal("trashForBudget") }),

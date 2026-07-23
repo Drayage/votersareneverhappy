@@ -72,8 +72,9 @@ export type Effect =
   | { kind: "playTwice" }
   // 선택형: 손패에서 최대 max장을 버리고(재드로우 없음), 버린 수만큼 +점수 (하이리스크 손패 소모)
   | { kind: "discardForScore"; max: number }
-  // 선택형: 손패에서 최대 max장을 버리고(재드로우 없음), 버린 수만큼 +예산
-  | { kind: "discardForBudget"; max: number }
+  // 선택형: 손패에서 최대 max장을 버리고(재드로우 없음), +예산.
+  //   tag 미지정: 버린 수 × per(기본 1). tag 지정: 버린 것 중 그 태그 카드 수 × per (상업 "처분" 등).
+  | { kind: "discardForBudget"; max: number; tag?: Tag; per?: number }
   // 선택형: 손패 카드 1장을 골라 완전히 폐기하고, 그 카드의 비용만큼 +점수
   | { kind: "trashForScore" }
   // 선택형: 손패 카드 1장을 골라 완전히 폐기하고, 그 카드의 비용만큼 드로우
@@ -145,7 +146,7 @@ export type PendingChoice =
   | { kind: "trashFromHand"; max: number }
   | { kind: "playTwice"; max: number }
   | { kind: "discardForScore"; max: number }
-  | { kind: "discardForBudget"; max: number }
+  | { kind: "discardForBudget"; max: number; tag?: Tag; per?: number }
   | { kind: "trashForScore"; max: number }
   | { kind: "trashForDraw"; max: number }
   | { kind: "trashForBudget"; max: number }

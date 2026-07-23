@@ -466,3 +466,26 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
   .screen-sub { margin-left: 0; width: 100%; }
   .compendium-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
 }
+
+/* ── 덱 인스펙터 (현황 → 덱/뽑을/버린 더미 확인) ── */
+.deck-inspect-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; padding: 11px; }
+.deck-inspect-btn small { color: var(--muted); font-weight: 700; font-size: 10px; }
+.deck-modal { width: min(920px, 100%); }
+.deck-piles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 8px 0 14px; }
+.deck-pile { border: 1px solid var(--line); border-radius: 12px; background: #0d1714cc; overflow: hidden; }
+.deck-pile-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line-soft); background: #111d19; }
+.deck-pile-head strong { font-size: 13px; }
+.deck-pile-head b { color: var(--gold-2); font-size: 12px; }
+.deck-pile-empty { margin: 0; padding: 22px 12px; color: var(--faint); font-size: 11px; text-align: center; }
+.deck-pile .deck-list { max-height: 340px; margin-bottom: 0; }
+.deck-list-row { display: grid; grid-template-columns: 6px 1fr auto; align-items: center; gap: 9px; padding: 8px 10px; border-bottom: 1px solid var(--line-soft); }
+.deck-list-row:last-child { border-bottom: 0; }
+.deck-list-row strong, .deck-list-row small { display: block; }
+.deck-list-row strong { font-size: 11px; }
+.deck-list-row small { margin-top: 2px; color: var(--muted); font-size: 9px; }
+.deck-list-row b { color: var(--gold-2); font-size: 11px; }
+
+@media (max-width: 720px) {
+  .deck-piles { grid-template-columns: 1fr; }
+  .deck-pile .deck-list { max-height: 220px; }
+}

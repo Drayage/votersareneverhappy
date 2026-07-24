@@ -161,6 +161,5 @@
   {"id": "souvenir_street", "name": "기념품 거리", "type": "score", "tags": ["tourism"], "cost": 4, "tier": "A", "text": "손패 사용 불가. 정산: +9점(고정)", "deadInHand": true, "settlement": [{"kind": "gainScore", "amount": 9}]},
   {"id": "world_heritage", "name": "세계문화유산", "type": "score", "tags": ["tourism"], "cost": 7, "tier": "S", "text": "손패 사용 불가. 정산: 관광 카드당 +3점", "deadInHand": true, "settlement": [{"kind": "settlementPerTag", "tag": "tourism", "points": 3}]},
   {"id": "night_school", "name": "야학당", "type": "action", "tags": ["education"], "cost": 3, "tier": "A", "text": "+1드로우. 정산: 학습 레벨 1당 +1점", "onPlay": [{"kind": "gainDraw", "amount": 1}], "settlement": [{"kind": "settlementEduLevel", "points": 1}]},
-  {"id": "research_university", "name": "연구중심 대학", "type": "score", "tags": ["education"], "cost": 8, "tier": "S", "text": "손패 사용 불가. 정산: 학습 레벨 1당 +6점", "deadInHand": true, "settlement": [{"kind": "settlementEduLevel", "points": 6}]},
-  {"id": "basic_income", "name": "전국민 기본소득", "type": "score", "tags": ["welfare"], "cost": 7, "tier": "S", "text": "손패 사용 불가. 정산: 통과 목표의 10% 안정 세입", "deadInHand": true, "settlement": [{"kind": "settlementPctOfTarget", "pct": 0.1}]}
+  {"id": "research_university", "name": "연구중심 대학", "type": "score", "tags": ["education"], "cost": 8, "tier": "S", "text": "손패 사용 불가. 정산: 학습 레벨 1당 +6점", "deadInHand": true, "settlement": [{"kind": "settlementEduLevel", "points": 6}]}
 ]

@@ -276,6 +276,10 @@ export interface GameState {
   // tagChoices에서 고른 태그 — candidates가 해당 태그 카드로만 채워졌음을 표시(리롤 시에도 유지).
   candidateTagFilter: Tag | null;
 
+  // 시장에서 방금 내보낸(교체된) 카드의 재등장 쿨다운 — defId → 남은 후보 세트 수.
+  // 이 값이 0보다 크면 그 카드는 시장 진화 후보에 뜨지 않는다(방금 뺀 카드가 바로 다시 나오는 것 방지).
+  marketCooldown: Record<string, number>;
+
   relics: string[]; // relic defId — 영구 보유
 
   // 정책: 유물과 달리 영구가 아니라 "뽑은 다음 한 주기 동안만" 적용된다.

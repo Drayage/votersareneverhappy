@@ -19,6 +19,16 @@ import { generateCandidates, generateCandidatesForTag, pickTagChoices } from "./
 /** 주기당 카드 후보 대신 태그 3개를 먼저 고르게 하는 턴 (docs/05 §1.4) */
 const TAG_CHOICE_TURNS = new Set([1, 4]);
 
+/** 시장에서 내보낸 카드가 후보에서 제외되는 턴 수(방금 뺀 카드가 곧바로 다시 나오지 않게) */
+const MARKET_REMOVE_COOLDOWN = 2;
+
+/** 시장 쿨다운을 1씩 줄이고 0 이하가 된 항목은 제거해 새 객체로 반환 */
+function decayCooldown(cd: Record<string, number>): Record<string, number> {
+  const next: Record<string, number> = {};
+  for (const [id, n] of Object.entries(cd)) if (n - 1 > 0) next[id] = n - 1;
+  return next;
+}
+
 const clone = <T>(x: T): T => structuredClone(x);
 
 const STARTING_DECK: Array<[string, number]> = [
@@ -77,6 +87,7 @@ export function newGame(content: Content, seed = 1): GameState {
     rewardPolicyChoices: [],
     rewardRemovalDone: false,
     endless: false,
+    marketCooldown: {},
     lastSettlement: null,
     uidCounter: uid,
     log: [],
@@ -563,6 +574,8 @@ export function endTurn(prev: GameState, content: Content): GameState {
       s.candidateTagFilter = null;
       s.rngState = gen.rngState;
     }
+    // 이번 후보 세트를 뽑은 뒤 쿨다운 감소 — 방금 뺀 카드는 이번·다음 후보에서 제외되고 그 다음에 복귀
+    s.marketCooldown = decayCooldown(s.marketCooldown);
     s.phase = "candidate";
     return s;
   }
@@ -601,6 +614,12 @@ export function chooseCandidate(
       if (!removeId) return prev; // 포화 시 제거 대상 필수
       if (!s.market.some((m) => m.defId === removeId)) return prev;
       s.market = s.market.filter((m) => m.defId !== removeId);
+      s.marketCooldown = { ...s.marketCooldown, [removeId]: MARKET_REMOVE_COOLDOWN }; // 방금 뺀 카드 재등장 쿨다운
+    }
+    // 추가한 카드가 쿨다운 중이었다면 해제(다시 시장에 있으니 의미 없음)
+    if (s.marketCooldown[addId]) {
+      s.marketCooldown = { ...s.marketCooldown };
+      delete s.marketCooldown[addId];
     }
     s.market.push({ defId: addId, stock: CAPS.marketStock + s.evalIndex });
   }

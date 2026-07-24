@@ -77,7 +77,11 @@ export function generateCandidates(
 
   const inMarket = new Set(state.market.map((m) => m.defId));
   const pool = content.cardList.filter(
-    (c) => c.tier !== "start" && !inMarket.has(c.id) && !(banned && c.tags.includes(banned))
+    (c) =>
+      c.tier !== "start" &&
+      !inMarket.has(c.id) &&
+      !(banned && c.tags.includes(banned)) &&
+      !((state.marketCooldown[c.id] ?? 0) > 0) // 방금 시장에서 뺀 카드는 쿨다운 동안 제외
   );
 
   const chosen: string[] = [];
@@ -128,7 +132,9 @@ export function generateCandidates(
 export function pickTagChoices(state: GameState, content: Content): { tags: Tag[]; rngState: number } {
   const banned = activePolicyBan(state, content);
   const inMarket = new Set(state.market.map((m) => m.defId));
-  const pool = content.cardList.filter((c) => c.tier !== "start" && !inMarket.has(c.id));
+  const pool = content.cardList.filter(
+    (c) => c.tier !== "start" && !inMarket.has(c.id) && !((state.marketCooldown[c.id] ?? 0) > 0)
+  );
   const available = (ALL_TAGS as Tag[]).filter((t) => t !== banned && pool.some((c) => c.tags.includes(t)));
   const pickFrom = available.length >= 3 ? available : (ALL_TAGS as Tag[]).filter((t) => t !== banned);
   const sh = shuffle(pickFrom, state.rngState);
@@ -144,7 +150,7 @@ export function generateCandidatesForTag(
   if (activePolicyBan(state, content) === tag) return { candidates: [], rngState: state.rngState };
   const inMarket = new Set(state.market.map((m) => m.defId));
   const pool = content.cardList.filter(
-    (c) => c.tier !== "start" && !inMarket.has(c.id) && c.tags.includes(tag)
+    (c) => c.tier !== "start" && !inMarket.has(c.id) && c.tags.includes(tag) && !((state.marketCooldown[c.id] ?? 0) > 0)
   );
 
   const chosen: string[] = [];

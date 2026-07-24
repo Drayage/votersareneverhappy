@@ -150,7 +150,10 @@ function groupByDef(instances: GameState["deck"], content: Content): Array<[stri
   });
 }
 
+const DECK_TYPE_LABEL: Record<CardDef["type"], string> = { treasure: "재정", action: "액션", score: "사업" };
+
 function DeckPile({ title, count, instances, content }: { title: string; count: number; instances: GameState["deck"]; content: Content }) {
+  const [openId, setOpenId] = useState<string | null>(null);
   const groups = groupByDef(instances, content);
   return (
     <div className="deck-pile">
@@ -161,11 +164,22 @@ function DeckPile({ title, count, instances, content }: { title: string; count: 
           <div className="deck-list">
             {groups.map(([id, n]) => {
               const card = cardDef(content, id);
+              const open = openId === id;
               return (
-                <div key={id} className="deck-list-row">
-                  <span className={`deck-dot tone-${card.tags[0]}`} />
-                  <span><strong>{card.name}</strong><small>{card.tags.map((t) => TAG_LABELS[t]).join(" · ")}</small></span>
-                  <b>×{n}</b>
+                <div key={id} className="deck-list-item">
+                  <button type="button" className="deck-list-row" onClick={() => setOpenId(open ? null : id)} aria-expanded={open}>
+                    <span className={`deck-dot tone-${card.tags[0]}`} />
+                    <span className="dl-main">
+                      <strong>{card.name}</strong>
+                      <span className="dl-chips">
+                        <span className={`dl-type dl-type-${card.type}`}>{DECK_TYPE_LABEL[card.type]}</span>
+                        {card.tags.map((t) => <span key={t} className={`dl-tag tone-${t}`}>{TAG_LABELS[t]}</span>)}
+                        {card.deadInHand && <span className="dl-type dl-type-dead">정산전용</span>}
+                      </span>
+                    </span>
+                    <b>×{n}</b>
+                  </button>
+                  {open && <div className="deck-list-detail"><span className="dl-cost">{card.costResearch ? `🔬${card.costResearch}` : `₩${card.cost}`}</span> {card.text}</div>}
                 </div>
               );
             })}

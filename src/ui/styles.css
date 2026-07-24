@@ -478,12 +478,22 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
 .deck-pile-head b { color: var(--gold-2); font-size: 12px; }
 .deck-pile-empty { margin: 0; padding: 22px 12px; color: var(--faint); font-size: 11px; text-align: center; }
 .deck-pile .deck-list { max-height: 340px; margin-bottom: 0; }
-.deck-list-row { display: grid; grid-template-columns: 6px 1fr auto; align-items: center; gap: 9px; padding: 8px 10px; border-bottom: 1px solid var(--line-soft); }
-.deck-list-row:last-child { border-bottom: 0; }
-.deck-list-row strong, .deck-list-row small { display: block; }
-.deck-list-row strong { font-size: 11px; }
-.deck-list-row small { margin-top: 2px; color: var(--muted); font-size: 9px; }
-.deck-list-row b { color: var(--gold-2); font-size: 11px; }
+.deck-list-item { border-bottom: 1px solid var(--line-soft); }
+.deck-list-item:last-child { border-bottom: 0; }
+.deck-list-row { width: 100%; display: grid; grid-template-columns: 6px 1fr auto; align-items: center; gap: 9px; padding: 8px 10px; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.deck-list-row:hover { background: #17231e; }
+.deck-list-row strong { display: block; font-size: 11px; }
+.deck-list-row b { color: var(--gold-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+.dl-main { min-width: 0; }
+.dl-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.dl-tag { --tone: #71817b; padding: 1px 6px; border-radius: 99px; font-size: 8px; font-weight: 800; color: color-mix(in srgb, var(--tone) 88%, #fff); background: color-mix(in srgb, var(--tone) 20%, #0c1512); border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent); }
+.dl-type { padding: 1px 6px; border-radius: 99px; font-size: 8px; font-weight: 900; }
+.dl-type-treasure { color: #241a08; background: var(--gold); }
+.dl-type-action { color: #0b1a2e; background: #79aefc; }
+.dl-type-score { color: #102019; background: var(--mint); }
+.dl-type-dead { color: #eadfd0; background: #3a2f22; border: 1px solid #5a4a34; }
+.deck-list-detail { padding: 4px 12px 10px 25px; color: var(--muted); font-size: 10.5px; line-height: 1.5; word-break: keep-all; }
+.dl-cost { color: var(--gold-2); font-weight: 800; }
 
 @media (max-width: 720px) {
   .deck-piles { grid-template-columns: 1fr; }

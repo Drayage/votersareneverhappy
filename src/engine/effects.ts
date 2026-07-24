@@ -79,22 +79,26 @@ export function computeTriggerScore(
   content: Content,
   playedTags: Tag[],
   playedType: CardType
-): { score: number; fires: Record<string, number> } {
+): { score: number; budget: number; fires: Record<string, number> } {
   const fires: Record<string, number> = {};
   let score = 0;
-  if (playedType === "treasure") return { score, fires };
+  let budget = 0;
+  if (playedType === "treasure") return { score, budget, fires };
   const perSource = CAPS.triggerPerSource + extraTriggerCap(state, content);
 
-  const tally = (key: string, pts: number) => {
+  // 소스당 상한 소모. pts/bud 중 발동한 쪽을 자원에 더한다(같은 소스는 상한을 공유).
+  const tally = (key: string, pts: number, bud: number) => {
     const used = (state.triggerFires[key] ?? 0) + (fires[key] ?? 0);
     if (used >= perSource) return;
     fires[key] = (fires[key] ?? 0) + 1;
     score += pts;
+    budget += bud;
   };
   const consider = (key: string, effs: Effect[] | undefined) => {
     if (!effs) return;
     for (const e of effs) {
-      if (e.kind === "onPlayTag" && playedTags.includes(e.tag)) tally(key, e.score);
+      if (e.kind === "onPlayTag" && playedTags.includes(e.tag)) tally(key, e.score, 0);
+      else if (e.kind === "onPlayTagBudget" && playedTags.includes(e.tag)) tally(key, 0, e.budget);
     }
   };
 
@@ -102,15 +106,15 @@ export function computeTriggerScore(
   for (const id of state.relics) consider(`relic:${id}`, content.relics.get(id)?.trigger);
   for (const id of state.relics) {
     for (const e of content.relics.get(id)?.passive ?? []) {
-      if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`relicp:${id}`, e.score);
+      if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`relicp:${id}`, e.score, 0);
     }
   }
   for (const id of state.policies) {
     for (const e of content.policies.get(id)?.passive ?? []) {
-      if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`policy:${id}`, e.score);
+      if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`policy:${id}`, e.score, 0);
     }
   }
-  return { score, fires };
+  return { score, budget, fires };
 }
 
 /** 구매 시 발동하는 onBuyScore 트리거 합 (inPlay + relic) */

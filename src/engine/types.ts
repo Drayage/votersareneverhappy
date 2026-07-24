@@ -83,8 +83,13 @@ export type Effect =
   | { kind: "trashForBudget" }
   // 선택형(도박): 손패 카드 1장을 골라 덱 맨 위로 되돌린다. 그 카드가 tag를 가지면 즉시 +bonus점(아니면 0)
   | { kind: "topDeckGamble"; tag: Tag; bonus: number }
-  // 조건부 즉발 점수: 보유(덱 전체) 중인 tag 카드가 count장 이상이면 ifMet, 아니면 ifNot (하이리스크 조건형)
-  | { kind: "conditionalScore"; tag: Tag; count: number; ifMet: number; ifNot: number }
+  // 조건부 즉발 점수: scope 미지정/"owned"면 덱 전체 보유 tag 카드, "hand"면 손패의 tag 카드(이 카드 포함)가
+  // count장 이상이면 ifMet, 아니면 ifNot (하이리스크 조건형)
+  | { kind: "conditionalScore"; tag: Tag; count: number; ifMet: number; ifNot: number; scope?: "owned" | "hand" }
+  // 선택형: 손패 카드 1장을 골라 버리고(버린 더미로 감, 영구 제거 아님), 그 카드의 비용 × mult 만큼 점수
+  | { kind: "discardForCostScore"; mult: number }
+  // 즉발: 덱(뽑을 더미)에서 tag 카드를 최대 max장 찾아 손패로 가져오고, 가져온 수만큼 +예산 (주거 디그)
+  | { kind: "digTagForBudget"; tag: Tag; max: number }
   // 낡은 공약(정크) 카드를 count장 버린 더미에 추가 — 강력한 효과의 대가로 덱을 희석시키는 저주형 페널티
   | { kind: "gainCurse"; count: number }
   // 정책 전용: 이번 주기 정산 점수 전체에 곱연산(다른 정산 배수들과 별개로 최종 settlementScore에 적용)
@@ -101,6 +106,8 @@ export type Effect =
   | { kind: "extraTriggerCap"; amount: number }
   // 지속(트리거)
   | { kind: "onPlayTag"; tag: Tag; score: number }
+  // 지속 트리거(예산형): 재정 외 tag 카드를 낼 때마다 +budget예산 (관광안내소 등). onPlayTag와 같은 소스당 상한 공유
+  | { kind: "onPlayTagBudget"; tag: Tag; budget: number }
   | { kind: "onBuyScore"; score: number }
   // 정산
   | { kind: "settlementPerTag"; tag: Tag; points: number }
@@ -150,6 +157,7 @@ export type PendingChoice =
   | { kind: "trashForScore"; max: number }
   | { kind: "trashForDraw"; max: number }
   | { kind: "trashForBudget"; max: number }
+  | { kind: "discardForCostScore"; max: number; mult: number }
   | { kind: "topDeckGamble"; max: number; tag: Tag; bonus: number };
 
 /** 카드 정의 (data/cards.json 한 항목) */

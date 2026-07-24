@@ -139,6 +139,92 @@ describe("버리고 값 획득 (discardForScore / discardForBudget)", () => {
     expect(s.cyclePlayedTagCounts.pr).toBe(1);
   });
 
+  it("digTagForBudget(임대주택 단지): 덱에서 주거 최대 3장 손패로, 가져온 수만큼 예산", () => {
+    let s: GameState = newGame(content, 90);
+    s = {
+      ...s,
+      hand: [{ uid: 9600, defId: "rental_complex" }],
+      deck: [
+        { uid: 9601, defId: "public_housing" }, // residential
+        { uid: 9602, defId: "banner" }, // pr (안 가져와야)
+        { uid: 9603, defId: "small_park" }, // environment/residential
+        { uid: 9604, defId: "redevelopment" }, // residential/commerce
+        { uid: 9605, defId: "public_housing" }, // residential (max 3이라 이건 안 옴)
+      ],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+      budget: 0,
+    };
+    s = playCard(s, content, 9600);
+    expect(s.budget).toBe(3); // 주거 3장 가져옴
+    expect(s.hand.filter((c) => content.cards.get(c.defId)!.tags.includes("residential")).length).toBe(3);
+    expect(s.deck.some((c) => c.uid === 9602)).toBe(true); // banner는 덱에 남음
+    expect(s.deck.some((c) => c.uid === 9605)).toBe(true); // 4번째 주거는 안 가져옴(max 3)
+  });
+
+  it("discardForCostScore(선거대책본부): 버린 카드의 비용 ×3 점수, 카드는 버린 더미로(덱 유지)", () => {
+    let s: GameState = newGame(content, 91);
+    s = {
+      ...s,
+      hand: [
+        { uid: 9610, defId: "campaign_hq" },
+        { uid: 9611, defId: "subway" }, // cost 5
+      ],
+      deck: [],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+      cycleScore: 0,
+    };
+    s = playCard(s, content, 9610);
+    expect(s.pendingChoice?.kind).toBe("discardForCostScore");
+    s = resolveChoice(s, content, [9611]);
+    expect(s.cycleScore).toBe(15); // 5 × 3
+    expect(s.discard.some((c) => c.uid === 9611)).toBe(true); // 영구 제거 아님 — 버린 더미로
+  });
+
+  it("conditionalScore scope=hand(관광 벨트 확장): 손패 관광 3장 이상이면 대박", () => {
+    let s: GameState = newGame(content, 92);
+    s = {
+      ...s,
+      hand: [
+        { uid: 9620, defId: "tourism_belt_expand" }, // tourism (이 카드 포함)
+        { uid: 9621, defId: "tourist_info_center" }, // tourism
+        { uid: 9622, defId: "landmark" }, // tourism/culture
+      ],
+      deck: [],
+      discard: [],
+      inPlay: [],
+      actions: 1,
+      cycleScore: 0,
+    };
+    s = playCard(s, content, 9620);
+    expect(s.cycleScore).toBe(26); // 손패 관광 3장(자신 포함) → ifMet
+
+    let s2: GameState = newGame(content, 93);
+    s2 = { ...s2, hand: [{ uid: 9630, defId: "tourism_belt_expand" }], deck: [], discard: [], inPlay: [], actions: 1, cycleScore: 0 };
+    s2 = playCard(s2, content, 9630);
+    expect(s2.cycleScore).toBe(4); // 손패 관광 1장 → ifNot
+  });
+
+  it("onPlayTagBudget(관광안내소): 지속 중 관광 카드 낼 때마다 예산 +1", () => {
+    let s: GameState = newGame(content, 94);
+    // 관광안내소를 inPlay에 지속 상태로 두고, 관광 카드를 내면 예산이 붙는지
+    s = {
+      ...s,
+      inPlay: [{ uid: 9640, defId: "tourist_info_center", persistLeft: 2 }],
+      hand: [{ uid: 9641, defId: "landmark" }], // 재정 외 관광
+      deck: [],
+      discard: [],
+      actions: 1,
+      budget: 0,
+      triggerFires: {},
+    };
+    s = playCard(s, content, 9641);
+    expect(s.budget).toBe(1); // 관광 카드 1장 냄 → +1예산
+  });
+
   it("선택 안 함(빈 배열)도 가능 — 아무것도 얻지 않는다", () => {
     let s: GameState = newGame(content, 66);
     s = { ...s, hand: [{ uid: 9850, defId: "emergency_clearance" }], deck: [], discard: [], inPlay: [], actions: 1, cycleScore: 0 };

@@ -210,6 +210,7 @@ const CHOICE_KINDS = [
   "trashForScore",
   "trashForDraw",
   "trashForBudget",
+  "discardForCostScore",
   "topDeckGamble",
 ] as const;
 
@@ -285,8 +286,27 @@ function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
         s.pendingChoice = { kind: "topDeckGamble", max: 1, tag: e.tag, bonus: e.bonus };
         break;
       case "conditionalScore": {
-        const owned = tagCounts(s, content)[e.tag] ?? 0;
-        baseScore += owned >= e.count ? e.ifMet : e.ifNot;
+        // scope="hand"면 손패의 tag 카드 수(이 카드는 아직 손패에 있으므로 포함), 아니면 덱 전체 보유 수
+        const n =
+          e.scope === "hand"
+            ? s.hand.reduce((a, c) => a + (content.cards.get(c.defId)?.tags.includes(e.tag) ? 1 : 0), 0)
+            : tagCounts(s, content)[e.tag] ?? 0;
+        baseScore += n >= e.count ? e.ifMet : e.ifNot;
+        break;
+      }
+      case "discardForCostScore":
+        s.pendingChoice = { kind: "discardForCostScore", max: 1, mult: e.mult };
+        break;
+      case "digTagForBudget": {
+        // 뽑을 더미에서 tag 카드를 최대 max장 찾아 손패로. 가져온 수만큼 +예산.
+        let dug = 0;
+        for (let i = 0; i < s.deck.length && dug < e.max; ) {
+          if (content.cards.get(s.deck[i].defId)?.tags.includes(e.tag)) {
+            s.hand.push(s.deck.splice(i, 1)[0]);
+            dug++;
+          } else i++;
+        }
+        s.budget += dug;
         break;
       }
       case "gainCurse":
@@ -323,11 +343,12 @@ function applyPlayEffects(s: GameState, content: Content, def: CardDef): void {
     }
   }
 
-  // 2) 지속 트리거 점수 (자기 자신 제외 — 아직 inPlay 미추가. 재물 플레이는 미발동)
+  // 2) 지속 트리거 점수/예산 (자기 자신 제외 — 아직 inPlay 미추가. 재물 플레이는 미발동)
   const trig = computeTriggerScore(s, content, def.tags as Tag[], def.type);
   for (const [key, n] of Object.entries(trig.fires)) {
     s.triggerFires[key] = (s.triggerFires[key] ?? 0) + n;
   }
+  s.budget += trig.budget; // onPlayTagBudget(관광안내소 등) — 예산형 트리거는 배수 미적용
 
   // 3) 배수 적용 후 점수 적립
   const mult = tagMultiplier(s, def.tags as Tag[]);
@@ -415,6 +436,16 @@ export function resolveChoice(prev: GameState, content: Content, uids: number[])
       s.discard.push(s.hand.splice(i, 1)[0]);
     }
     s.cycleScore += uids.length;
+  } else if (pending.kind === "discardForCostScore") {
+    // 고른 카드를 버린 더미로(영구 제거 아님) 보내고, 그 카드 비용 × mult 만큼 점수
+    let gained = 0;
+    for (const u of uids) {
+      const i = s.hand.findIndex((c) => c.uid === u);
+      const card = s.hand.splice(i, 1)[0];
+      gained += (content.cards.get(card.defId)?.cost ?? 0) * pending.mult;
+      s.discard.push(card);
+    }
+    s.cycleScore += gained;
   } else if (pending.kind === "discardForBudget") {
     const per = pending.per ?? 1;
     let gained = 0;

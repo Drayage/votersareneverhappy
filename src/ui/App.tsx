@@ -29,8 +29,11 @@ function comboPreview(card: CardDef, state: GameState, content: Content): number
       total += Math.min(e.cap, (state.playedTagCounts[e.tag] ?? 0) * e.points);
       has = true;
     } else if (e.kind === "conditionalScore") {
-      const owned = tagCounts(state, content)[e.tag] ?? 0;
-      total += owned >= e.count ? e.ifMet : e.ifNot;
+      const n =
+        e.scope === "hand"
+          ? state.hand.reduce((a, c) => a + (cardDef(content, c.defId).tags.includes(e.tag) ? 1 : 0), 0)
+          : tagCounts(state, content)[e.tag] ?? 0;
+      total += n >= e.count ? e.ifMet : e.ifNot;
       has = true;
     }
   }
@@ -392,6 +395,7 @@ const CHOICE_EFFECT_KINDS: string[] = [
   "trashForScore",
   "trashForDraw",
   "trashForBudget",
+  "discardForCostScore",
   "topDeckGamble",
 ];
 
@@ -404,6 +408,7 @@ const CHOICE_META = {
   trashForScore: { kicker: "LIQUIDATION", title: "폐기할 카드 1장을 고르세요", desc: "고른 카드를 영구 제거하고, 그 카드의 비용만큼 점수를 얻습니다.", confirm: "폐기하고 점수 획득" },
   trashForDraw: { kicker: "ASSET SWAP", title: "폐기할 카드 1장을 고르세요", desc: "고른 카드를 영구 제거하고, 그 카드의 비용만큼 드로우합니다.", confirm: "폐기하고 드로우" },
   trashForBudget: { kicker: "REAL ESTATE", title: "폐기할 카드 1장을 고르세요", desc: "고른 카드를 영구 제거하고, 그 카드의 비용만큼 예산을 얻습니다.", confirm: "폐기하고 예산 획득" },
+  discardForCostScore: { kicker: "MEDIA BLITZ", title: "버릴 카드 1장을 고르세요", desc: "고른 카드를 버리고(덱에는 남음), 그 카드의 비용에 비례한 점수를 얻습니다.", confirm: "버리고 점수 획득" },
   topDeckGamble: { kicker: "GAMBLE", title: "덱 위로 되돌릴 카드 1장을 고르세요", desc: "고른 카드를 덱 맨 위로 되돌립니다.", confirm: "베팅" },
 } as const;
 
@@ -417,7 +422,9 @@ function ChoiceModal() {
       ? `${meta.desc} 그 카드가 ${TAG_LABELS[pending.tag]} 태그면 즉시 +${pending.bonus}점(아니면 없음).`
       : pending.kind === "discardForBudget" && pending.tag
         ? `고른 카드를 버리고(재드로우 없음), 버린 ${TAG_LABELS[pending.tag]} 카드 1장당 +${pending.per ?? 1}예산.`
-        : meta.desc;
+        : pending.kind === "discardForCostScore"
+          ? `고른 카드를 버리고(덱에는 남음), 그 카드의 비용 ×${pending.mult}만큼 점수를 얻습니다.`
+          : meta.desc;
   const toggle = (uid: number) => {
     setPicked((prev) => {
       if (prev.includes(uid)) return prev.filter((u) => u !== uid);

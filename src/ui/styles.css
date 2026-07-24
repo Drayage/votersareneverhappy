@@ -223,7 +223,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .button-wide { width: 100%; margin-top: 15px; }
 
 .mini-card-row { display: flex; gap: 7px; flex-wrap: wrap; }
-.mini-card { --tone: #71817b; display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid color-mix(in srgb, var(--tone) 45%, var(--line)); border-radius: 7px; background: #0c1613; }
+.mini-card { display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid color-mix(in srgb, var(--tone, #71817b) 45%, var(--line)); border-radius: 7px; background: #0c1613; }
 .mini-card strong { font-size: 10px; }
 .mini-card span { color: var(--muted); font-size: 8px; }
 .mini-card .persist-badge { padding: 2px 5px; border-radius: 4px; color: #c8f9e7; background: #17372b; font-size: 8px; font-style: normal; font-weight: 800; }
@@ -231,7 +231,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .profile-head strong { display: block; margin-top: 4px; font-family: Georgia, "Noto Serif KR", serif; font-size: 16px; }
 .identity-list { margin: 14px 0; }
 .identity-row { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line-soft); font-size: 11px; }
-.identity-rank { --tone: #71817b; width: 21px; height: 21px; display: grid; place-items: center; border-radius: 6px; color: #101916; background: var(--tone); font-size: 9px; font-weight: 950; }
+.identity-rank { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 6px; color: #101916; background: var(--tone, #71817b); font-size: 9px; font-weight: 950; }
 .identity-row strong { color: var(--tone); }
 .profile-facts { display: grid; gap: 6px; }
 .profile-facts span { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; }
@@ -247,7 +247,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .choice-label.danger span { color: white; background: #b44f48; }
 .choice-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 .tag-choice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.tag-choice-item { --tone: #71817b; min-height: 90px; padding: 14px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--tone) 55%, var(--line)); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--tone) 22%, #101a17), #101a17); color: var(--tone); font-family: Georgia, "Noto Serif KR", serif; font-size: 18px; font-weight: 800; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+.tag-choice-item { min-height: 90px; padding: 14px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--tone, #71817b) 55%, var(--line)); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--tone, #71817b) 22%, #101a17), #101a17); color: var(--tone, #71817b); font-family: Georgia, "Noto Serif KR", serif; font-size: 18px; font-weight: 800; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
 .tag-choice-item:hover { transform: translateY(-2px); box-shadow: 0 8px 20px #0004; }
 .compact-choices { grid-template-columns: repeat(5, minmax(130px, 1fr)); max-height: 330px; padding: 2px; overflow-y: auto; }
 .evaluation-modal, .end-modal { width: min(500px, 100%); text-align: center; }
@@ -280,14 +280,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .shop-item.gold .shop-role { color: var(--gold-2); }
 .shop-item.diamond .shop-role { color: #7fe0ee; }
 .shop-item.policy .shop-role { color: var(--mint); }
-.policy-tag-badge { --tone: #71817b; margin-left: 6px; padding: 1px 7px; border-radius: 99px; font-size: 9px; font-weight: 800; letter-spacing: 0; color: color-mix(in srgb, var(--tone) 90%, #fff); background: color-mix(in srgb, var(--tone) 22%, #0c1512); border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent); }
+.policy-tag-badge { margin-left: 6px; padding: 1px 7px; border-radius: 99px; font-size: 9px; font-weight: 800; letter-spacing: 0; color: color-mix(in srgb, var(--tone, #71817b) 90%, #fff); background: color-mix(in srgb, var(--tone, #71817b) 22%, #0c1512); border: 1px solid color-mix(in srgb, var(--tone, #71817b) 45%, transparent); }
 .shop-item h4 { margin: 5px 0; font-family: Georgia, "Noto Serif KR", serif; font-size: 15px; }
 .shop-item p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 .deck-list { max-height: 610px; overflow-y: auto; margin-bottom: 12px; }
 .deck-list button { display: grid; grid-template-columns: 6px 1fr auto; align-items: center; gap: 9px; width: 100%; padding: 9px 7px; border: 0; border-bottom: 1px solid var(--line-soft); text-align: left; background: transparent; cursor: pointer; }
 .deck-list button:hover:not(:disabled) { background: #1a2924; }
 .deck-list button:disabled { opacity: .4; cursor: not-allowed; }
-.deck-dot { --tone: #71817b; width: 5px; height: 28px; border-radius: 99px; background: var(--tone); }
+.deck-dot { width: 5px; height: 28px; border-radius: 99px; background: var(--tone, #71817b); }
 .deck-list strong, .deck-list small { display: block; }
 .deck-list strong { font-size: 10px; }
 .deck-list small { margin-top: 2px; color: var(--muted); font-size: 8px; }
@@ -488,7 +488,7 @@ footer { display: flex; justify-content: space-between; padding: 16px 3px 0; col
 .deck-list-row b { color: var(--gold-2); font-size: 11px; font-variant-numeric: tabular-nums; }
 .dl-main { min-width: 0; }
 .dl-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
-.dl-tag { --tone: #71817b; padding: 1px 6px; border-radius: 99px; font-size: 8px; font-weight: 800; color: color-mix(in srgb, var(--tone) 88%, #fff); background: color-mix(in srgb, var(--tone) 20%, #0c1512); border: 1px solid color-mix(in srgb, var(--tone) 40%, transparent); }
+.dl-tag { padding: 1px 6px; border-radius: 99px; font-size: 8px; font-weight: 800; color: color-mix(in srgb, var(--tone, #71817b) 88%, #fff); background: color-mix(in srgb, var(--tone, #71817b) 20%, #0c1512); border: 1px solid color-mix(in srgb, var(--tone, #71817b) 40%, transparent); }
 .dl-type { padding: 1px 6px; border-radius: 99px; font-size: 8px; font-weight: 900; }
 .dl-type-treasure { color: #241a08; background: var(--gold); }
 .dl-type-action { color: #0b1a2e; background: #79aefc; }

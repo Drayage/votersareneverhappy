@@ -1,8 +1,8 @@
 // 상태머신 — 모든 게임 진행 액션. 각 액션은 새 GameState 를 반환(불변 스타일).
-import type { CardDef, CardInstance, Content, GameState, Tag } from "./types";
+import type { CardDef, CardInstance, Content, GameState, RelicRarity, Tag } from "./types";
 import { ALL_TAGS } from "./types";
 import { CAPS, EVAL_TARGETS, targetFor, turnsFor } from "./caps";
-import { shuffle, nextInt } from "./rng";
+import { shuffle, nextInt, weightedPick } from "./rng";
 import {
   collectPassives,
   computeBuyTriggerScore,
@@ -676,10 +676,41 @@ function pickRandomN(s: GameState, ids: string[], n: number): string[] {
   return out;
 }
 
+/** 유물 희귀도별 등장 가중치 — 차수가 오를수록 상급 유물이 서서히 열린다.
+ *  브론즈는 항상 흔하고, 실버는 완만하게 늘고, 골드·다이아는 초반엔 거의 안 보이다가
+ *  후반 보상에서야 존재감이 생긴다(균등 추첨이던 이전엔 1차부터 다이아가 20%대로 나와 너무 강했다). */
+function relicRarityWeight(rarity: RelicRarity, evalIndex: number): number {
+  switch (rarity) {
+    case "bronze":
+      return 1.0;
+    case "silver":
+      return 0.5 + 0.25 * evalIndex;
+    case "gold":
+      return 0.12 + 0.18 * evalIndex;
+    case "diamond":
+      return 0.04 + 0.14 * evalIndex;
+  }
+}
+
+/** 가중치 기반 비복원 추출 (아이템별 가중치 배열, n개 고를 때까지 매번 재추첨). */
+function pickWeightedN(s: GameState, items: { id: string; w: number }[], n: number): string[] {
+  const pool = items.slice();
+  const out: string[] = [];
+  while (out.length < n && pool.length > 0) {
+    const weights = pool.map((x) => Math.max(0.0001, x.w));
+    const r = weightedPick(s.rngState, weights);
+    s.rngState = r.state;
+    out.push(pool.splice(r.index, 1)[0].id);
+  }
+  return out;
+}
+
 function generateRelicDraft(s: GameState, content: Content): void {
   const ownedRelics = new Set(s.relics);
-  const relicPool = content.relicList.filter((r) => !ownedRelics.has(r.id)).map((r) => r.id);
-  s.rewardRelicChoices = pickRandomN(s, relicPool, 3);
+  const relicPool = content.relicList
+    .filter((r) => !ownedRelics.has(r.id))
+    .map((r) => ({ id: r.id, w: relicRarityWeight(r.rarity, s.evalIndex) }));
+  s.rewardRelicChoices = pickWeightedN(s, relicPool, 3);
 }
 
 /** 태그형 정책의 대상 태그를 내 덱 구성 기준으로 굴린다. rng 소비. 없으면 null. */

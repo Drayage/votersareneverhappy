@@ -287,6 +287,8 @@ function PlayPhase() {
 
   const hasTreasure = state.hand.some((c) => cardDef(content, c.defId).type === "treasure");
   const displayHand = useMemo(() => sortHandForDisplay(state.hand, turnStartUids, content), [state.hand, turnStartUids, content]);
+  // 비용 기반 효과 카드(선거대책본부·자산 매각 등)를 들고 있으면 손패 전체에 비용을 표시.
+  const hasCostKeyCard = state.hand.some((c) => (cardDef(content, c.defId).onPlay ?? []).some((e) => COST_KEY_EFFECT_KINDS.includes(e.kind)));
   const projection = useMemo(() => computeSettlement(state, content), [state, content]);
   const affordableCards = state.market.filter((entry) => {
     const card = cardDef(content, entry.defId);
@@ -320,7 +322,7 @@ function PlayPhase() {
                 const card = cardDef(content, instance.defId);
                 const playCost = playCostOf(card);
                 const dead = card.deadInHand;
-                return <CardView key={instance.uid} card={card} onClick={() => play(instance.uid)} disabled={dead || state.actions < playCost} badge={dead ? "처리 불가" : state.actions < playCost ? "액션 부족" : "사용"} comboPreview={comboPreview(card, state, content)} settlementPreview={card.settlement?.length ? previewHandCardSettlementValue(state, content, instance.uid) : undefined} />;
+                return <CardView key={instance.uid} card={card} cost={hasCostKeyCard ? card.cost : undefined} onClick={() => play(instance.uid)} disabled={dead || state.actions < playCost} badge={dead ? "처리 불가" : state.actions < playCost ? "액션 부족" : "사용"} comboPreview={comboPreview(card, state, content)} settlementPreview={card.settlement?.length ? previewHandCardSettlementValue(state, content, instance.uid) : undefined} />;
               })}
               {state.hand.length === 0 && <EmptyState>처리할 안건이 없습니다. 시장에서 카드를 구매하거나 턴을 마감하세요.</EmptyState>}
             </div>
@@ -400,6 +402,10 @@ function EmptyState({ children }: { children: React.ReactNode }) {
   return <div className="empty-state">{children}</div>;
 }
 
+// 손패 카드의 "비용"에 비례해 효과를 주는 카드들 — 이런 카드를 들고 있으면
+// 손패/선택 화면에서 각 카드의 비용을 함께 보여줘야 어떤 카드를 버릴지 판단할 수 있다.
+const COST_KEY_EFFECT_KINDS: string[] = ["trashForScore", "trashForDraw", "trashForBudget", "discardForCostScore"];
+
 const CHOICE_EFFECT_KINDS: string[] = [
   "discardThenDraw",
   "trashFromHand",
@@ -459,7 +465,7 @@ function ChoiceModal() {
             const card = cardDef(content, instance.defId);
             // 두 번 사용: 사용 불가 카드·선택형 카드는 대상이 될 수 없다
             const invalid = pending.kind === "playTwice" && (card.deadInHand || (card.onPlay ?? []).some((e) => CHOICE_EFFECT_KINDS.includes(e.kind)));
-            return <CardView compact key={instance.uid} card={card} highlight={picked.includes(instance.uid)} disabled={invalid} onClick={() => toggle(instance.uid)} badge={picked.includes(instance.uid) ? "선택됨" : undefined} />;
+            return <CardView compact key={instance.uid} card={card} cost={COST_KEY_EFFECT_KINDS.includes(pending.kind) ? card.cost : undefined} highlight={picked.includes(instance.uid)} disabled={invalid} onClick={() => toggle(instance.uid)} badge={picked.includes(instance.uid) ? "선택됨" : undefined} />;
           })}
           {state.hand.length === 0 && <EmptyState>선택할 카드가 없습니다.</EmptyState>}
         </div>

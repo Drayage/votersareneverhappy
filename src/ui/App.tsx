@@ -3,7 +3,7 @@ import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
 import { PwaInstallButton } from "./PwaInstall";
 import type { CardDef, Content, GameState } from "../engine/types";
-import { TAG_LABELS } from "../engine/types";
+import { TAG_LABELS, ALL_TAGS } from "../engine/types";
 import { effectiveCost, playCostOf } from "../engine/effects";
 import { CAPS, EVAL_TARGETS, targetFor, turnsFor } from "../engine/caps";
 import {
@@ -721,9 +721,21 @@ function CompendiumScreen() {
   const relicSet = useMemo(() => new Set(discovered.relics), [discovered.relics]);
   const policySet = useMemo(() => new Set(discovered.policies), [discovered.policies]);
 
-  const cards = content.cardList;
-  const relics = content.relicList;
-  const policies = content.policyList;
+  // 도감 정렬: 카드=태그순(대표 태그), 유물=희귀도순(브론즈→다이아), 정책=태그없음→태그형 순.
+  const tagOrder = (t: string) => { const i = ALL_TAGS.indexOf(t as never); return i < 0 ? ALL_TAGS.length : i; };
+  const rarityOrder: Record<string, number> = { bronze: 0, silver: 1, gold: 2, diamond: 3 };
+  const cards = useMemo(
+    () => content.cardList.slice().sort((a, b) => tagOrder(a.tags[0]) - tagOrder(b.tags[0])),
+    [content.cardList]
+  );
+  const relics = useMemo(
+    () => content.relicList.slice().sort((a, b) => (rarityOrder[a.rarity] ?? 9) - (rarityOrder[b.rarity] ?? 9)),
+    [content.relicList]
+  );
+  const policies = useMemo(
+    () => content.policyList.slice().sort((a, b) => (a.target ? 1 : 0) - (b.target ? 1 : 0)),
+    [content.policyList]
+  );
   const cDone = cards.filter((c) => cardSet.has(c.id)).length;
   const rDone = relics.filter((r) => relicSet.has(r.id)).length;
   const pDone = policies.filter((p) => policySet.has(p.id)).length;

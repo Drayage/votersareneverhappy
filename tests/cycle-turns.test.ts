@@ -12,9 +12,9 @@ function atTurnEnd(evalIndex: number, turn: number): GameState {
   return { ...s, evalIndex, turn, hand: [], actions: 0, buys: 0 };
 }
 
-describe("주기별 턴 수 (CYCLE_TURNS: 9→8→8→8→8)", () => {
-  it("1차는 9턴, 2차부터는 8턴으로 고정된다", () => {
-    expect(CYCLE_TURNS).toEqual([9, 8, 8, 8, 8]);
+describe("주기별 턴 수 (CYCLE_TURNS: 9→8→7→6→5)", () => {
+  it("차수가 오를수록 턴 수가 1씩 줄어든다", () => {
+    expect(CYCLE_TURNS).toEqual([9, 8, 7, 6, 5]);
   });
 
   it("각 차수의 마지막 턴을 끝내면 평가로 전환된다", () => {

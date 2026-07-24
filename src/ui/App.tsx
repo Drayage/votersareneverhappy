@@ -638,17 +638,11 @@ function RewardPhase() {
         </>}
 
         {step === "removal" && <>
-          <div className="deck-list">
+          <div className="card-grid choice-grid">
             {[...counts.entries()].map(([id, count]) => {
               const instance = owned.find((card) => card.defId === id)!;
               const card = cardDef(content, id);
-              return (
-                <button key={id} onClick={() => removeCard(instance.uid)}>
-                  <span className={`deck-dot tone-${card.tags[0]}`} />
-                  <span><strong>{card.name}</strong><small>{card.tags.map((tag) => TAG_LABELS[tag]).join(" · ")}</small></span>
-                  <b>×{count}</b>
-                </button>
-              );
+              return <CardView compact key={id} card={card} cost={card.cost} onClick={() => removeCard(instance.uid)} badge={`보유 ×${count} · 제거`} />;
             })}
           </div>
           <div className="action-row"><button className="button button-secondary" onClick={skipRemoval}>건너뛰기</button></div>

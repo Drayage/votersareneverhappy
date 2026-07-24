@@ -59,7 +59,7 @@ describe("선택 시스템(pendingChoice)", () => {
       actions: 1,
     };
     s = playCard(s, content, 9610);
-    expect(s.pendingChoice).toEqual({ kind: "discardThenDraw", max: 9 });
+    expect(s.pendingChoice).toEqual({ kind: "discardThenDraw", max: 99 });
     expect(endTurn(s, content)).toBe(s); // 보류 중엔 턴 종료 불가
     expect(playCard(s, content, 9613)).toBe(s); // 보류 중엔 플레이 불가
 

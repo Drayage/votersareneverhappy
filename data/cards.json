@@ -91,7 +91,7 @@
   {"id": "mega_project", "name": "메가 프로젝트", "type": "score", "tags": ["industry", "admin"], "cost": 7, "tier": "S", "text": "사용(액션 2 소모): +32점. 환경 벌점 +2", "onPlay": [{"kind": "gainScore", "amount": 32}, {"kind": "pollution", "amount": 2}], "playCost": 2},
   {"id": "full_mobilization", "name": "총동원령", "type": "action", "tags": ["admin", "politics"], "cost": 6, "tier": "S", "text": "사용(액션 3 소모): +5드로우, +3예산", "onPlay": [{"kind": "gainDraw", "amount": 5}, {"kind": "gainBudget", "amount": 3}], "playCost": 3},
   {"id": "overtime_pay", "name": "잔업 수당", "type": "action", "tags": ["admin", "commerce"], "cost": 4, "tier": "A", "text": "남은 액션 1개당 +2예산", "onPlay": [{"kind": "budgetPerAction", "amount": 2}]},
-  {"id": "archive_sort", "name": "문서고 정리", "type": "action", "tags": ["admin"], "cost": 2, "tier": "B", "text": "+1액션. 손패에서 원하는 만큼 버리고, 버린 수만큼 드로우", "onPlay": [{"kind": "gainAction", "amount": 1}, {"kind": "discardThenDraw", "count": 9}]},
+  {"id": "archive_sort", "name": "문서고 정리", "type": "action", "tags": ["admin"], "cost": 2, "tier": "B", "text": "+1액션. 손패에서 원하는 만큼 버리고, 버린 수만큼 드로우", "onPlay": [{"kind": "gainAction", "amount": 1}, {"kind": "discardThenDraw", "count": 99}]},
   {"id": "audit", "name": "행정 감사", "type": "action", "tags": ["admin", "politics"], "cost": 3, "tier": "A", "text": "손패에서 최대 3장을 골라 폐기한다 (게임에서 영구 제거)", "onPlay": [{"kind": "trashFromHand", "count": 3}]},
   {"id": "double_stamp", "name": "이중 결재", "type": "action", "tags": ["admin"], "cost": 8, "tier": "S", "text": "손패의 카드 1장을 골라 두 번 사용한다", "onPlay": [{"kind": "playTwice"}]},
   {"id": "wharf", "name": "부두 정비", "type": "action", "tags": ["transport", "commerce"], "cost": 6, "tier": "A", "text": "+2드로우. (지속) 다음 턴에도 +2드로우", "onPlay": [{"kind": "gainDraw", "amount": 2}], "persistTurns": 2, "duration": [{"kind": "gainDraw", "amount": 2}]},
@@ -132,8 +132,8 @@
 
   {"id": "asset_liquidation", "name": "자산 매각", "type": "action", "tags": ["admin"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 폐기하고, 그 카드의 비용만큼 점수를 얻는다", "onPlay": [{"kind": "trashForScore"}]},
   {"id": "admin_asset_swap", "name": "행정 자산 재배치", "type": "action", "tags": ["admin"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 폐기하고, 그 카드의 비용만큼 드로우한다", "onPlay": [{"kind": "trashForDraw"}]},
-  {"id": "emergency_clearance", "name": "긴급 재고 정리", "type": "action", "tags": ["commerce"], "cost": 4, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 점수를 얻는다", "onPlay": [{"kind": "discardForScore", "max": 6}]},
-  {"id": "inventory_cashout", "name": "재고 현금화", "type": "action", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "손패를 원하는 만큼 버리고, 버린 상업 카드 1장당 +3예산", "onPlay": [{"kind": "discardForBudget", "max": 6, "tag": "commerce", "per": 3}]},
+  {"id": "emergency_clearance", "name": "긴급 재고 정리", "type": "action", "tags": ["commerce"], "cost": 4, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 점수를 얻는다", "onPlay": [{"kind": "discardForScore", "max": 99}]},
+  {"id": "inventory_cashout", "name": "재고 현금화", "type": "action", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "손패를 원하는 만큼 버리고, 버린 상업 카드 1장당 +3예산", "onPlay": [{"kind": "discardForBudget", "max": 99, "tag": "commerce", "per": 3}]},
   {"id": "blind_pledge", "name": "묻지마 공약", "type": "score", "tags": ["populism"], "cost": 4, "tier": "S", "text": "사용: +16점. 낡은 공약 카드 1장을 버린 더미에 추가한다", "onPlay": [{"kind": "gainScore", "amount": 16}, {"kind": "gainCurse", "count": 1}]},
   {"id": "blind_bet", "name": "묻지마 베팅", "type": "action", "tags": ["corruption"], "cost": 3, "tier": "A", "text": "손패 카드 1장을 골라 덱 맨 위로 되돌린다. 그 카드가 상업 카드면 즉시 +10점", "onPlay": [{"kind": "topDeckGamble", "tag": "commerce", "bonus": 10}]},
 
@@ -144,7 +144,7 @@
   {"id": "tourist_info_center", "name": "관광안내소", "type": "action", "tags": ["tourism"], "cost": 4, "tier": "A", "text": "+1예산. (지속 2턴) 재정 외 관광 카드를 낼 때마다 +1예산", "onPlay": [{"kind": "gainBudget", "amount": 1}], "trigger": [{"kind": "onPlayTagBudget", "tag": "tourism", "budget": 1}], "persistTurns": 2},
   {"id": "carbon_credit_sale", "name": "탄소배출권 판매", "type": "treasure", "tags": ["environment"], "cost": 3, "tier": "A", "text": "사용: +4예산. 환경 게이지 -1", "onPlay": [{"kind": "gainBudget", "amount": 4}, {"kind": "pollution", "amount": -1}]},
   {"id": "special_subsidy", "name": "특별교부금", "type": "treasure", "tags": ["populism"], "cost": 4, "tier": "A", "text": "사용: +5예산. 다음 평가 목표 +3%", "onPlay": [{"kind": "gainBudget", "amount": 5}, {"kind": "populismDebuff", "amount": 3}]},
-  {"id": "emergency_livelihood_aid", "name": "긴급 생계비 지원", "type": "action", "tags": ["welfare"], "cost": 3, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 예산을 얻는다", "onPlay": [{"kind": "discardForBudget", "max": 5}]},
+  {"id": "emergency_livelihood_aid", "name": "긴급 생계비 지원", "type": "action", "tags": ["welfare"], "cost": 3, "tier": "A", "text": "손패에서 원하는 만큼 버리고, 버린 수만큼 예산을 얻는다", "onPlay": [{"kind": "discardForBudget", "max": 99}]},
 
   {"id": "corner_shop", "name": "골목 상점", "type": "score", "tags": ["commerce"], "cost": 3, "tier": "A", "text": "손패 사용 불가. 정산: +13점(고정)", "deadInHand": true, "settlement": [{"kind": "gainScore", "amount": 13}]},
   {"id": "traditional_market", "name": "재래시장", "type": "action", "tags": ["commerce"], "cost": 4, "tier": "A", "text": "+1예산. 정산: 상업 카드당 +1점", "onPlay": [{"kind": "gainBudget", "amount": 1}], "settlement": [{"kind": "settlementPerTag", "tag": "commerce", "points": 1}]},

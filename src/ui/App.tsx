@@ -721,11 +721,11 @@ function CompendiumScreen() {
   const relicSet = useMemo(() => new Set(discovered.relics), [discovered.relics]);
   const policySet = useMemo(() => new Set(discovered.policies), [discovered.policies]);
 
-  // 도감 정렬: 카드=태그순(대표 태그), 유물=희귀도순(브론즈→다이아), 정책=태그없음→태그형 순.
+  // 도감 정렬: 카드=태그순(대표 태그)→같은 태그 내 비용순, 유물=희귀도순(브론즈→다이아), 정책=태그없음→태그형 순.
   const tagOrder = (t: string) => { const i = ALL_TAGS.indexOf(t as never); return i < 0 ? ALL_TAGS.length : i; };
   const rarityOrder: Record<string, number> = { bronze: 0, silver: 1, gold: 2, diamond: 3 };
   const cards = useMemo(
-    () => content.cardList.slice().sort((a, b) => tagOrder(a.tags[0]) - tagOrder(b.tags[0])),
+    () => content.cardList.slice().sort((a, b) => tagOrder(a.tags[0]) - tagOrder(b.tags[0]) || a.cost - b.cost),
     [content.cardList]
   );
   const relics = useMemo(

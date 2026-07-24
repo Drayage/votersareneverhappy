@@ -174,11 +174,12 @@ describe("버리고 값 획득 (discardForScore / discardForBudget)", () => {
       deck: [],
       discard: [],
       inPlay: [],
-      actions: 1,
+      actions: 2, // 선거대책본부는 액션 2 소모
       cycleScore: 0,
     };
     s = playCard(s, content, 9610);
     expect(s.pendingChoice?.kind).toBe("discardForCostScore");
+    expect(s.actions).toBe(0); // 액션 2 전부 소모
     s = resolveChoice(s, content, [9611]);
     expect(s.cycleScore).toBe(15); // 5 × 3
     expect(s.discard.some((c) => c.uid === 9611)).toBe(true); // 영구 제거 아님 — 버린 더미로

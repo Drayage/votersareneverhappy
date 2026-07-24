@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadContent } from "../src/content/loader";
-import { newGame, playCard, resolveChoice } from "../src/engine/game";
+import { newGame, playCard, resolveChoice, endTurn } from "../src/engine/game";
 import { ownedCards } from "../src/engine/settlement";
 import type { GameState } from "../src/engine/types";
 
@@ -205,7 +205,49 @@ describe("버리고 값 획득 (discardForScore / discardForBudget)", () => {
     let s2: GameState = newGame(content, 93);
     s2 = { ...s2, hand: [{ uid: 9630, defId: "tourism_belt_expand" }], deck: [], discard: [], inPlay: [], actions: 1, cycleScore: 0 };
     s2 = playCard(s2, content, 9630);
-    expect(s2.cycleScore).toBe(4); // 손패 관광 1장 → ifNot
+    expect(s2.cycleScore).toBe(8); // 손패 관광 1장 → ifNot(8)
+  });
+
+  it("onPlayAnyTagCount(정치 브리핑룸): 어떤 카드든(재정 포함) 낼 때 그 카드 태그 수만큼 점수", () => {
+    let s: GameState = newGame(content, 95);
+    s = {
+      ...s,
+      inPlay: [{ uid: 9650, defId: "political_briefing_room", persistLeft: 2 }],
+      hand: [
+        { uid: 9651, defId: "landmark" }, // tourism/culture = 2태그
+        { uid: 9652, defId: "tax_collect" }, // commerce 재정 = 1태그 (재정도 발동)
+      ],
+      deck: [],
+      discard: [],
+      actions: 1,
+      cycleScore: 0,
+      triggerFires: {},
+    };
+    s = playCard(s, content, 9651); // 2태그 → +2
+    expect(s.cycleScore).toBe(2);
+    s = playCard(s, content, 9652); // 재정 1태그 → +1 (재정 포함 발동)
+    expect(s.cycleScore).toBe(3);
+  });
+
+  it("onTurnEndHandScore(복지 네트워크): 턴 종료 시 손패에 남은 카드 수만큼 점수", () => {
+    let s: GameState = newGame(content, 96);
+    s = {
+      ...s,
+      inPlay: [{ uid: 9660, defId: "welfare_network", persistLeft: 2 }],
+      hand: [
+        { uid: 9661, defId: "banner" },
+        { uid: 9662, defId: "tax_collect" },
+        { uid: 9663, defId: "old_pledge" },
+      ],
+      deck: [],
+      discard: [],
+      turn: 1,
+      actions: 0,
+      buys: 0,
+      cycleScore: 0,
+    };
+    s = endTurn(s, content);
+    expect(s.cycleScore).toBe(3); // 손패 3장 남김 → +3
   });
 
   it("onPlayTagBudget(관광안내소): 지속 중 관광 카드 낼 때마다 예산 +1", () => {

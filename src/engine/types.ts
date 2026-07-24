@@ -108,6 +108,10 @@ export type Effect =
   | { kind: "onPlayTag"; tag: Tag; score: number }
   // 지속 트리거(예산형): 재정 외 tag 카드를 낼 때마다 +budget예산 (관광안내소 등). onPlayTag와 같은 소스당 상한 공유
   | { kind: "onPlayTagBudget"; tag: Tag; budget: number }
+  // 지속 트리거: 어떤 카드든(재정 포함) 낼 때마다 그 카드의 태그 수 × points 점수 (정치 브리핑룸)
+  | { kind: "onPlayAnyTagCount"; points: number }
+  // 지속 트리거(턴 종료): 턴이 끝날 때 손패에 남은(못 낸) 카드 1장당 +points 점수 (복지 네트워크)
+  | { kind: "onTurnEndHandScore"; points: number }
   | { kind: "onBuyScore"; score: number }
   // 정산
   | { kind: "settlementPerTag"; tag: Tag; points: number }

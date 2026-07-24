@@ -524,6 +524,14 @@ export function buyCard(prev: GameState, content: Content, defId: string): GameS
 export function endTurn(prev: GameState, content: Content): GameState {
   if (prev.phase !== "play" || prev.pendingChoice) return prev;
   const s = clone(prev);
+  // 턴 종료 트리거: 지속 카드의 onTurnEndHandScore — 손패를 버리기 전, 못 낸(들고 있던) 카드 수만큼 점수
+  //   (복지 네트워크: "손에 많이 들고 있었다 = 못 냈다"를 보상하는 안정형. 재정 포함 — 손패 전부 카운트)
+  const handHeld = s.hand.length;
+  for (const ci of s.inPlay) {
+    for (const e of content.cards.get(ci.defId)?.trigger ?? []) {
+      if (e.kind === "onTurnEndHandScore") s.cycleScore += handHeld * e.points;
+    }
+  }
   // 클린업 — (지속) 카드는 잔여 턴이 남아 있으면 플레이 영역에 유지
   const staying: CardInstance[] = [];
   for (const c of s.inPlay) {

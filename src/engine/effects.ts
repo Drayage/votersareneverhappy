@@ -83,7 +83,7 @@ export function computeTriggerScore(
   const fires: Record<string, number> = {};
   let score = 0;
   let budget = 0;
-  if (playedType === "treasure") return { score, budget, fires };
+  const isTreasure = playedType === "treasure";
   const perSource = CAPS.triggerPerSource + extraTriggerCap(state, content);
 
   // 소스당 상한 소모. pts/bud 중 발동한 쪽을 자원에 더한다(같은 소스는 상한을 공유).
@@ -97,21 +97,27 @@ export function computeTriggerScore(
   const consider = (key: string, effs: Effect[] | undefined) => {
     if (!effs) return;
     for (const e of effs) {
-      if (e.kind === "onPlayTag" && playedTags.includes(e.tag)) tally(key, e.score, 0);
+      // onPlayAnyTagCount는 재정 포함 모든 플레이에 발동(태그 수만큼). 그 외 태그 트리거는 재정 플레이 미발동.
+      if (e.kind === "onPlayAnyTagCount") tally(key, playedTags.length * e.points, 0);
+      else if (isTreasure) continue;
+      else if (e.kind === "onPlayTag" && playedTags.includes(e.tag)) tally(key, e.score, 0);
       else if (e.kind === "onPlayTagBudget" && playedTags.includes(e.tag)) tally(key, 0, e.budget);
     }
   };
 
   for (const ci of state.inPlay) consider(`card:${ci.uid}`, content.cards.get(ci.defId)?.trigger);
   for (const id of state.relics) consider(`relic:${id}`, content.relics.get(id)?.trigger);
-  for (const id of state.relics) {
-    for (const e of content.relics.get(id)?.passive ?? []) {
-      if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`relicp:${id}`, e.score, 0);
+  // triggerBonusTag(유물·정책 패시브)는 태그 트리거 — 재정 플레이엔 발동하지 않는다.
+  if (!isTreasure) {
+    for (const id of state.relics) {
+      for (const e of content.relics.get(id)?.passive ?? []) {
+        if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`relicp:${id}`, e.score, 0);
+      }
     }
-  }
-  for (const id of state.policies) {
-    for (const e of content.policies.get(id)?.passive ?? []) {
-      if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`policy:${id}`, e.score, 0);
+    for (const id of state.policies) {
+      for (const e of content.policies.get(id)?.passive ?? []) {
+        if (e.kind === "triggerBonusTag" && playedTags.includes(e.tag)) tally(`policy:${id}`, e.score, 0);
+      }
     }
   }
   return { score, budget, fires };

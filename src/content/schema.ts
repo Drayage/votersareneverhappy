@@ -39,6 +39,8 @@ const effectSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("extraTriggerCap"), amount: z.number().min(1) }),
   z.object({ kind: z.literal("onPlayTag"), tag: tagSchema, score: z.number() }),
   z.object({ kind: z.literal("onPlayTagBudget"), tag: tagSchema, budget: z.number() }),
+  z.object({ kind: z.literal("onPlayAnyTagCount"), points: z.number() }),
+  z.object({ kind: z.literal("onTurnEndHandScore"), points: z.number() }),
   z.object({ kind: z.literal("onBuyScore"), score: z.number() }),
   z.object({ kind: z.literal("settlementPerTag"), tag: tagSchema, points: z.number() }),
   z.object({ kind: z.literal("settlementPerDeck"), points: z.number() }),

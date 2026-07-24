@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
 import { PwaInstallButton } from "./PwaInstall";
@@ -284,6 +284,11 @@ function PlayPhase() {
   // 손패 소진 시 시장 탭으로 넘기는 자동 전환은 턴당 한 번만 — 이후 손패 탭으로
   // 직접 돌아오면(예: 빈 손패 확인) 다시 강제로 밀어내지 않는다.
   const [autoAdvancedToMarket, setAutoAdvancedToMarket] = useState(false);
+  // 자동 턴 마감이 예고 없이 즉시 일어나면 "카드 눌렀는데 턴이 갑자기 끝났다"처럼 느껴진다.
+  // 배너로 먼저 알리고 잠깐 대기한 뒤 마감한다 — 그 사이 취소는 없지만 최소한 원인은 보인다.
+  const [autoEndPending, setAutoEndPending] = useState(false);
+  const autoEndTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (autoEndTimer.current) clearTimeout(autoEndTimer.current); }, []);
 
   const hasTreasure = state.hand.some((c) => cardDef(content, c.defId).type === "treasure");
   const displayHand = useMemo(() => sortHandForDisplay(state.hand, turnStartUids, content), [state.hand, turnStartUids, content]);
@@ -306,10 +311,14 @@ function PlayPhase() {
   }, [state.hand.length, mobileTab, autoAdvancedToMarket]);
 
   // 시장 탭에서 구매를 다 쓰거나 살 수 있는 카드가 없으면(손패도 이미 빈 상태) 자동으로 턴 마감.
+  // 예고 없이 즉시 끝내면 혼란스러우니, 배너를 띄우고 잠깐 뒤에 마감한다.
   useEffect(() => {
     if (mobileTab !== "market" || state.hand.length > 0) return;
-    if (state.buys <= 0 || affordableCards === 0) endTurn();
-  }, [mobileTab, state.hand.length, state.buys, affordableCards, endTurn]);
+    if ((state.buys <= 0 || affordableCards === 0) && !autoEndPending) {
+      setAutoEndPending(true);
+      autoEndTimer.current = setTimeout(() => endTurn(), 900);
+    }
+  }, [mobileTab, state.hand.length, state.buys, affordableCards, autoEndPending, endTurn]);
 
   return (
     <div className="game-grid" data-tab={mobileTab}>
@@ -351,6 +360,11 @@ function PlayPhase() {
             <div className="wallet-stat"><span aria-hidden="true">＋</span><small>구매</small><strong>{state.buys}</strong></div>
             <div className={`wallet-status ${state.buys > 0 && affordableCards > 0 ? "is-ready" : ""}`}><span aria-hidden="true">●</span>{marketStatus}</div>
           </div>
+          {autoEndPending && (
+            <div className="auto-end-banner" role="status" aria-live="assertive">
+              낼 카드도 살 카드도 없어 잠시 후 턴을 자동으로 마감합니다…
+            </div>
+          )}
           <SectionTitle kicker="CITY SUPPLY" title={`정책 시장 ${state.market.length}/${state.marketSlots}`} note="예산으로 매입하면 버린 더미에 들어갑니다." />
           <div className="card-grid market-grid">
             {state.market.map((entry) => {

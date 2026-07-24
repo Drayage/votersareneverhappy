@@ -72,7 +72,6 @@ export function newGame(content: Content, seed = 1): GameState {
     policyHistory: [],
     pendingPolicyTag: null,
     activePolicyTag: null,
-    rewardPolicyTagChoicePending: false,
     gauges: { pollution: 0, corruption: 0, populismDebuff: 0 },
     eduLevel: 0,
     triggerFires: {},
@@ -85,6 +84,7 @@ export function newGame(content: Content, seed = 1): GameState {
     activeTargetBonusPct: 0,
     rewardRelicChoices: [],
     rewardPolicyChoices: [],
+    rewardPolicyChoiceTags: [],
     rewardRemovalDone: false,
     endless: false,
     marketCooldown: {},
@@ -682,10 +682,25 @@ function generateRelicDraft(s: GameState, content: Content): void {
   s.rewardRelicChoices = pickRandomN(s, relicPool, 3);
 }
 
+/** 태그형 정책의 대상 태그를 내 덱 구성 기준으로 굴린다. rng 소비. 없으면 null. */
+function rollPolicyTag(s: GameState, content: Content, target: "ownedTag" | "unownedTag" | undefined): Tag | null {
+  if (!target) return null;
+  const counts = tagCounts(s, content);
+  const owned = (ALL_TAGS as Tag[]).filter((t) => (counts[t] ?? 0) > 0);
+  const unowned = (ALL_TAGS as Tag[]).filter((t) => (counts[t] ?? 0) === 0);
+  const pool = target === "ownedTag" ? owned : unowned;
+  // 안 가진 태그가 없거나(전 태그 보유) 가진 태그가 없으면 전체에서 폴백
+  const from = pool.length > 0 ? pool : (ALL_TAGS as Tag[]);
+  const r = nextInt(s.rngState, from.length);
+  s.rngState = r.state;
+  return from[r.value];
+}
+
 function generatePolicyDraft(s: GameState, content: Content): void {
   const ownedPolicies = new Set(s.policies);
   const policyPool = content.policyList.filter((p) => !ownedPolicies.has(p.id)).map((p) => p.id);
   s.rewardPolicyChoices = pickRandomN(s, policyPool, 3);
+  s.rewardPolicyChoiceTags = s.rewardPolicyChoices.map((id) => rollPolicyTag(s, content, content.policies.get(id)?.target));
 }
 
 /** 유물뽑기: 3개 중 1택, 1회. 거부 불가(강제 선택) — 단, 후보가 없으면(모두 보유) 자동으로 넘어간다. */
@@ -700,23 +715,16 @@ export function pickRewardRelic(prev: GameState, _content: Content, id: string):
 /** 정책뽑기: 3개 중 1택, 1회. 유물뽑기가 끝난 뒤에만 가능.
  *  유물과 달리 즉시 발효되지 않는다 — 다음 주기 시작(startCycle) 때 policies로 편입되어
  *  "그 한 주기 동안만" 적용되고, 그다음 주기에는 사라진다. */
-export function pickRewardPolicy(prev: GameState, content: Content, id: string): GameState {
+export function pickRewardPolicy(prev: GameState, _content: Content, id: string): GameState {
   if (prev.phase !== "reward" || prev.rewardRelicChoices.length > 0) return prev;
-  if (!prev.rewardPolicyChoices.includes(id)) return prev;
+  const idx = prev.rewardPolicyChoices.indexOf(id);
+  if (idx < 0) return prev;
   const s = clone(prev);
   s.pendingPolicy = id;
+  // 드래프트 때 미리 굴려둔 대상 태그를 그대로 편입 대기(태그형이 아니면 null)
+  s.pendingPolicyTag = prev.rewardPolicyChoiceTags[idx] ?? null;
   s.rewardPolicyChoices = [];
-  // 태그선택형 정책(needsTagChoice)이면 태그를 고를 때까지 카드 정비/다음 주기 진행을 막는다.
-  s.rewardPolicyTagChoicePending = content.policies.get(id)?.needsTagChoice === true;
-  return s;
-}
-
-/** 태그선택형 정책(needsTagChoice)의 적용 대상 태그를 고른다. 정책을 고른 직후에만 가능. */
-export function pickRewardPolicyTag(prev: GameState, _content: Content, tag: Tag): GameState {
-  if (prev.phase !== "reward" || !prev.rewardPolicyTagChoicePending) return prev;
-  const s = clone(prev);
-  s.pendingPolicyTag = tag;
-  s.rewardPolicyTagChoicePending = false;
+  s.rewardPolicyChoiceTags = [];
   return s;
 }
 
@@ -726,7 +734,6 @@ export function removeRewardCard(prev: GameState, _content: Content, uid: number
   if (
     prev.rewardRelicChoices.length > 0 ||
     prev.rewardPolicyChoices.length > 0 ||
-    prev.rewardPolicyTagChoicePending ||
     prev.rewardRemovalDone
   ) {
     return prev;
@@ -753,7 +760,6 @@ export function skipRewardRemoval(prev: GameState): GameState {
   if (
     prev.rewardRelicChoices.length > 0 ||
     prev.rewardPolicyChoices.length > 0 ||
-    prev.rewardPolicyTagChoicePending ||
     prev.rewardRemovalDone
   ) {
     return prev;
@@ -808,7 +814,6 @@ export function nextCycle(prev: GameState, content: Content): GameState {
   if (
     prev.rewardRelicChoices.length > 0 ||
     prev.rewardPolicyChoices.length > 0 ||
-    prev.rewardPolicyTagChoicePending ||
     !prev.rewardRemovalDone
   ) {
     return prev;

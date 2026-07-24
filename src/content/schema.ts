@@ -32,6 +32,8 @@ const effectSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("gainCurse"), count: z.number().min(1) }),
   z.object({ kind: z.literal("settlementScoreMult"), mult: z.number().min(0) }),
   z.object({ kind: z.literal("activeTagScoreMult"), mult: z.number().min(0) }),
+  z.object({ kind: z.literal("activeTagSettlementMult"), mult: z.number().min(0) }),
+  z.object({ kind: z.literal("activeTagCostReduction"), amount: z.number().min(1) }),
   z.object({ kind: z.literal("activeTagMarketBoost"), weight: z.number().min(1) }),
   z.object({ kind: z.literal("activeTagMarketBan") }),
   z.object({ kind: z.literal("settlementPerPlays"), tag: tagSchema.optional(), points: z.number().min(0), cap: z.number().min(0) }),
@@ -110,7 +112,7 @@ export const policySchema = z.object({
   price: z.number().min(0),
   passive: z.array(effectSchema).optional(),
   settlement: z.array(effectSchema).optional(),
-  needsTagChoice: z.boolean().optional(),
+  target: z.enum(["ownedTag", "unownedTag"]).optional(),
 });
 
 export const cardsFileSchema = z.array(cardSchema);

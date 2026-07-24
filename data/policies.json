@@ -1,18 +1,12 @@
 [
-  { "id": "p_extra_budget", "name": "예산 확충 조례", "text": "이번 주기 동안 매 턴 +5예산", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 5 }] },
-  { "id": "p_extra_action", "name": "행정 권한 강화", "text": "이번 주기 동안 매 턴 +2액션", "price": 200, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 2 }] },
-  { "id": "p_no_penalty", "name": "공약 면책 특례", "text": "이번 주기 동안 점수 카드 손패 패널티 철폐", "price": 150, "passive": [{ "kind": "removeScorePenalty" }] },
-  { "id": "p_market_slot", "name": "광역시 승격", "text": "이번 주기 동안 시장 슬롯 +2", "price": 250, "passive": [{ "kind": "extraMarketSlot", "amount": 2 }] },
-  { "id": "p_citizen_budget", "name": "시민참여 예산제", "text": "이번 주기 동안 재정 외 행정 카드를 낼 때마다 +3점", "price": 180, "passive": [{ "kind": "triggerBonusTag", "tag": "admin", "score": 3 }] },
-  { "id": "p_culture_city", "name": "문화도시 특별법", "text": "이번 주기 정산: 문화 카드당 +3점", "price": 180, "settlement": [{ "kind": "settlementPerTag", "tag": "culture", "points": 3 }] },
-  { "id": "p_welfare_state", "name": "복지도시 조례", "text": "이번 주기 정산: 통과 목표의 25% 안정 세입", "price": 180, "settlement": [{ "kind": "settlementPctOfTarget", "pct": 0.25 }] },
-  { "id": "p_broadcast", "name": "시정 방송국", "text": "이번 주기 동안 트리거 소스 1개당 턴 발동 +2회", "price": 220, "passive": [{ "kind": "extraTriggerCap", "amount": 2 }] },
-  { "id": "p_night_ops", "name": "야간 행정 조례", "text": "이번 주기 동안 매 턴 +2액션, +2드로우", "price": 240, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 2 }, { "kind": "passivePerTurn", "resource": "draw", "amount": 2 }] },
-  { "id": "p_green_belt", "name": "그린벨트 지정", "text": "이번 주기 동안 매 턴 환경 게이지 -3", "price": 180, "passive": [{ "kind": "pollution", "amount": -3 }] },
-  { "id": "p_emergency_fund", "name": "비상 재정명령", "text": "이번 주기 동안 매 턴 +4예산, +1구매", "price": 220, "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 4 }, { "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] },
+  { "id": "p_budget", "name": "예산 편성", "text": "이번 주기 동안 매 턴 +1예산", "price": 100, "passive": [{ "kind": "passivePerTurn", "resource": "budget", "amount": 1 }] },
+  { "id": "p_draw", "name": "행정 간소화", "text": "이번 주기 동안 매 턴 +1드로우", "price": 100, "passive": [{ "kind": "passivePerTurn", "resource": "draw", "amount": 1 }] },
+  { "id": "p_action", "name": "권한 위임", "text": "이번 주기 동안 매 턴 +1액션", "price": 100, "passive": [{ "kind": "passivePerTurn", "resource": "action", "amount": 1 }] },
+  { "id": "p_buy", "name": "조달 확대", "text": "이번 주기 동안 매 턴 +1구매", "price": 100, "passive": [{ "kind": "passivePerTurn", "resource": "buy", "amount": 1 }] },
 
-  { "id": "p_settlement_allin", "name": "정산 총력전", "text": "이번 주기 정산 점수 전체 ×1.5", "price": 260, "settlement": [{ "kind": "settlementScoreMult", "mult": 1.5 }] },
-  { "id": "p_tag_focus", "name": "선택 태그 집중 육성", "text": "태그 하나를 선택. 이번 주기 동안 그 태그 점수 ×1.5", "price": 220, "needsTagChoice": true, "passive": [{ "kind": "activeTagScoreMult", "mult": 1.5 }] },
-  { "id": "p_tag_market_surge", "name": "선택 태그 시장 점령", "text": "태그 하나를 선택. 이번 주기 동안 시장 진화 후보에 그 태그가 압도적으로 자주 등장", "price": 220, "needsTagChoice": true, "passive": [{ "kind": "activeTagMarketBoost", "weight": 12 }] },
-  { "id": "p_tag_market_ban", "name": "선택 태그 시장 봉쇄", "text": "태그 하나를 선택. 이번 주기 동안 시장 진화 후보에 그 태그 카드가 전혀 등장하지 않음", "price": 200, "needsTagChoice": true, "passive": [{ "kind": "activeTagMarketBan" }] }
+  { "id": "p_tag_ban", "name": "분야 정리", "text": "이번 주기 동안 지정 태그 카드가 시장 후보에 나오지 않음", "price": 120, "target": "unownedTag", "passive": [{ "kind": "activeTagMarketBan" }] },
+  { "id": "p_tag_boost", "name": "분야 육성", "text": "이번 주기 동안 지정 태그 카드가 시장 후보에 자주 등장", "price": 120, "target": "ownedTag", "passive": [{ "kind": "activeTagMarketBoost", "weight": 4 }] },
+  { "id": "p_tag_discount", "name": "분야 보조금", "text": "이번 주기 동안 지정 태그 카드 구매 비용 -1", "price": 120, "target": "ownedTag", "passive": [{ "kind": "activeTagCostReduction", "amount": 1 }] },
+  { "id": "p_tag_playmult", "name": "분야 집중", "text": "이번 주기 동안 지정 태그 플레이 점수 ×1.5", "price": 150, "target": "ownedTag", "passive": [{ "kind": "activeTagScoreMult", "mult": 1.5 }] },
+  { "id": "p_tag_settlemult", "name": "분야 결산", "text": "이번 주기 동안 지정 태그 정산 점수 ×1.5", "price": 150, "target": "ownedTag", "passive": [{ "kind": "activeTagSettlementMult", "mult": 1.5 }] }
 ]

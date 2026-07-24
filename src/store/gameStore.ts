@@ -45,7 +45,6 @@ interface Store {
   confirmEvaluation: () => void;
   pickRelic: (id: string) => void;
   pickPolicy: (id: string) => void;
-  pickPolicyTag: (tag: Tag) => void;
   removeCard: (uid: number) => void;
   skipRemoval: () => void;
   rerollRelics: () => void;
@@ -167,7 +166,6 @@ export const useGame = create<Store>((set) => {
     confirmEvaluation: () => apply((st) => G.confirmEvaluation(st, content)),
     pickRelic: (id) => apply((st) => G.pickRewardRelic(st, content, id)),
     pickPolicy: (id) => apply((st) => G.pickRewardPolicy(st, content, id)),
-    pickPolicyTag: (tag) => apply((st) => G.pickRewardPolicyTag(st, content, tag)),
     removeCard: (uid) => apply((st) => G.removeRewardCard(st, content, uid)),
     skipRemoval: () => apply((st) => G.skipRewardRemoval(st)),
     rerollRelics: () => apply((st) => G.rerollRewardRelics(st, content)),

@@ -3,9 +3,16 @@ import { loadContent } from "../src/content/loader";
 import { newGame } from "../src/engine/game";
 import { computeTriggerScore } from "../src/engine/effects";
 import { CAPS } from "../src/engine/caps";
-import type { GameState } from "../src/engine/types";
+import type { Content, GameState, PolicyDef } from "../src/engine/types";
 
 const content = loadContent();
+
+/** 지정 태그 트리거 보너스를 주는 정책을 임시로 끼운 content를 만든다(엔진 메커니즘 검증용). */
+function withPolicy(def: PolicyDef): Content {
+  const policies = new Map(content.policies);
+  policies.set(def.id, def);
+  return { ...content, policies };
+}
 
 describe("무한콤보 안전장치", () => {
   it("지속 트리거는 소스당 턴 CAPS.triggerPerSource 회로 제한된다", () => {
@@ -41,12 +48,19 @@ describe("무한콤보 안전장치", () => {
   });
 
   it("정책의 태그 보너스도 자기 소스당 상한을 따른다", () => {
+    const c2 = withPolicy({
+      id: "p_trigger_test",
+      name: "테스트 정책",
+      text: "행정 트리거 +3",
+      price: 100,
+      passive: [{ kind: "triggerBonusTag", tag: "admin", score: 3 }],
+    });
     const s: GameState = newGame(content, 2);
-    s.policies = ["p_citizen_budget"];
-    const r = computeTriggerScore(s, content, ["admin"], "action");
-    expect(r.score).toBe(3); // 이번 주기 한정 정책으로 강화된 값(+1 → +3)
+    s.policies = ["p_trigger_test"];
+    const r = computeTriggerScore(s, c2, ["admin"], "action");
+    expect(r.score).toBe(3); // 정책 태그 트리거 발동
     // 이미 상한까지 발동했다면 무반응
-    s.triggerFires = { "policy:p_citizen_budget": CAPS.triggerPerSource };
-    expect(computeTriggerScore(s, content, ["admin"], "action").score).toBe(0);
+    s.triggerFires = { "policy:p_trigger_test": CAPS.triggerPerSource };
+    expect(computeTriggerScore(s, c2, ["admin"], "action").score).toBe(0);
   });
 });

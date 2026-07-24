@@ -279,6 +279,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--gold-2); ou
 .shop-item.gold .shop-role { color: var(--gold-2); }
 .shop-item.diamond .shop-role { color: #7fe0ee; }
 .shop-item.policy .shop-role { color: var(--mint); }
+.policy-tag-badge { --tone: #71817b; margin-left: 6px; padding: 1px 7px; border-radius: 99px; font-size: 9px; font-weight: 800; letter-spacing: 0; color: color-mix(in srgb, var(--tone) 90%, #fff); background: color-mix(in srgb, var(--tone) 22%, #0c1512); border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent); }
 .shop-item h4 { margin: 5px 0; font-family: Georgia, "Noto Serif KR", serif; font-size: 15px; }
 .shop-item p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
 .deck-list { max-height: 610px; overflow-y: auto; margin-bottom: 12px; }

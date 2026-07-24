@@ -3,7 +3,7 @@ import { useGame } from "../store/gameStore";
 import { CardView } from "./CardView";
 import { PwaInstallButton } from "./PwaInstall";
 import type { CardDef, Content, GameState } from "../engine/types";
-import { ALL_TAGS, TAG_LABELS } from "../engine/types";
+import { TAG_LABELS } from "../engine/types";
 import { effectiveCost, playCostOf } from "../engine/effects";
 import { CAPS, EVAL_TARGETS, targetFor, turnsFor } from "../engine/caps";
 import {
@@ -560,14 +560,13 @@ function ResultLine({ label, value, negative = false }: { label: string; value: 
 
 /** 평가 통과 후 보상 단계: 유물뽑기(3중1) → 정책뽑기(3중1) → 카드 정비(선택) → 다음 평가. 자금/구매 없음 — 전부 무료 선택. */
 function RewardPhase() {
-  const { state, content, pickRelic, pickPolicy, pickPolicyTag, removeCard, skipRemoval, rerollRelics, rerollPolicies, nextCycle } = useGame();
+  const { state, content, pickRelic, pickPolicy, removeCard, skipRemoval, rerollRelics, rerollPolicies, nextCycle } = useGame();
   const owned = ownedCards(state);
   const counts = useMemo(() => { const map = new Map<string, number>(); for (const card of owned) map.set(card.defId, (map.get(card.defId) ?? 0) + 1); return map; }, [owned]);
 
-  const step: "relic" | "policy" | "policyTag" | "removal" | "done" =
+  const step: "relic" | "policy" | "removal" | "done" =
     state.rewardRelicChoices.length > 0 ? "relic" :
     state.rewardPolicyChoices.length > 0 ? "policy" :
-    state.rewardPolicyTagChoicePending ? "policyTag" :
     !state.rewardRemovalDone ? "removal" : "done";
 
   const RerollRow = ({ onClick }: { onClick: () => void }) => (
@@ -581,9 +580,9 @@ function RewardPhase() {
     <div className="reward-layout">
       <section className="panel reward-main">
         <SectionTitle
-          kicker={`BETWEEN EVALUATIONS · STEP ${step === "relic" ? 1 : step === "policy" ? 2 : step === "policyTag" ? 2 : step === "removal" ? 3 : 4}/3`}
-          title={step === "relic" ? "유물을 선택하세요" : step === "policy" ? "정책을 선택하세요" : step === "policyTag" ? "정책이 적용될 태그를 고르세요" : step === "removal" ? "카드를 정비하세요" : "준비 완료"}
-          note={step === "relic" || step === "policy" ? "3개 중 하나, 영구 효과 (거부 불가)" : step === "policyTag" ? "이번 주기 동안만 적용됩니다" : step === "removal" ? "원하는 카드 한 장을 골라 덱에서 완전히 제거합니다 (선택 사항)" : undefined}
+          kicker={`BETWEEN EVALUATIONS · STEP ${step === "relic" ? 1 : step === "policy" ? 2 : step === "removal" ? 3 : 4}/3`}
+          title={step === "relic" ? "유물을 선택하세요" : step === "policy" ? "정책을 선택하세요" : step === "removal" ? "카드를 정비하세요" : "준비 완료"}
+          note={step === "relic" || step === "policy" ? "3개 중 하나 (거부 불가)" : step === "removal" ? "원하는 카드 한 장을 골라 덱에서 완전히 제거합니다 (선택 사항)" : undefined}
         />
 
         {step === "relic" && <>
@@ -603,24 +602,18 @@ function RewardPhase() {
         {step === "policy" && <>
           <RerollRow onClick={rerollPolicies} />
           <div className="shop-grid">
-            {state.rewardPolicyChoices.map((id) => {
+            {state.rewardPolicyChoices.map((id, i) => {
               const item = content.policies.get(id)!;
+              const tag = state.rewardPolicyChoiceTags[i];
+              // 태그형 정책은 "지정 태그"를 실제로 굴려진 태그로 치환해 보여준다
+              const text = tag ? item.text.replace("지정 태그", TAG_LABELS[tag]) : item.text;
               return (
                 <button type="button" className="shop-item policy is-pickable" key={id} onClick={() => pickPolicy(id)}>
-                  <span className="shop-role">정책</span><h4>{item.name}</h4><p>{item.text}</p>
+                  <span className="shop-role">정책{tag ? <span className={`policy-tag-badge tone-${tag}`}>{TAG_LABELS[tag]}</span> : null}</span>
+                  <h4>{item.name}</h4><p>{text}</p>
                 </button>
               );
             })}
-          </div>
-        </>}
-
-        {step === "policyTag" && <>
-          <div className="tag-choice-grid">
-            {ALL_TAGS.map((tag) => (
-              <button key={tag} className={`tag-choice-item tone-${tag}`} onClick={() => pickPolicyTag(tag)}>
-                {TAG_LABELS[tag]}
-              </button>
-            ))}
           </div>
         </>}
 

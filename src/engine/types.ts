@@ -94,9 +94,11 @@ export type Effect =
   | { kind: "gainCurse"; count: number }
   // 정책 전용: 이번 주기 정산 점수 전체에 곱연산(다른 정산 배수들과 별개로 최종 settlementScore에 적용)
   | { kind: "settlementScoreMult"; mult: number }
-  // 정책 전용(needsTagChoice와 세트) — 태그 자체는 effect에 없고 GameState.activePolicyTag를 참조한다.
-  | { kind: "activeTagScoreMult"; mult: number } // 그 태그 점수 ×mult (매 턴, multiplyTagScore와 동일 적용부)
-  | { kind: "activeTagMarketBoost"; weight: number } // 시장 진화 후보에서 그 태그가 압도적으로 자주 등장
+  // 정책 전용 — 태그 자체는 effect에 없고 GameState.activePolicyTag(드래프트 때 미리 굴려진 태그)를 참조한다.
+  | { kind: "activeTagScoreMult"; mult: number } // 그 태그 플레이 점수 ×mult (매 턴, multiplyTagScore와 동일 적용부)
+  | { kind: "activeTagSettlementMult"; mult: number } // 그 태그 정산 점수 ×mult
+  | { kind: "activeTagCostReduction"; amount: number } // 그 태그 카드 구매 비용 -amount
+  | { kind: "activeTagMarketBoost"; weight: number } // 시장 진화 후보에서 그 태그가 자주 등장
   | { kind: "activeTagMarketBan" } // 시장 진화 후보에서 그 태그 카드가 아예 등장하지 않음
   // 정산: 이번 주기에 낸 카드 수 기반 (tag 지정 시 해당 태그 플레이만) — 회전 덱의 정산 경로
   | { kind: "settlementPerPlays"; tag?: Tag; points: number; cap: number }
@@ -206,7 +208,7 @@ export interface RelicDef {
   settlement?: Effect[];
 }
 
-/** 특수 정책 (data/policies.json) — 뽑은 "다음 한 주기 동안만" 적용되는 강한 임시 효과 (유물과 달리 영구 아님) */
+/** 특수 정책 (data/policies.json) — 뽑은 "다음 한 주기 동안만" 적용되는 소소한 임시 효과 (유물과 달리 영구 아님) */
 export interface PolicyDef {
   id: string;
   name: string;
@@ -215,10 +217,11 @@ export interface PolicyDef {
   passive?: Effect[];
   /** 정산 시 적용되는 효과 (유물과 동일하게 정산 소스로 집계) */
   settlement?: Effect[];
-  /** true면 이 정책을 고른 직후 태그 하나를 선택해야 한다(시장 태그 집중/봉쇄, 태그 배수 등).
-   *  선택된 태그는 effect의 고정 tag가 아니라 GameState.pendingPolicyTag/activePolicyTag로 전달되며,
-   *  이 정책 id를 아는 엔진 코드(market.ts/game.ts/settlement.ts)가 특별 취급한다. */
-  needsTagChoice?: boolean;
+  /** 태그형 정책의 대상 태그를 드래프트 때 어떻게 굴릴지:
+   *  "ownedTag" = 내가 가진 태그 중 하나, "unownedTag" = 내가 안 가진 태그 중 하나.
+   *  굴려진 태그는 GameState.rewardPolicyChoiceTags에 저장돼 후보 카드에 표시되고,
+   *  픽 시 pendingPolicyTag→activePolicyTag로 편입되어 activeTag* 효과가 참조한다. */
+  target?: "ownedTag" | "unownedTag";
 }
 
 /** 덱 안의 카드 인스턴스 (같은 정의의 여러 장을 구분) */
@@ -289,13 +292,11 @@ export interface GameState {
   pendingPolicy: string | null;
   // 지금까지 활성화됐던 정책 id 기록(클리어 화면 표시용). 게임플레이 효과에는 관여하지 않는다.
   policyHistory: string[];
-  // needsTagChoice 정책을 고른 뒤 선택한 태그(대기) — pendingPolicy와 함께 다음 주기에 activePolicyTag로 편입.
+  // 태그형 정책을 고르면 드래프트 때 굴려진 태그가 여기 대기 — pendingPolicy와 함께 다음 주기에 activePolicyTag로 편입.
   pendingPolicyTag: Tag | null;
-  // 현재 주기에 활성화된 태그선택형 정책의 태그(없으면 null). market.ts/game.ts/settlement.ts가 특정 정책 id와
-  // 함께 참조해 "그 태그"에 적용할 효과를 계산한다.
+  // 현재 주기에 활성화된 태그형 정책의 태그(없으면 null). market.ts/game.ts/settlement.ts/effects.ts가
+  // 특정 정책 id와 함께 참조해 "그 태그"에 적용할 효과를 계산한다.
   activePolicyTag: Tag | null;
-  // needsTagChoice 정책을 방금 골라 태그 선택을 기다리는 중이면 true — 이 동안 카드 정비/다음 주기 진행이 막힌다.
-  rewardPolicyTagChoicePending: boolean;
 
   gauges: Gauges;
 
@@ -329,6 +330,8 @@ export interface GameState {
   // 각 배열이 비면 그 단계는 완료된 것으로 간주(순서대로 소비).
   rewardRelicChoices: string[]; // 3개 중 1택
   rewardPolicyChoices: string[]; // 3개 중 1택
+  // rewardPolicyChoices와 정렬된 배열 — 각 후보의 미리 굴려진 대상 태그(태그형 정책만, 기본형은 null).
+  rewardPolicyChoiceTags: (Tag | null)[];
   rewardRemovalDone: boolean; // 카드 정비(선택) 단계 완료 여부
 
   // 무한 모드: 5차 클리어 후 계속 진행 중이면 true. 이 동안엔 평가를 통과해도 "win"이 아니라

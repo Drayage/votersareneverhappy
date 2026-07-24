@@ -54,6 +54,14 @@ export function effectiveCost(state: GameState, content: Content, card: CardDef)
   for (const e of passivesOfKind(state, content, "costReduction")) {
     if (e.cardType === "all" || e.cardType === (card.type as CardType)) reduction += e.amount;
   }
+  // 정책 전용: activePolicyTag 카드 구매 비용 -amount (activeTagCostReduction)
+  if (state.activePolicyTag && card.tags.includes(state.activePolicyTag)) {
+    for (const id of state.policies) {
+      for (const e of content.policies.get(id)?.passive ?? []) {
+        if (e.kind === "activeTagCostReduction") reduction += e.amount;
+      }
+    }
+  }
   return Math.max(0, card.cost - reduction);
 }
 

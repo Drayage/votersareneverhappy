@@ -3,9 +3,16 @@ import { loadContent } from "../src/content/loader";
 import { newGame, playCard } from "../src/engine/game";
 import { computeSettlement, computeRerollTickets } from "../src/engine/settlement";
 import { CAPS } from "../src/engine/caps";
-import type { GameState } from "../src/engine/types";
+import type { Content, GameState, PolicyDef } from "../src/engine/types";
 
 const content = loadContent();
+
+/** 임시 정책을 끼운 content (엔진 메커니즘 검증용). */
+function withPolicy(def: PolicyDef): Content {
+  const policies = new Map(content.policies);
+  policies.set(def.id, def);
+  return { ...content, policies };
+}
 
 describe("리사이클(recycleInPlay)", () => {
   it("최근에 낸 카드를 덱 위로 되돌리고, 드로우로 회수해 같은 턴에 재사용할 수 있다", () => {
@@ -55,6 +62,13 @@ describe("정산 전용 카드(손패 패널티)", () => {
   });
 
   it("removeScorePenalty(공약 면책 특례)가 있으면 정산 전용 카드가 손에 들어오지 않는다", () => {
+    const c2 = withPolicy({
+      id: "p_no_penalty",
+      name: "면책 특례",
+      text: "정산 전용 카드 손패 패널티 제거",
+      price: 100,
+      passive: [{ kind: "removeScorePenalty" }],
+    });
     let s: GameState = newGame(content, 34);
     s = {
       ...s,
@@ -69,7 +83,7 @@ describe("정산 전용 카드(손패 패널티)", () => {
       inPlay: [],
       actions: 1,
     };
-    s = playCard(s, content, 9120); // +2드로우
+    s = playCard(s, c2, 9120); // +2드로우
     expect(s.hand.map((c) => c.defId)).toEqual(["basic_tax", "basic_tax"]);
     expect(s.discard.some((c) => c.defId === "central_market")).toBe(true);
   });

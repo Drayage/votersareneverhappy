@@ -124,6 +124,15 @@ export function computeSettlement(state: GameState, content: Content): Settlemen
     }
   }
 
+  // 정책 전용 태그 정산 배수(activeTagSettlementMult) — 드래프트 때 굴려진 activePolicyTag에 적용
+  if (state.activePolicyTag) {
+    for (const id of state.policies) {
+      for (const e of content.policies.get(id)?.passive ?? []) {
+        if (e.kind === "activeTagSettlementMult") (tagMultSources[state.activePolicyTag] ??= []).push(e.mult);
+      }
+    }
+  }
+
   // 태그별 배수 적용 → 정산 가산 기반.
   // 같은 태그에 배수 소스가 몰리면(유물+카드 등) 상위 CAPS.maxTagMultStack개만 곱연산,
   // 그 밖은 (mult-1) 가산 — 문화 정산 뻥튀기 같은 기하급수 폭주 차단.

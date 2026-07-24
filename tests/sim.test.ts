@@ -163,7 +163,6 @@ describe("그리디 자동플레이 시뮬레이션", () => {
         reachedReward = true;
         s = G.pickRewardRelic(s, content, s.rewardRelicChoices[0]);
         s = G.pickRewardPolicy(s, content, s.rewardPolicyChoices[0]);
-        if (s.rewardPolicyTagChoicePending) s = G.pickRewardPolicyTag(s, content, "commerce");
         s = G.skipRewardRemoval(s);
         s = G.nextCycle(s, content);
       }
